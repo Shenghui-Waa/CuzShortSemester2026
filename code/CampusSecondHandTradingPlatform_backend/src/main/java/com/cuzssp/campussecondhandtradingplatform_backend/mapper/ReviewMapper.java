@@ -1,0 +1,18 @@
+package com.cuzssp.campussecondhandtradingplatform_backend.mapper;
+
+import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.Review;
+import org.apache.ibatis.annotations.*;
+import java.util.List;
+
+@Mapper
+public interface ReviewMapper {
+    @Select("SELECT * FROM review WHERE target_id = #{targetId} ORDER BY created_at DESC")
+    List<Review> selectByTargetId(@Param("targetId") Long targetId);
+
+    @Select("SELECT COUNT(*) FROM review WHERE order_id = #{orderId} AND reviewer_id = #{reviewerId}")
+    int countByOrderIdAndReviewerId(@Param("orderId") Long orderId, @Param("reviewerId") Long reviewerId);
+
+    @Insert("INSERT INTO review (order_id, reviewer_id, target_id, rating, content, created_at) VALUES (#{orderId}, #{reviewerId}, #{targetId}, #{rating}, #{content}, #{createdAt})")
+    @Options(useGeneratedKeys = true, keyProperty = "id")
+    int insert(Review review);
+}
