@@ -1,0 +1,47 @@
+# ===================================================
+# 校园二手交易平台 - 应用配置
+# 所有敏感值通过环境变量注入，未设置时使用默认值
+# ===================================================
+
+spring:
+  application:
+    name: CampusSecondHandTradingPlatform_backend
+  config:
+    import: optional:classpath:.env[.properties]
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:cuzssp}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:123456}
+
+  servlet:
+    multipart:
+      max-file-size: ${UPLOAD_MAX_FILE_SIZE:10MB}
+      max-request-size: ${UPLOAD_MAX_REQUEST_SIZE:50MB}
+
+server:
+  port: ${SERVER_PORT:8080}
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: assign_id
+
+jwt:
+  secret: ${JWT_SECRET:cuzssp-jwt-secret-key-2026-at-least-256-bits}
+  expiration: ${JWT_EXPIRATION:86400000}
+
+r2:
+  s3:
+    account-id: ${R2_ACCOUNT_ID:placeholder-account-id}
+    access-key: ${R2_ACCESS_KEY_ID:placeholder-access-key}
+    secret-key: ${R2_SECRET_ACCESS_KEY:placeholder-secret-key}
+    endpoint: ${R2_ENDPOINT:https://placeholder.r2.cloudflarestorage.com}
+    bucket-name: ${R2_BUCKET_NAME:cuz-trade-images}
+    child-folder: ${R2_CHILD_FOLDER:cuzssp/2026/}
+    cdn-domain: ${R2_PUBLIC_URL:https://placeholder.example.com}
+    region: ${R2_REGION:auto}

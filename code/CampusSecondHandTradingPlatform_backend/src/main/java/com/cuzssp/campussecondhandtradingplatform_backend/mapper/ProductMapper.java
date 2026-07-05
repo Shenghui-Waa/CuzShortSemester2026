@@ -1,0 +1,51 @@
+package com.cuzssp.campussecondhandtradingplatform_backend.mapper;
+
+import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.Product;
+import org.apache.ibatis.annotations.*;
+import java.util.List;
+
+@Mapper
+public interface ProductMapper {
+    @Select("SELECT * FROM product WHERE id = #{id}")
+    Product selectById(@Param("id") Long id);
+
+    @Select("SELECT * FROM product WHERE status = 0 ORDER BY created_at DESC")
+    List<Product> selectAllActive();
+
+    @Select("SELECT * FROM product WHERE status = 0 AND (title LIKE CONCAT('%',#{keyword},'%') OR description LIKE CONCAT('%',#{keyword},'%')) ORDER BY created_at DESC")
+    List<Product> search(@Param("keyword") String keyword);
+
+    @Select("SELECT * FROM product WHERE status = 0 AND category_id = #{categoryId} ORDER BY created_at DESC")
+    List<Product> selectByCategoryId(@Param("categoryId") Long categoryId);
+
+    @Select("SELECT * FROM product WHERE status = 0 AND campus = #{campus} ORDER BY created_at DESC")
+    List<Product> selectByCampus(@Param("campus") String campus);
+
+    @Select("SELECT * FROM product WHERE user_id = #{userId} ORDER BY created_at DESC")
+    List<Product> selectByUserId(@Param("userId") Long userId);
+
+    @Select("SELECT * FROM product WHERE user_id = #{userId} AND status = #{status} ORDER BY created_at DESC")
+    List<Product> selectByUserIdAndStatus(@Param("userId") Long userId, @Param("status") Integer status);
+
+    @Select("SELECT * FROM product WHERE category_id = #{categoryId} AND campus = #{campus} AND status = 0 ORDER BY created_at DESC")
+    List<Product> selectByCategoryAndCampus(@Param("categoryId") Long categoryId, @Param("campus") String campus);
+
+    @Select("SELECT COUNT(*) FROM product WHERE status = 0")
+    int countActive();
+
+    @Select("SELECT COUNT(*) FROM product")
+    int countAll();
+
+    @Select("SELECT COUNT(*) FROM product WHERE category_id = #{categoryId}")
+    int countByCategoryId(@Param("categoryId") Long categoryId);
+
+    @Select("SELECT * FROM product")
+    List<Product> selectAll();
+
+    @Insert("INSERT INTO product (user_id, category_id, title, description, price, original_price, `condition`, campus, status, view_count, created_at, updated_at) VALUES (#{userId}, #{categoryId}, #{title}, #{description}, #{price}, #{originalPrice}, #{condition}, #{campus}, #{status}, #{viewCount}, #{createdAt}, #{updatedAt})")
+    @Options(useGeneratedKeys = true, keyProperty = "id")
+    int insert(Product product);
+
+    @Update("UPDATE product SET title=#{title}, description=#{description}, price=#{price}, original_price=#{originalPrice}, `condition`=#{condition}, campus=#{campus}, category_id=#{categoryId}, status=#{status}, view_count=#{viewCount}, updated_at=#{updatedAt} WHERE id=#{id}")
+    int updateById(Product product);
+}
