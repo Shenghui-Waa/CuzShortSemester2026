@@ -7,6 +7,8 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -21,7 +23,10 @@ public class FavoriteServiceImpl implements FavoriteService {
     @Override
     public Result<Void> addFavorite(Long userId, Long productId) {
         if (favoriteMapper.countByUserIdAndProductId(userId, productId) > 0) return Result.success();
-        Favorite fav = new Favorite(); fav.setUserId(userId); fav.setProductId(productId);
+        Favorite fav = new Favorite();
+        fav.setUserId(userId);
+        fav.setProductId(productId);
+        fav.setCreatedAt(LocalDateTime.now());
         favoriteMapper.insert(fav);
         return Result.success();
     }

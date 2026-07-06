@@ -207,8 +207,10 @@ INSERT INTO `category` (`id`, `name`, `icon`, `sort_order`) VALUES
 
 -- ---------------------------------------------------
 -- 初始数据：管理员账号
--- 默认密码: admin123（BCrypt加密）
+-- 默认密码: password（Base64加密）
 -- 首次部署后请立即修改密码！
 -- ---------------------------------------------------
-INSERT INTO `user` (`id`, `username`, `password`, `nickname`, `role`, `status`) VALUES
-(1, 'admin', '$2a$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW', '系统管理员', 1, 0);
+INSERT INTO user (id, username, password, nickname, role, status) VALUES
+(1, 'admin', 'Y3V6c3NwcGFzc3dvcmQyMDI2d2VicHJvamVjdA==', 'ADMINISTRATOR', 1, 0);
+
+rename table `order` to order_info;

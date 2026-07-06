@@ -10,6 +10,8 @@ import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.Result;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.CartItemVO;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,7 +41,10 @@ public class CartServiceImpl implements CartService {
     @Override
     public Result<Void> addToCart(Long userId, Long productId) {
         if (cartMapper.countByUserIdAndProductId(userId, productId) > 0) return Result.success();
-        CartItem item = new CartItem(); item.setUserId(userId); item.setProductId(productId);
+        CartItem item = new CartItem();
+        item.setUserId(userId);
+        item.setProductId(productId);
+        item.setCreatedAt(LocalDateTime.now());
         cartMapper.insert(item);
         return Result.success();
     }

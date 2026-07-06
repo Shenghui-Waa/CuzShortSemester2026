@@ -24,6 +24,7 @@ public class ProductController {
                                      @RequestHeader(value = "Authorization", required = false) String token) {
         Long currentUserId = getCurrentUserId(token);
         return productService.getProductList(query, currentUserId);
+
     }
 
     @GetMapping("/{id}")

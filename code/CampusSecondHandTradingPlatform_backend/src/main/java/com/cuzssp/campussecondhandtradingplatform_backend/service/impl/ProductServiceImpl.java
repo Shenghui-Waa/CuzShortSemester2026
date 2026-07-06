@@ -8,6 +8,8 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -54,12 +56,18 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Result<ProductVO> createProduct(Long userId, Product product, List<String> images) {
-        product.setUserId(userId); product.setStatus(0); product.setViewCount(0);
+        product.setUserId(userId);
+        product.setStatus(0);
+        product.setViewCount(0);
+        product.setCreatedAt(LocalDateTime.now());
+        product.setUpdatedAt(LocalDateTime.now());
         productMapper.insert(product);
         if (images != null) {
             for (int i = 0; i < images.size(); i++) {
                 ProductImage img = new ProductImage();
-                img.setProductId(product.getId()); img.setUrl(images.get(i)); img.setSortOrder(i);
+                img.setProductId(product.getId());
+                img.setUrl(images.get(i));
+                img.setSortOrder(i);
                 productImageMapper.insert(img);
             }
         }
@@ -70,8 +78,11 @@ public class ProductServiceImpl implements ProductService {
     public Result<ProductVO> updateProduct(Long userId, Long productId, Product product, List<String> images) {
         Product existing = productMapper.selectById(productId);
         if (existing == null) return Result.error(404, "Product not found");
-        product.setId(productId); product.setUserId(existing.getUserId());
-        product.setStatus(existing.getStatus()); product.setViewCount(existing.getViewCount());
+        product.setId(productId);
+        product.setUserId(existing.getUserId());
+        product.setStatus(existing.getStatus());
+        product.setViewCount(existing.getViewCount());
+        product.setUpdatedAt(LocalDateTime.now());
         productMapper.updateById(product);
         if (images != null) {
             productImageMapper.deleteByProductId(productId);
@@ -89,6 +100,7 @@ public class ProductServiceImpl implements ProductService {
         Product product = productMapper.selectById(productId);
         if (product == null) return Result.error(404, "Product not found");
         product.setStatus(status);
+        product.setUpdatedAt(LocalDateTime.now());
         productMapper.updateById(product);
         return Result.success();
     }
