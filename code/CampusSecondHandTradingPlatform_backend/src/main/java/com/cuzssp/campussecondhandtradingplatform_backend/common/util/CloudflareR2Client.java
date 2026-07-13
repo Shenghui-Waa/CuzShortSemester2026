@@ -20,8 +20,11 @@ import java.util.List;
 @Component
 public class CloudflareR2Client {
 
-    @Autowired
-    private S3Config s3Config;
+    @Autowired private S3Config s3Config;
+
+    public S3Client getS3Client() {
+        return buildS3Client();
+    }
 
     private S3Client buildS3Client() {
         AwsBasicCredentials credentials = AwsBasicCredentials.create(

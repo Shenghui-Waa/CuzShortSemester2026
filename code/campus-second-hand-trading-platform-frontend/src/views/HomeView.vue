@@ -29,8 +29,14 @@ const products = ref<any[]>([]);
 const loading = ref(false);
 onMounted(async () => {
   loading.value = true;
-  try { const res: any = await productApi.list({ page: 1, pageSize: 8 }); products.value = res.data?.records || []; }
-  catch { } finally { loading.value = false; }
+  try {
+    const res: any = await productApi.list({ page: 1, pageSize: 8 });
+    products.value = res.data?.records || [];
+  } catch {
+
+  } finally {
+    loading.value = false;
+  }
 });
 </script>
 

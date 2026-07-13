@@ -14,18 +14,33 @@ import java.util.stream.Collectors;
 @Service
 public class FileServiceImpl implements FileService {
 
-    @Autowired
-    private FileUtil fileUtil;
+    @Autowired private FileUtil fileUtil;
 
+    /**
+     * 单文件上传
+     * @param file
+     * @return
+     */
     @Override
-    public Result<String> uploadFile(MultipartFile file) {
+    public Result<String> uploadFile(
+            MultipartFile file
+    ) {
         String url = fileUtil.uploadImage(file);
         return Result.success(url);
     }
 
+    /**
+     * 多文件上传
+     * @param files
+     * @return
+     */
     @Override
-    public Result<List<String>> uploadFiles(List<MultipartFile> files) {
-        List<String> urls = files.stream().map(fileUtil::uploadImage).collect(Collectors.toList());
+    public Result<List<String>> uploadFiles(
+            List<MultipartFile> files
+    ) {
+        List<String> urls = files.stream()
+                .map(fileUtil::uploadImage)
+                .collect(Collectors.toList());
         return Result.success(urls);
     }
 }

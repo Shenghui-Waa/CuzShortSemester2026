@@ -1,9 +1,12 @@
 package com.cuzssp.campussecondhandtradingplatform_backend.service.impl;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.constant.UserConstant;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.LoginRequest;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.RegisterRequest;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.User;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.exception.BusinessException;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.security.Base64Provider;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.util.ToEntityUtil;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.util.ToVOUtil;
 import com.cuzssp.campussecondhandtradingplatform_backend.mapper.UserMapper;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.security.JwtTokenProvider;
 import com.cuzssp.campussecondhandtradingplatform_backend.service.AuthService;
@@ -22,54 +25,60 @@ public class AuthServiceImpl implements AuthService {
     @Autowired private Base64Provider base64Provider;
     @Autowired private JwtTokenProvider jwtTokenProvider;
 
+    /**
+     * 注册
+     * @param request
+     * @return
+     */
     @Override
     public Result<UserVO> register(RegisterRequest request) {
         if (userMapper.countByUsername(request.getUsername()) > 0)
             throw new BusinessException("Username already exists");
-        User user = new User();
-        user.setUsername(request.getUsername());
-        user.setPassword(base64Provider.encode(request.getPassword()));
-        user.setNickname(request.getNickname() != null ? request.getNickname() : request.getUsername());
-        user.setPhone(request.getPhone()); user.setEmail(request.getEmail());
-        user.setSchool(request.getSchool()); user.setCampus(request.getCampus());
-        user.setRole(0);
-        user.setStatus(0);
-        user.setCreditScore(100);
-        user.setCreatedAt(LocalDateTime.now());
-        user.setUpdatedAt(LocalDateTime.now());
+        User user = ToEntityUtil.toUserEntity(request, base64Provider);
         userMapper.insert(user);
         log.info("User registered: {}", user.getUsername());
-        return Result.success(toVO(user));
+        return Result.success(ToVOUtil.toUserVO(user));
     }
 
+    /**
+     * 登录
+     * @param request
+     * @return
+     */
     @Override
     public Result<String> login(LoginRequest request) {
         User user = userMapper.selectByUsername(request.getUsername());
-        if (user == null) throw new BusinessException("Invalid username or password");
-        if (user.getStatus() == 1) throw new BusinessException("Account has been disabled");
+
+        if (user == null)
+            throw new BusinessException("Invalid username or password");
+        if (user.getStatus() == UserConstant.STATUS_DISABLE)
+            throw new BusinessException("Account has been disabled");
         if (!base64Provider.matches(request.getPassword(), user.getPassword()))
             throw new BusinessException("Invalid username or password");
+
         String token = jwtTokenProvider.generateToken(user);
         log.info("User logged in: {}", user.getUsername());
+
         return Result.success("Login successful", token);
     }
 
+    /**
+     * 登出
+     * @param userId
+     * @return
+     */
     @Override
-    public Result<Void> logout(Long userId) { return Result.success(); }
-
-    @Override
-    public Result<UserVO> me(Long userId) {
-        User user = userMapper.selectById(userId);
-        if (user == null) throw new BusinessException("User not found");
-        return Result.success(toVO(user));
+    public Result<Void> logout(Long userId) {
+        return Result.success();
     }
 
-    private UserVO toVO(User user) {
-        UserVO vo = new UserVO();
-        vo.setId(user.getId()); vo.setUsername(user.getUsername()); vo.setNickname(user.getNickname());
-        vo.setAvatar(user.getAvatar()); vo.setPhone(user.getPhone()); vo.setEmail(user.getEmail());
-        vo.setSchool(user.getSchool()); vo.setCampus(user.getCampus()); vo.setRole(user.getRole());
-        vo.setStatus(user.getStatus()); vo.setCreditScore(user.getCreditScore()); vo.setCreatedAt(user.getCreatedAt());
-        return vo;
+    /**
+     * 是不是我？
+     * @param userId
+     * @return
+     */
+    public Result<UserVO> me (Long userId) {
+        User user = userMapper.selectById(userId);
+        return Result.success(ToVOUtil.toUserVO(user));
     }
 }

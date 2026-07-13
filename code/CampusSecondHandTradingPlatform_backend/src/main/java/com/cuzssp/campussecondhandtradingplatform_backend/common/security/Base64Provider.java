@@ -12,7 +12,9 @@ public class Base64Provider {
     }
 
     public String decode(String password) {
-        return "cuzssp" + new String(Base64.getDecoder().decode(password)) + "2026webproject";
+        return new String(Base64.getDecoder().decode(password))
+                .replace("cuzssp", "")
+                .replace("2026webproject", "");
     }
 
     public boolean matches(@Nullable String rawPassword, @Nullable String encodedPassword) {

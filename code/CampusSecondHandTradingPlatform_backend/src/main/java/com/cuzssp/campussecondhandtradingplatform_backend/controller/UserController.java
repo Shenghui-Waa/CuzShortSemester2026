@@ -7,41 +7,75 @@ import com.cuzssp.campussecondhandtradingplatform_backend.common.security.JwtTok
 import com.cuzssp.campussecondhandtradingplatform_backend.service.UserService;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.Result;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @RestController
 @RequestMapping("/api/user")
 public class UserController {
 
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private JwtTokenProvider jwtTokenProvider;
+    @Autowired private UserService userService;
+    @Autowired private JwtTokenProvider jwtTokenProvider;
 
+    /**
+     * 获取用户信息
+     * @param id
+     * @return
+     */
     @GetMapping("/{id}")
-    public Result<?> getUserById(@PathVariable Long id) {
+    public Result<?> getUserById(
+            @PathVariable Long id
+    ) {
         return userService.getUserById(id);
     }
 
+    /**
+     * 修改个人信息
+     * @param token
+     * @param request
+     * @return
+     */
     @PutMapping("/profile")
-    public Result<?> updateProfile(@RequestHeader("Authorization") String token,
-                                    @RequestBody UpdateProfileRequest request) {
-        Long userId = jwtTokenProvider.getUserIdFromToken(token.replace("Bearer ", ""));
-        return userService.updateProfile(userId, request);
+    public Result<?> updateProfile(
+            @RequestHeader("Authorization") String token,
+            @RequestBody UpdateProfileRequest request
+    ) {
+        Long currentUserId = getCurrentUserId(token);
+        return userService.updateProfile(currentUserId, request);
     }
 
+    /**
+     * 修改密码
+     * @param token
+     * @param request
+     * @return
+     */
     @PutMapping("/password")
-    public Result<?> changePassword(@RequestHeader("Authorization") String token,
-                                     @RequestBody ChangePasswordRequest request) {
-        Long userId = jwtTokenProvider.getUserIdFromToken(token.replace("Bearer ", ""));
-        return userService.changePassword(userId, request);
+    public Result<?> changePassword(
+            @RequestHeader("Authorization") String token,
+            @RequestBody ChangePasswordRequest request
+    ) {
+        Long currentUserId = getCurrentUserId(token);
+        return userService.changePassword(currentUserId, request);
     }
 
+    /**
+     * 修改头像
+     * @param token
+     * @param image
+     * @return
+     */
     @PostMapping("/avatar")
-    public Result<?> uploadAvatar(@RequestHeader("Authorization") String token,
-                                   @RequestParam("file") MultipartFile file) {
-        Long userId = jwtTokenProvider.getUserIdFromToken(token.replace("Bearer ", ""));
-        return userService.uploadAvatar(userId, file);
+    public Result<?> uploadAvatar(
+            @RequestHeader("Authorization") String token,
+            @RequestParam(required = false) String image
+    ) {
+        Long currentUserId = getCurrentUserId(token);
+        return userService.updateAvatar(currentUserId, image);
+    }
+
+    private Long getCurrentUserId(String token) {
+        if (token == null || token.isEmpty())
+            return null;
+        return jwtTokenProvider.getUserIdFromToken(token.replace("Bearer ", ""));
     }
 }

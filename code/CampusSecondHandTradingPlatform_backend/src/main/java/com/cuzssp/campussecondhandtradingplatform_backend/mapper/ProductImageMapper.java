@@ -1,18 +1,1 @@
-package com.cuzssp.campussecondhandtradingplatform_backend.mapper;
-
-import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.ProductImage;
-import org.apache.ibatis.annotations.*;
-import java.util.List;
-
-@Mapper
-public interface ProductImageMapper {
-    @Select("SELECT * FROM product_image WHERE product_id = #{productId} ORDER BY sort_order ASC")
-    List<ProductImage> selectByProductId(@Param("productId") Long productId);
-
-    @Insert("INSERT INTO product_image (product_id, url, sort_order) VALUES (#{productId}, #{url}, #{sortOrder})")
-    @Options(useGeneratedKeys = true, keyProperty = "id")
-    int insert(ProductImage image);
-
-    @Delete("DELETE FROM product_image WHERE product_id = #{productId}")
-    int deleteByProductId(@Param("productId") Long productId);
-}
+package com.cuzssp.campussecondhandtradingplatform_backend.mapper;import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.ProductImage;import org.apache.ibatis.annotations.*;import java.util.List;@Mapperpublic interface ProductImageMapper {    @Select("SELECT * FROM product_image " +            "WHERE product_id = #{productId} " +            "ORDER BY sort_order ASC")    List<ProductImage> selectByProductId(@Param("productId") Long productId);    @Insert("INSERT INTO product_image (product_id, url, sort_order) " +            "VALUES (#{productId}, #{url}, #{sortOrder})")    @Options(useGeneratedKeys = true, keyProperty = "id")    int insertImage(ProductImage image);    @Delete("DELETE FROM product_image " +            "WHERE product_id = #{productId}")    int deleteByProductId(@Param("productId") Long productId);}

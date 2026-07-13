@@ -21,6 +21,7 @@ public class ChatServiceImpl implements ChatService {
     public Result<List<ChatContactVO>> getContacts(Long userId) {
         List<ChatMessage> sent = chatMessageMapper.selectBySenderId(userId);
         List<ChatMessage> received = chatMessageMapper.selectByReceiverId(userId);
+
         Map<Long, ChatContactVO> contactMap = new HashMap<>();
         for (ChatMessage msg : sent) {
             contactMap.putIfAbsent(msg.getReceiverId(), new ChatContactVO());

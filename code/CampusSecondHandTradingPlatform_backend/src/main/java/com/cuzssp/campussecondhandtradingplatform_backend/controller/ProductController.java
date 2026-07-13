@@ -14,61 +14,114 @@ import java.util.List;
 @RequestMapping("/api/products")
 public class ProductController {
 
-    @Autowired
-    private ProductService productService;
-    @Autowired
-    private JwtTokenProvider jwtTokenProvider;
+    @Autowired private ProductService productService;
+    @Autowired private JwtTokenProvider jwtTokenProvider;
 
+    /**
+     * 获取商品列表
+     * @param query
+     * @param token
+     * @return
+     */
     @GetMapping
-    public Result<?> getProductList(ProductQueryDTO query,
-                                     @RequestHeader(value = "Authorization", required = false) String token) {
+    public Result<?> getProductList(
+            ProductQueryDTO query,
+            @RequestHeader(value = "Authorization", required = false) String token
+    ) {
         Long currentUserId = getCurrentUserId(token);
         return productService.getProductList(query, currentUserId);
 
     }
 
+    /**
+     * 获取某一商品详情 基于 id
+     * @param id
+     * @param token
+     * @return
+     */
     @GetMapping("/{id}")
-    public Result<?> getProductDetail(@PathVariable Long id,
-                                       @RequestHeader(value = "Authorization", required = false) String token) {
+    public Result<?> getProductDetail(
+            @PathVariable Long id,
+            @RequestHeader(value = "Authorization", required = false) String token
+    ) {
         Long currentUserId = getCurrentUserId(token);
         return productService.getProductDetail(id, currentUserId);
     }
 
+    /**
+     * 发布商品
+     * @param token
+     * @param product
+     * @param images
+     * @return
+     */
     @PostMapping
-    public Result<?> createProduct(@RequestHeader("Authorization") String token,
-                                    @RequestBody Product product,
-                                    @RequestParam(required = false) List<String> images) {
-        Long userId = jwtTokenProvider.getUserIdFromToken(token.replace("Bearer ", ""));
-        return productService.createProduct(userId, product, images);
+    public Result<?> createProduct(
+            @RequestHeader("Authorization") String token,
+            @RequestBody Product product,
+            @RequestParam(required = false) List<String> images
+    ) {
+        Long currentUserId = getCurrentUserId(token);
+        return productService.createProduct(currentUserId, product, images);
     }
 
+    /**
+     * 修改商品
+     * TODO: 前端未做，无法验证是否可用，仅作逻辑确认
+     * @param token
+     * @param id
+     * @param product
+     * @param images
+     * @return
+     */
     @PutMapping("/{id}")
-    public Result<?> updateProduct(@RequestHeader("Authorization") String token,
-                                    @PathVariable Long id,
-                                    @RequestBody Product product,
-                                    @RequestParam(required = false) List<String> images) {
-        Long userId = jwtTokenProvider.getUserIdFromToken(token.replace("Bearer ", ""));
-        return productService.updateProduct(userId, id, product, images);
+    public Result<?> updateProduct(
+            @RequestHeader("Authorization") String token,
+            @PathVariable Long id,
+            @RequestBody Product product,
+            @RequestParam(required = false) List<String> images
+    ) {
+        Long currentUserId = getCurrentUserId(token);
+        return productService.updateProduct(currentUserId, id, product, images);
     }
 
+    /**
+     * 修改商品状态
+     * @param token
+     * @param id
+     * @param status
+     * @return
+     */
     @PutMapping("/{id}/status")
-    public Result<?> updateStatus(@RequestHeader("Authorization") String token,
-                                   @PathVariable Long id,
-                                   @RequestParam Integer status) {
-        Long userId = jwtTokenProvider.getUserIdFromToken(token.replace("Bearer ", ""));
-        return productService.updateProductStatus(userId, id, status);
+    public Result<?> updateStatus(
+            @RequestHeader("Authorization") String token,
+            @PathVariable Long id,
+            @RequestParam Integer status
+    ) {
+        Long currentUserId = getCurrentUserId(token);
+        return productService.updateProductStatus(currentUserId, id, status);
     }
 
+    /**
+     * 获取我发布的商品列表
+     * @param token
+     * @param page
+     * @param pageSize
+     * @return
+     */
     @GetMapping("/my")
-    public Result<?> getMyProducts(@RequestHeader("Authorization") String token,
-                                    @RequestParam(defaultValue = "1") Integer page,
-                                    @RequestParam(defaultValue = "10") Integer pageSize) {
-        Long userId = jwtTokenProvider.getUserIdFromToken(token.replace("Bearer ", ""));
-        return productService.getMyProducts(userId, page, pageSize);
+    public Result<?> getMyProducts(
+            @RequestHeader("Authorization") String token,
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer pageSize
+    ) {
+        Long currentUserId = getCurrentUserId(token);
+        return productService.getMyProducts(currentUserId, page, pageSize);
     }
 
     private Long getCurrentUserId(String token) {
-        if (token == null || token.isEmpty()) return null;
+        if (token == null || token.isEmpty())
+            return null;
         try {
             return jwtTokenProvider.getUserIdFromToken(token.replace("Bearer ", ""));
         } catch (Exception e) {

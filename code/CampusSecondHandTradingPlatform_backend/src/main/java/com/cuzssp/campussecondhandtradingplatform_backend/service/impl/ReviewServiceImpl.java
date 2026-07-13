@@ -2,6 +2,8 @@ package com.cuzssp.campussecondhandtradingplatform_backend.service.impl;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.Review;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.OrderInfo;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.User;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.util.ToEntityUtil;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.util.ToVOUtil;
 import com.cuzssp.campussecondhandtradingplatform_backend.mapper.ReviewMapper;
 import com.cuzssp.campussecondhandtradingplatform_backend.mapper.OrderMapper;
 import com.cuzssp.campussecondhandtradingplatform_backend.mapper.UserMapper;
@@ -20,43 +22,65 @@ import java.util.stream.Collectors;
 
 @Service
 public class ReviewServiceImpl implements ReviewService {
+
     @Autowired private ReviewMapper reviewMapper;
     @Autowired private OrderMapper orderMapper;
     @Autowired private UserMapper userMapper;
 
+    /**
+     * 创建评价
+     * @param reviewerId
+     * @param request
+     * @return
+     */
     @Override
-    public Result<Void> createReview(Long reviewerId, ReviewRequest request) {
+    public Result<Void> createReview(
+            Long reviewerId, ReviewRequest request
+    ) {
         OrderInfo order = orderMapper.selectById(request.getOrderId());
-        if (order == null) throw new BusinessException("Order not found");
+        if (order == null)
+            throw new BusinessException("Order not found");
         if (reviewMapper.countByOrderIdAndReviewerId(request.getOrderId(), reviewerId) > 0)
             throw new BusinessException("Already reviewed");
-        Review review = new Review();
-        review.setOrderId(request.getOrderId()); review.setReviewerId(reviewerId);
-        review.setTargetId(request.getTargetId()); review.setRating(request.getRating());
-        review.setContent(request.getContent());
+        Review review = ToEntityUtil.toReviewEntity(reviewerId, request);
         reviewMapper.insert(review);
         User target = userMapper.selectById(request.getTargetId());
         if (target != null) {
-            target.setCreditScore(target.getCreditScore() + (request.getRating() >= 3 ? 1 : -1));
+            target.setCreditScore(
+                    target.getCreditScore() + (request.getRating() >= 3 ? 1 : -1)
+            );
             userMapper.updateById(target);
         }
         return Result.success();
     }
 
+    /**
+     * 获取评价记录
+     * @param userId
+     * @param page
+     * @param pageSize
+     * @return
+     */
     @Override
-    public Result<PageResult<ReviewVO>> getUserReviews(Long userId, Integer page, Integer pageSize) {
+    public Result<PageResult<ReviewVO>> getUserReviews(
+            Long userId, Integer page, Integer pageSize
+    ) {
         PageHelper.startPage(page, pageSize);
-        List<Review> pg = reviewMapper.selectByTargetId(userId);
-        PageInfo<Review> pgInfo = new PageInfo<>(pg);
-        List<ReviewVO> vos = pg.stream().map(r -> {
-            ReviewVO vo = new ReviewVO();
-            vo.setId(r.getId()); vo.setOrderId(r.getOrderId()); vo.setReviewerId(r.getReviewerId());
-            vo.setTargetId(r.getTargetId()); vo.setRating(r.getRating()); vo.setContent(r.getContent());
-            vo.setCreatedAt(r.getCreatedAt());
-            User reviewer = userMapper.selectById(r.getReviewerId());
-            if (reviewer != null) { vo.setReviewerName(reviewer.getNickname()); vo.setReviewerAvatar(reviewer.getAvatar()); }
-            return vo;
-        }).collect(Collectors.toList());
-        return Result.success(new PageResult<>(vos, pgInfo.getTotal(), pgInfo.getPageNum(), pgInfo.getPageSize()));
+        List<Review> reviews = reviewMapper.selectByTargetId(userId);
+        PageInfo<Review> reviewPageInfo = new PageInfo<>(reviews);
+        List<ReviewVO> reviewVOs = reviews.stream()
+                .map(review -> {
+                    return ToVOUtil.toReviewVO(
+                            review, userMapper.selectById(review.getReviewerId())
+                    );
+                }).collect(Collectors.toList());
+        return Result.success(
+                new PageResult<>(
+                        reviewVOs,
+                        reviewPageInfo.getTotal(),
+                        reviewPageInfo.getPageNum(),
+                        reviewPageInfo.getPageSize()
+                )
+        );
     }
 }

@@ -11,37 +11,75 @@ import org.springframework.beans.factory.annotation.Autowired;
 @RequestMapping("/api/favorites")
 public class FavoriteController {
 
-    @Autowired
-    private FavoriteService favoriteService;
-    @Autowired
-    private JwtTokenProvider jwtTokenProvider;
+    @Autowired private FavoriteService favoriteService;
+    @Autowired private JwtTokenProvider jwtTokenProvider;
 
+    /**
+     * 获取喜欢列表
+     * @param token
+     * @param page
+     * @param pageSize
+     * @return
+     */
     @GetMapping
-    public Result<?> getFavorites(@RequestHeader("Authorization") String token,
-                                   @RequestParam(defaultValue = "1") Integer page,
-                                   @RequestParam(defaultValue = "12") Integer pageSize) {
-        Long userId = jwtTokenProvider.getUserIdFromToken(token.replace("Bearer ", ""));
-        return favoriteService.getFavorites(userId, page, pageSize);
+    public Result<?> getFavorites(
+            @RequestHeader("Authorization") String token,
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "12") Integer pageSize
+    ) {
+        Long currentUserId = getCurrentUserId(token);
+        return favoriteService.getFavorites(currentUserId, page, pageSize);
     }
 
+    /**
+     * 加喜欢
+     * @param token
+     * @param productId
+     * @return
+     */
     @PostMapping
-    public Result<?> addFavorite(@RequestHeader("Authorization") String token,
-                                  @RequestParam Long productId) {
-        Long userId = jwtTokenProvider.getUserIdFromToken(token.replace("Bearer ", ""));
-        return favoriteService.addFavorite(userId, productId);
+    public Result<?> addFavorite(
+            @RequestHeader("Authorization") String token,
+            @RequestParam Long productId
+    ) {
+        Long currentUserId = getCurrentUserId(token);
+        return favoriteService.addFavorite(currentUserId, productId);
     }
 
+    /**
+     * 移除喜欢
+     * @param token
+     * @param productId
+     * @return
+     */
     @DeleteMapping("/{productId}")
-    public Result<?> removeFavorite(@RequestHeader("Authorization") String token,
-                                     @PathVariable Long productId) {
-        Long userId = jwtTokenProvider.getUserIdFromToken(token.replace("Bearer ", ""));
-        return favoriteService.removeFavorite(userId, productId);
+    public Result<?> removeFavorite(
+            @RequestHeader("Authorization") String token,
+            @PathVariable Long productId
+    ) {
+        Long currentUserId = getCurrentUserId(token);
+        return favoriteService.removeFavorite(currentUserId, productId);
     }
 
+    /**
+     * 校验是否喜欢
+     * @param token
+     * @param productId
+     * @return
+     */
     @GetMapping("/check/{productId}")
-    public Result<?> checkFavorited(@RequestHeader("Authorization") String token,
-                                     @PathVariable Long productId) {
-        Long userId = jwtTokenProvider.getUserIdFromToken(token.replace("Bearer ", ""));
-        return favoriteService.isFavorited(userId, productId);
+    public Result<?> checkFavorited(
+            @RequestHeader("Authorization") String token,
+            @PathVariable Long productId
+    ) {
+        Long currentUserId = getCurrentUserId(token);
+        return favoriteService.isFavorited(currentUserId, productId);
+    }
+
+    private Long getCurrentUserId(String token) {
+        if (token == null || token.isEmpty())
+            return null;
+        return jwtTokenProvider.getUserIdFromToken(token.replace("Bearer ", ""));
+
     }
 }

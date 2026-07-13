@@ -1,5 +1,10 @@
 package com.cuzssp.campussecondhandtradingplatform_backend.service.impl;
+
+import com.cuzssp.campussecondhandtradingplatform_backend.common.constant.OrderInfoConstant;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.constant.ProductConstant;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.*;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.util.ToEntityUtil;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.util.ToVOUtil;
 import com.cuzssp.campussecondhandtradingplatform_backend.mapper.*;
 import com.cuzssp.campussecondhandtradingplatform_backend.service.OrderService;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.*;
@@ -9,119 +14,180 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class OrderServiceImpl implements OrderService {
+
     @Autowired private OrderMapper orderMapper;
     @Autowired private OrderItemMapper orderItemMapper;
     @Autowired private ProductMapper productMapper;
     @Autowired private ProductImageMapper productImageMapper;
     @Autowired private UserMapper userMapper;
 
+    /**
+     * 创建订单
+     * @param buyerId
+     * @param request
+     * @return
+     */
     @Override
-    public Result<OrderVO> createOrder(Long buyerId, CreateOrderRequest request) {
+    public Result<OrderVO> createOrder(
+            Long buyerId, CreateOrderRequest request
+    ) {
         Product product = productMapper.selectById(request.getProductId());
-        if (product == null) throw new BusinessException("Product not found");
-        if (product.getStatus() != 0) throw new BusinessException("Product not available");
-        product.setStatus(2);
-        OrderInfo order = new OrderInfo();
-        order.setOrderNo(UUID.randomUUID().toString().replace("-","").substring(0,20));
-        order.setBuyerId(buyerId); order.setSellerId(product.getUserId());
-        order.setTotalAmount(product.getPrice()); order.setStatus(0);
-        order.setRemark(request.getRemark()); order.setCreatedAt(LocalDateTime.now());
+        if (product == null)
+            throw new BusinessException("Product not found");
+        if (product.getStatus() != ProductConstant.STATUS_ON_SALE)
+            throw new BusinessException("Product not available");
+        product.setStatus(ProductConstant.STATUS_SOLD_OUT);
+        OrderInfo order = ToEntityUtil.toOrderInfoEntity(buyerId, product, request.getRemark());
         orderMapper.insert(order);
-        OrderItem item = new OrderItem();
-        item.setOrderId(order.getId()); item.setProductId(product.getId());
-        item.setPrice(product.getPrice()); item.setCreatedAt(LocalDateTime.now());
-        orderItemMapper.insert(item);
+        OrderItem orderItem = ToEntityUtil.toOrderItemEntity(order, product);
+        orderItemMapper.insert(orderItem);
         productMapper.updateById(product);
         return Result.success(toVO(orderMapper.selectById(order.getId())));
     }
 
+    /**
+     * 获取订单列表
+     * @param userId
+     * @param status
+     * @param page
+     * @param pageSize
+     * @return
+     */
     @Override
-    public Result<PageResult<OrderVO>> getOrders(Long userId, Integer status, Integer page, Integer pageSize) {
+    public Result<PageResult<OrderVO>> getOrders(
+            Long userId, Integer status, Integer page, Integer pageSize
+    ) {
         PageHelper.startPage(page, pageSize);
         List<OrderInfo> all = orderMapper.selectAll().stream()
-                .filter(o -> o.getBuyerId().equals(userId) || o.getSellerId().equals(userId))
+                .filter(
+                        order -> order.getBuyerId().equals(userId)
+                                || order.getSellerId().equals(userId)
+                ).collect(Collectors.toList());
+        if (status != null)
+            all = all.stream()
+                    .filter(order -> order.getStatus().equals(status))
+                    .collect(Collectors.toList());
+        PageInfo<OrderInfo> orderPageInfo = new PageInfo<>(all);
+        List<OrderVO> orderVOs = all.stream()
+                .map(this::toVO)
                 .collect(Collectors.toList());
-        if (status != null) all = all.stream().filter(o -> o.getStatus().equals(status)).collect(Collectors.toList());
-        PageInfo<OrderInfo> pgInfo = new PageInfo<>(all);
-        List<OrderVO> vos = all.stream().map(this::toVO).collect(Collectors.toList());
-        return Result.success(new PageResult<>(vos, pgInfo.getTotal(), pgInfo.getPageNum(), pgInfo.getPageSize()));
+        return Result.success(
+                new PageResult<>(
+                        orderVOs,
+                        orderPageInfo.getTotal(),
+                        orderPageInfo.getPageNum(),
+                        orderPageInfo.getPageSize()
+                )
+        );
     }
 
+    /**
+     * 获取订单详情
+     * @param userId
+     * @param orderId
+     * @return
+     */
     @Override
-    public Result<OrderVO> getOrderDetail(Long userId, Long orderId) {
-        OrderInfo order = orderMapper.selectById(orderId);
-        if (order == null) throw new BusinessException("Order not found");
-        return Result.success(toVO(order));
+    public Result<OrderVO> getOrderDetail(
+            Long userId, Long orderId
+    ) {
+        OrderInfo orderInfo = orderMapper.selectById(orderId);
+        if (orderInfo == null)
+            throw new BusinessException("Order not found");
+        return Result.success(toVO(orderInfo));
     }
 
+    /**
+     * 支付订单，为合规，不做支付逻辑
+     * @param userId
+     * @param orderId
+     * @return
+     */
     @Override
-    public Result<Void> payOrder(Long userId, Long orderId) {
+    public Result<Void> payOrder(
+            Long userId, Long orderId
+    ) {
         OrderInfo order = orderMapper.selectById(orderId);
-        if (order == null) throw new BusinessException("Order not found");
-        order.setStatus(2); orderMapper.updateById(order);
+        if (order == null)
+            throw new BusinessException("Order not found");
+        order.setStatus(OrderInfoConstant.STATUS_WAIT_DELIVER);
+        orderMapper.updateById(order);
         return Result.success();
     }
 
+    /**
+     * 发货
+     * @param sellerId
+     * @param orderId
+     * @return
+     */
     @Override
-    public Result<Void> shipOrder(Long sellerId, Long orderId) {
+    public Result<Void> shipOrder(
+            Long sellerId, Long orderId
+    ) {
         OrderInfo order = orderMapper.selectById(orderId);
-        if (order == null) throw new BusinessException("Order not found");
-        order.setStatus(3); orderMapper.updateById(order);
+        if (order == null)
+            throw new BusinessException("Order not found");
+        order.setStatus(OrderInfoConstant.STATUS_WAIT_RECEIVE);
+        orderMapper.updateById(order);
         return Result.success();
     }
 
+    /**
+     * 收货
+     * @param buyerId
+     * @param orderId
+     * @return
+     */
     @Override
     public Result<Void> confirmOrder(Long buyerId, Long orderId) {
         OrderInfo order = orderMapper.selectById(orderId);
-        if (order == null) throw new BusinessException("Order not found");
-        order.setStatus(4); orderMapper.updateById(order);
+        if (order == null)
+            throw new BusinessException("Order not found");
+        order.setStatus(OrderInfoConstant.STATUS_COMPLETED);
+        orderMapper.updateById(order);
         return Result.success();
     }
 
     @Override
     public Result<Void> cancelOrder(Long userId, Long orderId) {
         OrderInfo order = orderMapper.selectById(orderId);
-        if (order == null) throw new BusinessException("Order not found");
-        order.setStatus(1);
-        List<OrderItem> items = orderItemMapper.selectByOrderId(orderId);
-        for (OrderItem oi : items) {
-            Product product = productMapper.selectById(oi.getProductId());
-            if (product != null) { product.setStatus(0); productMapper.updateById(product); }
+        if (order == null)
+            throw new BusinessException("Order not found");
+        order.setStatus(OrderInfoConstant.STATUS_CANCELLED);
+        List<OrderItem> orderItems = orderItemMapper.selectByOrderId(orderId);
+        for (OrderItem orderItem : orderItems) {
+            Product product = productMapper.selectById(orderItem.getProductId());
+            if (product != null) {
+                product.setStatus(ProductConstant.STATUS_ON_SALE);
+                productMapper.updateById(product);
+            }
         }
         orderMapper.updateById(order);
         return Result.success();
     }
 
-    private OrderVO toVO(OrderInfo order) {
-        OrderVO vo = new OrderVO();
-        vo.setId(order.getId()); vo.setOrderNo(order.getOrderNo()); vo.setBuyerId(order.getBuyerId());
-        vo.setSellerId(order.getSellerId()); vo.setTotalAmount(order.getTotalAmount());
-        vo.setStatus(order.getStatus()); vo.setRemark(order.getRemark());
-        vo.setCreatedAt(order.getCreatedAt()); vo.setPaidAt(order.getPaidAt());
-        vo.setShippedAt(order.getShippedAt()); vo.setCompletedAt(order.getCompletedAt());
-        User buyer = userMapper.selectById(order.getBuyerId());
-        if (buyer != null) vo.setBuyerName(buyer.getNickname());
-        User seller = userMapper.selectById(order.getSellerId());
-        if (seller != null) vo.setSellerName(seller.getNickname());
-        List<OrderItem> items = orderItemMapper.selectByOrderId(order.getId());
-        vo.setItems(items.stream().map(item -> {
-            OrderItemVO ivo = new OrderItemVO();
-            ivo.setId(item.getId()); ivo.setProductId(item.getProductId()); ivo.setPrice(item.getPrice());
-            Product p = productMapper.selectById(item.getProductId());
-            if (p != null) {
-                ivo.setProductTitle(p.getTitle());
-                List<ProductImage> imgs = productImageMapper.selectByProductId(p.getId());
-                ivo.setProductImage(imgs.isEmpty() ? null : imgs.get(0).getUrl());
-            }
-            return ivo;
-        }).collect(Collectors.toList()));
-        return vo;
+    private OrderVO toVO(OrderInfo orderInfo) {
+        OrderVO orderVO = ToVOUtil.toOrderVO(
+                orderInfo,
+                userMapper.selectById(orderInfo.getBuyerId()),
+                userMapper.selectById(orderInfo.getSellerId())
+        );
+        List<OrderItem> orderItems = orderItemMapper.selectByOrderId(orderInfo.getId());
+        orderVO.setItems(orderItems.stream()
+                .map(orderItem -> ToVOUtil.toOrderItemVO(
+                        orderItem,
+                        productMapper.selectById(orderItem.getProductId()),
+                        productImageMapper
+                ))
+                .collect(Collectors.toList())
+        );
+        return orderVO;
     }
 }
