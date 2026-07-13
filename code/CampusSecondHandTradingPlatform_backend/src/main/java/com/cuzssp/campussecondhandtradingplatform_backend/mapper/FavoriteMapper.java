@@ -1,24 +1,1 @@
-package com.cuzssp.campussecondhandtradingplatform_backend.mapper;
-
-import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.Favorite;
-import org.apache.ibatis.annotations.*;
-import java.util.List;
-
-@Mapper
-public interface FavoriteMapper {
-    @Select("SELECT * FROM favorite WHERE user_id = #{userId} ORDER BY created_at DESC")
-    List<Favorite> selectByUserId(@Param("userId") Long userId);
-
-    @Select("SELECT COUNT(*) FROM favorite WHERE user_id = #{userId} AND product_id = #{productId}")
-    int countByUserIdAndProductId(@Param("userId") Long userId, @Param("productId") Long productId);
-
-    @Select("SELECT product_id FROM favorite WHERE user_id = #{userId}")
-    List<Long> selectProductIdsByUserId(@Param("userId") Long userId);
-
-    @Insert("INSERT INTO favorite (user_id, product_id, created_at) VALUES (#{userId}, #{productId}, #{createdAt})")
-    @Options(useGeneratedKeys = true, keyProperty = "id")
-    int insert(Favorite favorite);
-
-    @Delete("DELETE FROM favorite WHERE user_id = #{userId} AND product_id = #{productId}")
-    int deleteByUserIdAndProductId(@Param("userId") Long userId, @Param("productId") Long productId);
-}
+package com.cuzssp.campussecondhandtradingplatform_backend.mapper;import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.Favorite;import org.apache.ibatis.annotations.*;import java.util.List;@Mapperpublic interface FavoriteMapper {    @Select("SELECT * FROM favorite " +            "WHERE user_id = #{userId} " +            "ORDER BY created_at DESC")    List<Favorite> selectByUserId(@Param("userId") Long userId);    @Select("SELECT COUNT(*) FROM favorite " +            "WHERE user_id = #{userId} AND product_id = #{productId}")    int countByUserIdAndProductId(@Param("userId") Long userId, @Param("productId") Long productId);    @Select("SELECT product_id FROM favorite WHERE user_id = #{userId}")    List<Long> selectFavoritedProductIdsByUserId(@Param("userId") Long userId);    @Insert("INSERT INTO favorite (user_id, product_id, created_at) " +            "VALUES (#{userId}, #{productId}, #{createdAt})")    @Options(useGeneratedKeys = true, keyProperty = "id")    int insertFavorite(Favorite favorite);    @Delete("DELETE FROM favorite WHERE user_id = #{userId} AND product_id = #{productId}")    int deleteByUserIdAndProductId(@Param("userId") Long userId, @Param("productId") Long productId);}

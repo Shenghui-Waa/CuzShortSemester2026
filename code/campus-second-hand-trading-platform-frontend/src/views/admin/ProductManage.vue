@@ -43,7 +43,7 @@ async function fetch() {
 }
 function onPageChange(p: number) { page.value = p; fetch(); }
 async function audit(id: number, status: number) {
-  await adminApi.auditProduct(id, status);
+  await adminApi.updateProductStatus(id, status);
   ElMessage.success("操作成功");
   fetch();
 }

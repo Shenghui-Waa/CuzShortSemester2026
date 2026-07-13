@@ -7,5 +7,5 @@ import java.util.List;
 public interface CartService {
     Result<List<CartItemVO>> getCart(Long userId);
     Result<Void> addToCart(Long userId, Long productId);
-    Result<Void> removeFromCart(Long userId, Long cartId);
+    Result<Void> removeFromCart(Long userId, Long productId);
 }

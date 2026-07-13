@@ -1,7 +1,7 @@
 package com.cuzssp.campussecondhandtradingplatform_backend.common.security;
 
+import com.cuzssp.campussecondhandtradingplatform_backend.common.constant.UserConstant;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.User;
-
 import com.cuzssp.campussecondhandtradingplatform_backend.mapper.UserMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -22,26 +22,28 @@ import java.util.Collections;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    @Autowired
-    private JwtTokenProvider jwtTokenProvider;
-    @Autowired
-    private UserMapper userMapper;
+    @Autowired private JwtTokenProvider jwtTokenProvider;
+    @Autowired private UserMapper userMapper;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain
+    ) throws ServletException, IOException {
         String token = getTokenFromRequest(request);
 
         if (StringUtils.hasText(token) && jwtTokenProvider.validateToken(token)) {
             Long userId = jwtTokenProvider.getUserIdFromToken(token);
             User user = userMapper.selectById(userId);
 
-            if (user != null && user.getStatus() == 0) {
-                String role = user.getRole() == 1 ? "ROLE_ADMIN" : "ROLE_USER";
+            if (user != null && user.getStatus() == UserConstant.STATUS_ABLE) {
+                String role = user.getRole() == UserConstant.ROLE_ADMIN ? "ROLE_ADMIN" : "ROLE_USER";
                 UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(user, null,
-                                Collections.singletonList(new SimpleGrantedAuthority(role)));
+                        new UsernamePasswordAuthenticationToken(
+                                user, null,
+                                Collections.singletonList(new SimpleGrantedAuthority(role))
+                        );
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }

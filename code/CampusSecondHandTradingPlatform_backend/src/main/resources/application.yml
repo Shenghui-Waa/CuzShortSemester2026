@@ -32,7 +32,7 @@ mybatis-plus:
       id-type: assign_id
 
 jwt:
-  secret: ${JWT_SECRET:cuzssp-jwt-secret-key-2026-at-least-256-bits}
+  secret: ${JWT_SECRET:cuzssp-jwt-secret-key-2026-256-bits-default}
   expiration: ${JWT_EXPIRATION:86400000}
 
 r2:
@@ -41,7 +41,7 @@ r2:
     access-key: ${R2_ACCESS_KEY_ID:placeholder-access-key}
     secret-key: ${R2_SECRET_ACCESS_KEY:placeholder-secret-key}
     endpoint: ${R2_ENDPOINT:https://placeholder.r2.cloudflarestorage.com}
-    bucket-name: ${R2_BUCKET_NAME:cuz-trade-images}
-    child-folder: ${R2_CHILD_FOLDER:cuzssp/2026/}
+    bucket-name: ${R2_BUCKET_NAME:demo}
+    child-folder: ${R2_CHILD_FOLDER:demo/2026/}
     cdn-domain: ${R2_PUBLIC_URL:https://placeholder.example.com}
     region: ${R2_REGION:auto}

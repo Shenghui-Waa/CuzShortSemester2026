@@ -18,36 +18,33 @@ import java.util.UUID;
 @Component
 public class FileUtil {
 
-    @Autowired
-    private S3Config s3Config;
+    @Autowired private S3Config s3Config;
+    @Autowired private CloudflareR2Client cloudflareR2Client;
 
-    public String uploadImage(MultipartFile file) {
+    public String uploadImage(
+            MultipartFile file
+    ) {
         try {
-            AwsBasicCredentials credentials = AwsBasicCredentials.create(
-                    s3Config.getAccessKey(), s3Config.getSecretKey());
-            S3Configuration serviceConfiguration = S3Configuration.builder()
-                    .pathStyleAccessEnabled(true)
-                    .chunkedEncodingEnabled(false)
-                    .build();
-            S3Client s3Client = S3Client.builder()
-                    .endpointOverride(URI.create(s3Config.getEndpoint()))
-                    .credentialsProvider(StaticCredentialsProvider.create(credentials))
-                    .region(Region.of(s3Config.getRegion()))
-                    .serviceConfiguration(serviceConfiguration)
-                    .build();
+            S3Client s3Client = cloudflareR2Client.getS3Client();
             String originalFilename = file.getOriginalFilename();
             String extension = "";
             if (originalFilename != null && originalFilename.contains(".")) {
                 extension = originalFilename.substring(originalFilename.lastIndexOf("."));
             }
+            // 上传的文件名
             String key = (s3Config.getChildFolder() != null ? s3Config.getChildFolder() : "")
-                    + UUID.randomUUID() + extension;
+                    + "cuzssp-"
+                    + UUID.randomUUID()/*.toString().replace("-", "")*/
+                    + extension;
+            // 获取上传请求
             PutObjectRequest request = PutObjectRequest.builder()
                     .bucket(s3Config.getBucketName())
                     .key(key)
                     .contentType(file.getContentType())
                     .build();
+            // 上传
             s3Client.putObject(request, RequestBody.fromBytes(file.getBytes()));
+            // 获取访问 url
             String cdnDomain = s3Config.getCdnDomain();
             if (cdnDomain != null && !cdnDomain.isEmpty()) {
                 return cdnDomain + "/" + key;
