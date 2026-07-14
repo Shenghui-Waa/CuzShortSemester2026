@@ -7,7 +7,7 @@
           <img :src="product.images?.[activeImg] || '/placeholder.png'" class="main-img" />
           <div class="thumbs" v-if="product.images?.length > 1">
             <img v-for="(u,i) in product.images" :key="i" :src="u"
-              :class="{act:i===activeImg}" @click="activeImg=i" />
+              :class="{act:i===activeImg}" @click="activeImg=Number(i)" />
           </div>
         </div>
         <div class="info">
