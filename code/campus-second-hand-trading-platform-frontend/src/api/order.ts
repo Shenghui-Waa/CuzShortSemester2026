@@ -1,7 +1,7 @@
 ﻿import request from "./request";
 
 export const orderApi = {
-  create: (data: any) => request.post("/orders", data),
+  create: (data: { productId: number; remark?: string }) => request.post("/orders", data),
   list: (params: any) => request.get("/orders", { params }),
   detail: (id: number) => request.get(`/orders/${id}`),
   pay: (id: number) => request.put(`/orders/${id}/pay`),

@@ -3,6 +3,6 @@
 export const userApi = {
   getById: (id: number) => request.get(`/user/${id}`),
   updateProfile: (data: any) => request.put("/user/profile", data),
-  changePassword: (data: any) => request.put("/user/password", data),
-  uploadAvatar: (file: FormData) => request.post("/user/avatar", file, { headers: { "Content-Type": "multipart/form-data" } }),
+  changePassword: (data: { oldPassword: string; newPassword: string }) => request.put("/user/password", data),
+  updateAvatar: (imageUrl: string) => request.post("/user/avatar", null, { params: { image: imageUrl } }),
 };
