@@ -63,7 +63,7 @@ onMounted(async () => {
 });
 
 const statCards = computed(() => [
-  { label: "用户总数", value: d.value.userCount || 0, color: "#409eff" },
+  { label: "用户总数", value: d.value.userCount || 0, color: "#fb1e47" },
   { label: "商品总数", value: d.value.productCount || 0, color: "#67c23a" },
   { label: "订单总数", value: d.value.orderCount || 0, color: "#e6a23c" },
   { label: "交易总额", value: formatPrice(d.value.totalAmount), color: "#f56c6c" },
@@ -73,7 +73,7 @@ const statCards = computed(() => [
 
 const barData = computed(() => {
   const items = [
-    { label: "用户总数", value: d.value.userCount || 0, color: "#409eff" },
+    { label: "用户总数", value: d.value.userCount || 0, color: "#fb1e47" },
     { label: "商品总数", value: d.value.productCount || 0, color: "#67c23a" },
     { label: "订单总数", value: d.value.orderCount || 0, color: "#e6a23c" },
     { label: "今日新用户", value: d.value.todayNewUsers || 0, color: "#00bcd4" },
