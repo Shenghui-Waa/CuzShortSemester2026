@@ -48,5 +48,6 @@ async function batchBuy() { for (const pid of selected.value) { try { await orde
 .ci { width: 60px; height: 60px; object-fit: cover; border-radius: 4px; }
 .ct { font-size: 14px; font-weight: 500; }
 .cs { font-size: 12px; color: #909399; margin-top: 4px; }
-.bottom { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding: 16px 0; border-top: 1px solid #ebeef5; font-size: 15px; }
+.bottom { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding: 16px 0; border-top: 1px solid var(--border-color); font-size: 15px; }
 </style>
+

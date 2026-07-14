@@ -81,5 +81,6 @@ async function submit() {
 }
 </script>
 <style scoped>
-.img-hint { font-size: 12px; color: #909399; margin-top: 4px; }
+.img-hint { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
 </style>
+

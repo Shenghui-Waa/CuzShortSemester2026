@@ -42,6 +42,8 @@ public class OrderServiceImpl implements OrderService {
             throw new BusinessException("Product not found");
         if (product.getStatus() != ProductConstant.STATUS_ON_SALE)
             throw new BusinessException("Product not available");
+        if (Objects.equals(buyerId, product.getUserId()))
+            throw new BusinessException("Buyer cannot be seller");
         product.setStatus(ProductConstant.STATUS_SOLD_OUT);
         OrderInfo order = ToEntityUtil.toOrderInfoEntity(buyerId, product, request.getRemark());
         orderMapper.insert(order);

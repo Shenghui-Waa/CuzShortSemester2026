@@ -32,11 +32,12 @@ onMounted(async () => {
 });
 </script>
 <style scoped>
-.hero { text-align: center; padding: 80px 20px 60px; background: linear-gradient(135deg, #409eff20, #67c23a20); }
-.hero h1 { font-size: 36px; margin-bottom: 12px; color: #303133; }
-.hero p { font-size: 16px; color: #606266; margin-bottom: 24px; }
+.hero { text-align: center; padding: 80px 20px 60px; background: var(--hero-bg); }
+.hero h1 { font-size: 36px; margin-bottom: 12px; color: var(--text-primary); }
+.hero p { font-size: 16px; color: var(--text-secondary); margin-bottom: 24px; }
 .st { font-size: 22px; font-weight: 600; margin-bottom: 20px; }
 .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
 .loading { text-align: center; padding: 40px; color: #909399; }
 @media (max-width: 900px) { .grid { grid-template-columns: repeat(2, 1fr); } }
 </style>
+
