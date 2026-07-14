@@ -45,6 +45,7 @@ import { useUserStore } from "@/stores/user";
 import { useThemeStore } from "@/stores/theme";
 import { useRouter } from "vue-router";
 import { authApi } from "@/api/auth";
+
 const user = useUserStore();
 const theme = useThemeStore();
 const router = useRouter();
