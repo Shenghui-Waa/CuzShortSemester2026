@@ -6,7 +6,8 @@
         <div class="gallery">
           <img :src="product.images?.[activeImg] || '/placeholder.png'" class="main-img" />
           <div class="thumbs" v-if="product.images?.length > 1">
-            <img v-for="(u,i) in product.images" :key="i" :src="u" :class="{act:i===activeImg}" @click="activeImg=i" />
+            <img v-for="(u,i) in product.images" :key="i" :src="u"
+              :class="{act:i===activeImg}" @click="activeImg=i" />
           </div>
         </div>
         <div class="info">
@@ -23,7 +24,9 @@
           <div class="actions">
             <el-button type="primary" size="large" @click="buyNow">立即购买</el-button>
             <el-button size="large" @click="addCart">加入购物车</el-button>
-            <el-button size="large" :type="product.isFavorited?'warning':''" @click="toggleFav">{{ product.isFavorited?'已收藏':'收藏' }}</el-button>
+            <el-button size="large" :type="product.isFavorited?'warning':''" @click="toggleFav">
+              {{ product.isFavorited?'已收藏':'收藏' }}
+            </el-button>
             <el-button size="large" @click="openChat" v-if="user.isLogin()">联系卖家</el-button>
           </div>
         </div>
@@ -36,7 +39,9 @@
         <h3>买家评价</h3>
         <div v-if="reviews.length" class="review-list">
           <div v-for="r in reviews" :key="r.id" class="r-item">
-            <div><strong>{{ r.reviewerName }}</strong> <el-rate :model-value="r.rating" disabled show-score size="small" /></div>
+            <div><strong>{{ r.reviewerName }}</strong>
+              <el-rate :model-value="r.rating" disabled show-score size="small" />
+            </div>
             <p>{{ r.content || "无文字评价" }}</p>
             <span class="r-date">{{ formatDate(r.createdAt) }}</span>
           </div>
@@ -69,6 +74,7 @@ const reviews = ref<any[]>([]);
 const activeImg = ref(0);
 
 onMounted(async () => {
+  await user.ensureUserInfo();
   const r: any = await productApi.detail(Number(route.params.id));
   product.value = r.data;
   if (product.value && product.value.userId) {
@@ -137,5 +143,3 @@ function openChat() {
 .nr, .loading-state { color: var(--text-muted); text-align: center; padding: 60px; }
 @media (max-width: 768px) { .gallery { flex: 0 0 100%; } }
 </style>
-
-
