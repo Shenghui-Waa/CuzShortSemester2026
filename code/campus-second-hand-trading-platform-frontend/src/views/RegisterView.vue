@@ -38,8 +38,9 @@ async function reg() {
 }
 </script>
 <style scoped>
-.auth-page { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #f5f7fa; }
-.card { background: #fff; padding: 40px; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,.08); width: 400px; }
+.auth-page { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: var(--bg-page); }
+.card { background: var(--bg-card); padding: 40px; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,.08); width: 400px; }
 .card h2 { text-align: center; margin-bottom: 24px; font-size: 24px; }
-.tip { text-align: center; font-size: 14px; color: #909399; }
+.tip { text-align: center; font-size: 14px; color: var(--text-muted); }
 </style>
+

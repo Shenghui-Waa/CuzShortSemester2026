@@ -1,4 +1,33 @@
 ﻿* { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Microsoft YaHei", Arial, sans-serif; color: #303133; background: #f5f7fa; }
+html, body, #app { height: 100%; }
+body {
+  font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+  color: var(--text-primary);
+  background: var(--bg-page);
+  transition: background .3s, color .3s;
+}
 a { text-decoration: none; color: #409eff; }
-.page-container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+.page { display: flex; flex-direction: column; min-height: 100vh; }
+.page > :nth-child(2) { flex: 1; }
+.page-container { max-width: 1200px; margin: 0 auto; padding: 20px; width: 100%; }
+
+html.dark .el-card { background: var(--bg-card); border-color: var(--border-color); }
+html.dark .el-table { --el-table-bg-color: var(--bg-card); --el-table-tr-bg-color: var(--bg-card); --el-table-header-bg-color: #262626; --el-table-border-color: var(--border-color); --el-table-text-color: var(--text-primary); --el-table-header-text-color: var(--text-secondary); }
+html.dark .el-input__wrapper { background: #262626; box-shadow: 0 0 0 1px var(--border-color) inset; }
+html.dark .el-input__inner { color: var(--text-primary); }
+html.dark .el-select .el-input__wrapper { background: #262626; }
+html.dark .el-dialog { background: var(--bg-card); }
+html.dark .el-tabs__header { border-color: var(--border-color); }
+html.dark .el-pagination button, html.dark .el-pager li { background: var(--bg-card); }
+html.dark .el-descriptions__body { background: var(--bg-card); }
+html.dark .el-descriptions__label { background: #262626; }
+html.dark .el-dropdown-menu { background: var(--bg-card); }
+html.dark .el-dropdown-menu__item { color: var(--text-primary); }
+html.dark .el-dropdown-menu__item:hover { background: #262626; }
+html.dark .el-radio-button__inner { background: var(--bg-card); }
+html.dark .el-empty__description { color: var(--text-muted); }
+html.dark .el-loading-mask { background: rgba(0,0,0,.5); }
+html.dark .el-popper.is-light { background: var(--bg-card); border-color: var(--border-color); }
+html.dark .el-tabs__item { color: var(--text-muted); }
+html.dark .el-tabs__item.is-active { color: #409eff; }
+

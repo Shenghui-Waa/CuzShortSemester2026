@@ -124,17 +124,18 @@ function openChat() {
 .info { flex: 1; }
 .info h1 { font-size: 22px; margin-bottom: 16px; }
 .price { font-size: 28px; color: #e6a23c; font-weight: 700; margin-bottom: 12px; }
-.orig { font-size: 16px; color: #909399; text-decoration: line-through; margin-left: 8px; }
-.meta { display: flex; gap: 12px; align-items: center; color: #909399; font-size: 14px; margin-bottom: 16px; }
-.seller { font-size: 15px; color: #303133; margin-bottom: 20px; }
+.orig { font-size: 16px; color: var(--text-muted); text-decoration: line-through; margin-left: 8px; }
+.meta { display: flex; gap: 12px; align-items: center; color: var(--text-muted); font-size: 14px; margin-bottom: 16px; }
+.seller { font-size: 15px; color: var(--text-primary); margin-bottom: 20px; }
 .actions { display: flex; gap: 12px; flex-wrap: wrap; }
-.section { margin-top: 32px; padding-top: 20px; border-top: 1px solid #ebeef5; }
+.section { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border-color); }
 .section h3 { margin-bottom: 12px; }
 .section p { color: #606266; line-height: 1.8; white-space: pre-wrap; }
-.r-item { padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
+.r-item { padding: 8px 0; border-bottom: 1px solid var(--border-light); }
 .r-item p { font-size: 14px; margin: 4px 0; }
 .r-date { font-size: 12px; color: #c0c4cc; }
-.nr, .loading-state { color: #909399; text-align: center; padding: 60px; }
+.nr, .loading-state { color: var(--text-muted); text-align: center; padding: 60px; }
 @media (max-width: 768px) { .gallery { flex: 0 0 100%; } }
 </style>
+
 

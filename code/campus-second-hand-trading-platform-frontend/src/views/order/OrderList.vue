@@ -59,7 +59,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, computed, onMounted } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import AppHeader from "@/components/layout/AppHeader.vue";
 import AppFooter from "@/components/layout/AppFooter.vue";
@@ -74,7 +74,7 @@ const orders = ref<any[]>([]);
 const total = ref(0);
 const page = ref(1);
 const statusFilter = ref("");
-const uid = ref<number>(userStore.userInfo?.id || 0);
+const uid = computed(() => userStore.userInfo?.id || 0);
 
 const reviewVisible = ref(false);
 const reviewingOrder = ref<any>(null);
@@ -112,3 +112,4 @@ async function submitReview() {
   } catch {}
 }
 </script>
+

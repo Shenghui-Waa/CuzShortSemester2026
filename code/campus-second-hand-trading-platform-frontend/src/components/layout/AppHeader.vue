@@ -27,25 +27,32 @@
           <router-link to="/login">登录</router-link>
           <router-link to="/register">注册</router-link>
         </template>
+        <el-button @click="theme.toggle()" text circle size="small" class="theme-btn">
+          <el-icon :size="18"><Moon v-if="!theme.isDark" /><Sunny v-else /></el-icon>
+        </el-button>
       </div>
     </div>
   </el-header>
 </template>
 <script setup lang="ts">
+import { Moon, Sunny } from "@element-plus/icons-vue";
 import { useUserStore } from "@/stores/user";
+import { useThemeStore } from "@/stores/theme";
 import { useRouter } from "vue-router";
 import { authApi } from "@/api/auth";
 const user = useUserStore();
+const theme = useThemeStore();
 const router = useRouter();
 async function doLogout() { try { await authApi.logout(); } catch {} user.logout(); router.push("/"); }
 </script>
 <style scoped>
-.app-header { background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.08); position: sticky; top: 0; z-index: 100; height: 56px; }
+.app-header { background: var(--bg-header); box-shadow: 0 1px 4px rgba(0,0,0,.08); position: sticky; top: 0; z-index: 100; height: 56px; transition: background .3s; }
 .inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; height: 100%; gap: 24px; }
 .logo { font-size: 20px; font-weight: 700; color: #409eff; }
 nav { display: flex; gap: 16px; flex: 1; }
-nav a, .right a { color: #606266; font-size: 14px; text-decoration: none; }
+nav a, .right a { color: var(--text-secondary); font-size: 14px; text-decoration: none; transition: color .2s; }
 nav a:hover, .right a:hover, .router-link-active { color: #409eff !important; }
 .right { display: flex; align-items: center; gap: 16px; }
 .uname { cursor: pointer; color: #409eff; font-size: 14px; }
+.theme-btn { color: var(--text-secondary); }
 </style>

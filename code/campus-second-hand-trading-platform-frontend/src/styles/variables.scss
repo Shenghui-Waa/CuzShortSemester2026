@@ -1,8 +1,32 @@
-﻿$primary: #409eff;
-$success: #67c23a;
-$warning: #e6a23c;
-$danger: #f56c6c;
-$bg: #f5f7fa;
-$text: #303133;
-$text-light: #909399;
-$border: #dcdfe6;
+﻿// CSS 变量：白天 / 黑夜
+:root {
+  --bg-page: #f5f7fa;
+  --bg-card: #ffffff;
+  --bg-header: #ffffff;
+  --bg-sidebar: #304156;
+  --text-primary: #303133;
+  --text-secondary: #606266;
+  --text-muted: #909399;
+  --text-placeholder: #c0c4cc;
+  --border-color: #ebeef5;
+  --border-light: #f0f0f0;
+  --shadow: 0 2px 12px rgba(0,0,0,.08);
+  --shadow-hover: 0 4px 16px rgba(0,0,0,.12);
+  --hero-bg: linear-gradient(135deg, #409eff20, #67c23a20);
+}
+
+html.dark {
+  --bg-page: #141414;
+  --bg-card: #1d1d1d;
+  --bg-header: #1d1d1d;
+  --bg-sidebar: #1a1a2e;
+  --text-primary: #e0e0e0;
+  --text-secondary: #a0a0a0;
+  --text-muted: #707070;
+  --text-placeholder: #505050;
+  --border-color: #2d2d2d;
+  --border-light: #262626;
+  --shadow: 0 2px 12px rgba(0,0,0,.3);
+  --shadow-hover: 0 4px 20px rgba(0,0,0,.5);
+  --hero-bg: linear-gradient(135deg, #1a1a2e, #16213e);
+}
