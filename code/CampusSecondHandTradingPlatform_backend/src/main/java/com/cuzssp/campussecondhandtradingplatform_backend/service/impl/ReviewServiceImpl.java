@@ -69,11 +69,9 @@ public class ReviewServiceImpl implements ReviewService {
         List<Review> reviews = reviewMapper.selectByTargetId(userId);
         PageInfo<Review> reviewPageInfo = new PageInfo<>(reviews);
         List<ReviewVO> reviewVOs = reviews.stream()
-                .map(review -> {
-                    return ToVOUtil.toReviewVO(
-                            review, userMapper.selectById(review.getReviewerId())
-                    );
-                }).collect(Collectors.toList());
+                .map(review -> ToVOUtil.toReviewVO(
+                        review, userMapper.selectById(review.getReviewerId())
+                )).collect(Collectors.toList());
         return Result.success(
                 new PageResult<>(
                         reviewVOs,

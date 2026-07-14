@@ -1,36 +1,40 @@
 ﻿# 校园二手交易平台 — 开发说明文档 (DEV.md)
 
-> **版本**: v1.0  
-> **日期**: 2026-07-05  
-> **项目名**: CuzShortSemester2026 — Campus Second-Hand Trading Platform
+> **版本**: v2.0  
+> **日期**: 2026-07-14  
+> **项目名**: CuzShortSemester2026 — Campus Second-Hand Trading Platform  
+> **说明**: 本文档基于项目实际代码结构编写，反映当前代码的真实状态。
 
 ---
 
 ## 1. 项目概述
 
-本项目是一个面向高校学生的校园二手物品交易 Web 应用，旨在为校内用户提供一个安全、便捷的二手商品发布、浏览、交易与交流平台。系统分为前台用户端和后台管理端，支持商品分类浏览、搜索筛选、在线聊天、订单管理、评价系统等核心功能。
+本项目是一个面向高校学生的校园二手物品交易 Web 应用，旨在为校内用户提供一个安全、便捷的二手商品发布、浏览、交易与交流平台。系统采用前后端分离架构，分为前台用户端和后台管理端，支持商品分类浏览、关键词搜索、条件筛选、在线聊天（WebSocket）、订单管理、评价系统等核心功能。图片存储使用 Cloudflare R2（S3 兼容 API）。
 
 ---
 
-## 2. 技术栈
+## 2. 技术栈（实际版本）
 
-| 层级   | 技术选择                          | 版本       |
-|--------|-----------------------------------|------------|
-| 后端   | Spring Boot                       | 4.x        |
-| 后端   | Spring Security + JWT             | —          |
-| 后端   | MyBatis-Plus                      | 3.5+       |
-| 后端   | MySQL Driver (Connector/J)        | 8.x        |
-| 数据库 | MySQL                             | 8.0+       |
-| 缓存   | Redis                             | 7.x（可选） |
-| 前端   | Vue                               | 3.4+       |
-| 前端   | Vue Router                        | 4.x        |
-| 前端   | Pinia (状态管理)                  | 2.x        |
-| 前端   | Element Plus (UI组件库)           | 2.x        |
-| 前端   | Axios                             | 1.x        |
-| 构建   | Vite                              | 5.x        |
-| 包管理 | pnpm / npm                        | 最新       |
-| 对象存储 | Cloudflare R2 (S3 Compatible API) | —          |
-| 后端   | AWS SDK for Java (S3)            | 2.x        |
+| 层级       | 技术选择                              | 实际版本       |
+|------------|---------------------------------------|----------------|
+| 后端框架   | Spring Boot                           | **4.0.7**      |
+| 安全框架   | Spring Security + JWT (jjwt)          | **0.12.6**     |
+| ORM        | MyBatis-Plus (spring-boot4-starter)   | **3.5.16**     |
+| 数据库驱动 | MySQL Connector/J                     | 随 Spring Boot |
+| 分页插件   | PageHelper                            | **2.1.1**      |
+| 对象存储   | AWS SDK for Java S3 (Cloudflare R2)   | **2.46.21**    |
+| 开发工具   | Lombok                                | 随 Spring Boot |
+| Java 版本  | Java                                  | **17**         |
+| 数据库     | MySQL                                 | 8.0+           |
+| 前端框架   | Vue 3 + TypeScript                    | 3.x            |
+| 前端路由   | Vue Router                            | 4.x            |
+| 状态管理   | Pinia                                 | 2.x            |
+| UI 组件库  | Element Plus                          | 2.x            |
+| HTTP 客户端| Axios                                  | 1.x            |
+| 构建工具   | Vite                                  | 5.x            |
+| 包管理     | pnpm                                  | —              |
+
+> **注意**: 实际项目**未使用 Redis**，无缓存层。密码加密采用自定义 Base64 + 盐值方案，**非 BCrypt**。
 
 ---
 
@@ -38,2183 +42,541 @@
 
 ### 3.1 用户角色
 
-| 角色         | 描述                                 |
-|--------------|--------------------------------------|
-| 普通用户     | 注册登录、浏览商品、发布商品、下单购买、聊天 |
-| 管理员       | 用户管理、商品审核、订单管理、系统配置     |
+| 角色常量                        | 值 | 描述                                       |
+|---------------------------------|----|--------------------------------------------|
+| `UserConstant.ROLE_USER`        | 0  | 普通用户：注册登录、浏览商品、发布商品、交易、聊天 |
+| `UserConstant.ROLE_ADMIN`       | 1  | 管理员：用户管理、商品审核、订单管理、分类管理   |
+
+用户状态:
+- `UserConstant.STATUS_ABLE` (0) — 正常
+- `UserConstant.STATUS_DISABLE` (1) — 封禁
 
 ### 3.2 功能模块
 
-#### 前台用户端
+#### 前台用户端（已实现）
 
-| 模块       | 功能点                                                                 |
-|------------|------------------------------------------------------------------------|
-| 用户系统   | 注册、登录、退出、个人信息编辑、头像上传、密码修改、手机/邮箱绑定       |
-| 商品浏览   | 首页推荐、分类浏览、关键词搜索、条件筛选（价格/新旧/校区）、商品详情     |
-| 商品发布   | 发布商品（标题/描述/图片/价格/分类/新旧程度）、编辑、下架、已发布列表     |
-| 收藏系统   | 收藏/取消收藏商品、收藏列表                                             |
-| 订单系统   | 下单购买、订单列表（待付款/待发货/待收货/已完成/已取消）、取消订单       |
-| 聊天系统   | 买卖双方在线聊天（WebSocket）、消息列表、未读提醒                       |
-| 评价系统   | 交易完成后互评（星级 + 文字）、查看用户信誉                             |
+| 模块     | 功能点                                                                           | Controller            |
+|----------|----------------------------------------------------------------------------------|-----------------------|
+| 用户认证 | 注册、登录、登出、获取当前用户信息 (`/me`)                                        | `AuthController`      |
+| 用户管理 | 查看用户信息、编辑个人资料、修改密码、上传头像                                     | `UserController`      |
+| 商品浏览 | 分页列表、关键词搜索、分类+校区联合筛选、商品详情（含浏览量计数）、我发布的列表      | `ProductController`   |
+| 商品发布 | 发布商品（含图片）、编辑商品、修改商品状态（上架/下架）                              | `ProductController`   |
+| 收藏系统 | 收藏/取消收藏、收藏列表（分页）、检查是否已收藏                                    | `FavoriteController`  |
+| 购物车   | 加入购物车、移除、查看购物车列表                                                  | `CartController`      |
+| 订单系统 | 创建订单、订单列表（分页+状态筛选）、详情、支付/发货/收货/取消                       | `OrderController`     |
+| 聊天系统 | 联系人列表、消息记录（分页）、发送消息、标记已读（WebSocket 推送 + HTTP REST）       | `ChatController`      |
+| 评价系统 | 创建评价（星级+文字）、查看用户评价记录（分页）、评分影响信誉分                      | `ReviewController`    |
+| 文件上传 | 单文件上传、多文件上传（上传至 Cloudflare R2）                                     | `FileController`      |
+| 分类浏览 | 获取全部分类（含各分类商品数）                                                     | `CategoryController`  |
 
-#### 后台管理端
+#### 后台管理端（已实现）
 
-| 模块       | 功能点                                                                 |
-|------------|------------------------------------------------------------------------|
-| 仪表盘     | 用户数、商品数、订单数、交易额统计、图表展示                            |
-| 用户管理   | 用户列表、封禁/解封、信息查看                                           |
-| 商品管理   | 商品列表、审核通过/驳回、违规下架                                       |
-| 订单管理   | 订单列表、退款处理、订单状态查看                                         |
-| 分类管理   | 商品分类增删改查                                                       |
-| 公告管理   | 系统公告发布、管理                                                     |
+| 模块     | 功能点                                                                 | Controller               |
+|----------|------------------------------------------------------------------------|---------------------------|
+| 仪表盘   | 用户总数、商品总数、订单总数、交易总额、今日新增用户、今日新增订单        | `AdminDashboardController`|
+| 用户管理 | 用户列表（分页+关键词搜索）、封禁/解封                                    | `AdminDashboardController`|
+| 商品管理 | 商品列表（分页+关键词+状态筛选）、审核/下架                               | `AdminDashboardController`|
+| 订单管理 | 订单列表（分页+状态筛选）                                                | `AdminDashboardController`|
+
+> 分类的增删改查通过 `CategoryController` 实现（未纳入 admin 路径），公告模块实体已定义但前端和后台管理功能尚未接入。
 
 ### 3.3 非功能性需求
 
-- **安全性**: 密码加密存储（BCrypt），JWT 令牌鉴权，SQL 注入防护，XSS 防护
-- **性能**: 首页首屏加载 < 3s，列表分页查询 < 500ms
-- **可用性**: 支持 500+ 并发用户
-- **可维护性**: 前后端分离，RESTful API，模块化组件
-- **图片存储**: Cloudflare R2（S3兼容对象存储，开发与生产统一方案）
+- **安全性**: 密码自定义编码存储（Base64 + 盐值 `cuzssp...2026webproject`），JWT 令牌鉴权（Spring Security Filter），参数化 SQL 防注入
+- **图片存储**: Cloudflare R2（S3 兼容 API），使用 AWS SDK for Java v2
+- **前后端分离**: RESTful API 设计，JSON 通信
+- **WebSocket**: 聊天消息实时推送（路径 `/ws/chat?userId=`）
 
 ---
 
-## 4. 项目目录结构
+## 4. 项目目录结构（实际）
 
 ```
 CuzShortSemester2026/
-├── code/
-│   ├── DEV.md                          # 本开发说明文档
-│   ├── backend/                        # Spring Boot 后端
-│   │   ├── pom.xml                     # Maven 配置
-│   │   ├── src/
-│   │   │   ├── main/
-│   │   │   │   ├── java/com/cuzssp/campussecondhandtradingplatform_backend/
-│   │   │   │   │   ├── CampusSecondHandTradingPlatformBackendApplication.java        # 启动类
-│   │   │   │   │   ├── controller/
-│   │   │   │   │   │   ├── AuthController.java          # 认证接口
-│   │   │   │   │   │   ├── UserController.java          # 用户接口
-│   │   │   │   │   │   ├── ProductController.java       # 商品接口
-│   │   │   │   │   │   ├── CategoryController.java      # 分类接口
-│   │   │   │   │   │   ├── OrderController.java         # 订单接口
-│   │   │   │   │   │   ├── CartController.java          # 购物车接口
-│   │   │   │   │   │   ├── FavoriteController.java      # 收藏接口
-│   │   │   │   │   │   ├── ChatController.java          # 聊天接口
-│   │   │   │   │   │   ├── ReviewController.java        # 评价接口
-│   │   │   │   │   │   ├── FileController.java          # 文件上传接口
-│   │   │   │   │   │   └── admin/
-│   │   │   │   │   │       ├── AdminUserController.java
-│   │   │   │   │   │       ├── AdminProductController.java
-│   │   │   │   │   │       ├── AdminOrderController.java
-│   │   │   │   │   │       └── AdminDashboardController.java
-│   │   │   │   │   ├── service/
-│   │   │   │   │   │   ├── AuthService.java
-│   │   │   │   │   │   ├── UserService.java
-│   │   │   │   │   │   ├── ProductService.java
-│   │   │   │   │   │   ├── CategoryService.java
-│   │   │   │   │   │   ├── OrderService.java
-│   │   │   │   │   │   ├── CartService.java
-│   │   │   │   │   │   ├── FavoriteService.java
-│   │   │   │   │   │   ├── ChatService.java
-│   │   │   │   │   │   ├── ReviewService.java
-│   │   │   │   │   │   ├── FileService.java
-│   │   │   │   │   │   └── impl/
-│   │   │   │   │   │       ├── AuthServiceImpl.java
-│   │   │   │   │   │       ├── UserServiceImpl.java
-│   │   │   │   │   │       ├── ProductServiceImpl.java
-│   │   │   │   │   │       ├── CategoryServiceImpl.java
-│   │   │   │   │   │       ├── OrderServiceImpl.java
-│   │   │   │   │   │       ├── CartServiceImpl.java
-│   │   │   │   │   │       ├── FavoriteServiceImpl.java
-│   │   │   │   │   │       ├── ChatServiceImpl.java
-│   │   │   │   │   │       ├── ReviewServiceImpl.java
-│   │   │   │   │   │       └── FileServiceImpl.java
-│   │   │   │   │   ├── mapper/
-│   │   │   │   │   │   ├── UserMapper.java
-│   │   │   │   │   │   ├── ProductMapper.java
-│   │   │   │   │   │   ├── ProductImageMapper.java
-│   │   │   │   │   │   ├── CategoryMapper.java
-│   │   │   │   │   │   ├── OrderMapper.java
-│   │   │   │   │   │   ├── OrderItemMapper.java
-│   │   │   │   │   │   ├── CartMapper.java
-│   │   │   │   │   │   ├── FavoriteMapper.java
-│   │   │   │   │   │   ├── ChatMessageMapper.java
-│   │   │   │   │   │   └── ReviewMapper.java
-│   │   │   │   │   └── common/
-│   │   │   │   │       ├── pojo/
-│   │   │   │   │       │   ├── User.java
-│   │   │   │   │       │   ├── Product.java
-│   │   │   │   │       │   ├── ProductImage.java
-│   │   │   │   │       │   ├── Category.java
-│   │   │   │   │       │   ├── Order.java
-│   │   │   │   │       │   ├── OrderItem.java
-│   │   │   │   │       │   ├── Cart.java
-│   │   │   │   │       │   ├── Favorite.java
-│   │   │   │   │       │   ├── ChatMessage.java
-│   │   │   │   │       │   └── Review.java
-│   │   │   │   │       ├── dto/
-│   │   │   │   │       │   ├── request/
-│   │   │   │   │       │   │   ├── LoginRequest.java
-│   │   │   │   │       │   │   ├── RegisterRequest.java
-│   │   │   │   │       │   │   ├── ProductRequest.java
-│   │   │   │   │       │   │   └── OrderRequest.java
-│   │   │   │   │       │   └── response/
-│   │   │   │   │       │       ├── ApiResponse.java
-│   │   │   │   │       │       ├── PageResponse.java
-│   │   │   │   │       │       ├── LoginResponse.java
-│   │   │   │   │       │       └── ProductVO.java
-│   │   │   │   │       ├── config/
-│   │   │   │   │       │   ├── SecurityConfig.java
-│   │   │   │   │       │   ├── JwtConfig.java
-│   │   │   │   │       │   ├── CorsConfig.java
-│   │   │   │   │       │   ├── MyBatisPlusConfig.java
-│   │   │   │   │       │   ├── WebSocketConfig.java
-│   │   │   │   │       │   ├── FileUploadConfig.java
-│   │   │   │   │       │   └── R2Config.java
-│   │   │   │   │       ├── security/
-│   │   │   │   │       │   ├── JwtTokenProvider.java
-│   │   │   │   │       │   ├── JwtAuthenticationFilter.java
-│   │   │   │   │       │   └── UserDetailsServiceImpl.java
-│   │   │   │   │       ├── exception/
-│   │   │   │   │       │   ├── BusinessException.java
-│   │   │   │   │       │   └── GlobalExceptionHandler.java
-│   │   │   │   │       └── util/
-│   │   │   │   │           ├── FileUtil.java
-│   │   │   │   │           └── SnowflakeIdUtil.java
-│   │   │   │   └── resources/
-│   │   │   │       ├── application.yml
-│   │   │   │       ├── application-dev.yml
-│   │   │   │       ├── application-prod.yml
-│   │   │   │       └── mapper/
-│   │   │   └── test/
-│   │   └── uploads/
-│   │
-│   └── frontend/                        # Vue 3 前端
-│       ├── package.json
-│       ├── vite.config.ts
-│       ├── index.html
-│       ├── tsconfig.json
-│       ├── src/
-│       │   ├── main.ts                  # 入口
-│       │   ├── App.vue                  # 根组件
-│       │   ├── router/
-│       │   │   └── index.ts             # 路由配置
-│       │   ├── stores/                  # Pinia 状态管理
-│       │   │   ├── user.ts              # 用户状态
-│       │   │   ├── cart.ts              # 购物车状态
-│       │   │   └── chat.ts              # 聊天状态
-│       │   ├── api/                     # 接口请求层
-│       │   │   ├── request.ts           # Axios 封装 + 拦截器
-│       │   │   ├── auth.ts
-│       │   │   ├── user.ts
-│       │   │   ├── product.ts
-│       │   │   ├── category.ts
-│       │   │   ├── order.ts
-│       │   │   ├── cart.ts
-│       │   │   ├── favorite.ts
-│       │   │   ├── chat.ts
-│       │   │   └── review.ts
-│       │   ├── views/                   # 页面视图
-│       │   │   ├── HomeView.vue         # 首页
-│       │   │   ├── LoginView.vue        # 登录
-│       │   │   ├── RegisterView.vue     # 注册
-│       │   │   ├── product/
-│       │   │   │   ├── ProductList.vue  # 商品列表
-│       │   │   │   ├── ProductDetail.vue# 商品详情
-│       │   │   │   └── ProductPublish.vue# 发布商品
-│       │   │   ├── order/
-│       │   │   │   ├── OrderList.vue    # 订单列表
-│       │   │   │   └── OrderDetail.vue  # 订单详情
-│       │   │   ├── user/
-│       │   │   │   ├── ProfileView.vue  # 个人主页
-│       │   │   │   └── MyProducts.vue   # 我的发布
-│       │   │   ├── chat/
-│       │   │   │   └── ChatView.vue     # 聊天页
-│       │   │   ├── favorite/
-│       │   │   │   └── FavoriteList.vue # 收藏列表
-│       │   │   └── admin/              # 后台管理
-│       │   │       ├── AdminLayout.vue
-│       │   │       ├── DashboardView.vue
-│       │   │       ├── UserManage.vue
-│       │   │       ├── ProductManage.vue
-│       │   │       └── OrderManage.vue
-│       │   ├── components/             # 公共组件
-│       │   │   ├── layout/
-│       │   │   │   ├── AppHeader.vue    # 顶部导航
-│       │   │   │   └── AppFooter.vue    # 底部
-│       │   │   ├── ProductCard.vue      # 商品卡片
-│       │   │   ├── SearchBar.vue        # 搜索栏
-│       │   │   ├── ImageUpload.vue      # 图片上传
-│       │   │   └── Pagination.vue       # 分页器
-│       │   ├── utils/
-│       │   │   ├── index.ts             # 通用工具函数
-│       │   │   └── validators.ts        # 表单校验
-│       │   └── styles/
-│       │       ├── variables.scss       # SCSS 变量
-│       │       └── global.scss          # 全局样式
-│       └── public/
-│           └── favicon.ico
-│
-└── docs/
-    └── sql/
-        └── init.sql                     # 数据库初始化脚本
+└── code/
+    ├── DEV.md                                              # 本开发说明文档
+    ├── CampusSecondHandTradingPlatform_backend/            # Spring Boot 后端（实际目录名）
+    │   ├── pom.xml                                         # Maven 配置 (Spring Boot 4.0.7)
+    │   ├── mvnw / mvnw.cmd                                 # Maven Wrapper
+    │   ├── HELP.md                                         # Spring Boot 官方参考
+    │   └── src/
+    │       ├── main/
+    │       │   ├── java/com/cuzssp/campussecondhandtradingplatform_backend/
+    │       │   │   ├── CampusSecondHandTradingPlatformBackendApplication.java  # 启动类
+    │       │   │   ├── controller/
+    │       │   │   │   ├── AdminDashboardController.java   # 后台管理：仪表盘/用户/商品/订单管理
+    │       │   │   │   ├── AuthController.java             # 认证：注册/登录/登出/me
+    │       │   │   │   ├── CartController.java             # 购物车：增删查
+    │       │   │   │   ├── CategoryController.java         # 分类：CRUD
+    │       │   │   │   ├── ChatController.java             # 聊天：联系人/消息/发送/已读
+    │       │   │   │   ├── FavoriteController.java         # 收藏：增删查/校验
+    │       │   │   │   ├── FileController.java             # 文件：单/多文件上传
+    │       │   │   │   ├── OrderController.java            # 订单：创建/列表/详情/支付/发货/收货/取消
+    │       │   │   │   ├── ProductController.java          # 商品：列表/详情/发布/编辑/状态/我的
+    │       │   │   │   ├── ReviewController.java           # 评价：创建/查看
+    │       │   │   │   └── UserController.java             # 用户：信息/资料/密码/头像
+    │       │   │   ├── service/
+    │       │   │   │   ├── AdminService.java
+    │       │   │   │   ├── AuthService.java
+    │       │   │   │   ├── CartService.java
+    │       │   │   │   ├── CategoryService.java
+    │       │   │   │   ├── ChatService.java
+    │       │   │   │   ├── FavoriteService.java
+    │       │   │   │   ├── FileService.java
+    │       │   │   │   ├── OrderService.java
+    │       │   │   │   ├── ProductService.java
+    │       │   │   │   ├── ReviewService.java
+    │       │   │   │   └── UserService.java
+    │       │   │   ├── service/impl/                       # 以上接口的实现类
+    │       │   │   ├── mapper/                             # MyBatis 注解式 Mapper（无 XML）
+    │       │   │   │   ├── AnnouncementMapper.java
+    │       │   │   │   ├── CartMapper.java
+    │       │   │   │   ├── CategoryMapper.java
+    │       │   │   │   ├── ChatMessageMapper.java
+    │       │   │   │   ├── FavoriteMapper.java
+    │       │   │   │   ├── OrderItemMapper.java
+    │       │   │   │   ├── OrderMapper.java
+    │       │   │   │   ├── ProductImageMapper.java
+    │       │   │   │   ├── ProductMapper.java
+    │       │   │   │   ├── ReviewMapper.java
+    │       │   │   │   └── UserMapper.java
+    │       │   │   └── common/
+    │       │   │       ├── config/
+    │       │   │       │   ├── ChatWebSocketHandler.java   # WebSocket 消息处理（基于 userId 的会话管理）
+    │       │   │       │   ├── CorsConfig.java             # CORS 配置（当前为空类）
+    │       │   │       │   ├── MyBatisPlusConfig.java      # MyBatis-Plus 配置（当前为空类）
+    │       │   │       │   ├── MyMetaObjectHandler.java    # 自动填充 createdAt/updatedAt
+    │       │   │       │   ├── S3Config.java               # R2/S3 配置属性绑定
+    │       │   │       │   └── WebSocketConfig.java        # WebSocket 注册 (/ws/chat)
+    │       │   │       ├── constant/
+    │       │   │       │   ├── OrderInfoConstant.java      # 订单状态常量
+    │       │   │       │   ├── ProductConstant.java        # 商品状态/新旧常量
+    │       │   │       │   └── UserConstant.java           # 用户角色/状态/信誉常量
+    │       │   │       ├── dto/                            # 数据传输对象（请求体）
+    │       │   │       │   ├── ChangePasswordRequest.java
+    │       │   │       │   ├── CreateOrderRequest.java
+    │       │   │       │   ├── LoginRequest.java
+    │       │   │       │   ├── ProductQueryDTO.java
+    │       │   │       │   ├── RegisterRequest.java
+    │       │   │       │   ├── ReviewRequest.java
+    │       │   │       │   ├── SendMessageRequest.java
+    │       │   │       │   └── UpdateProfileRequest.java
+    │       │   │       ├── entity/                         # 数据库实体（11 张表）
+    │       │   │       │   ├── Announcement.java           # 公告表 announcement
+    │       │   │       │   ├── CartItem.java               # 购物车表 cart
+    │       │   │       │   ├── Category.java               # 分类表 category
+    │       │   │       │   ├── ChatMessage.java            # 聊天消息表 chat_message
+    │       │   │       │   ├── Favorite.java               # 收藏表 favorite
+    │       │   │       │   ├── OrderInfo.java              # 订单表 order
+    │       │   │       │   ├── OrderItem.java              # 订单项表 order_item
+    │       │   │       │   ├── Product.java                # 商品表 product
+    │       │   │       │   ├── ProductImage.java           # 商品图片表 product_image
+    │       │   │       │   ├── Review.java                 # 评价表 review
+    │       │   │       │   └── User.java                   # 用户表 user
+    │       │   │       ├── exception/
+    │       │   │       │   ├── BusinessException.java      # 业务异常
+    │       │   │       │   └── GlobalExceptionHandler.java # 全局异常处理 (@RestControllerAdvice)
+    │       │   │       ├── security/
+    │       │   │       │   ├── Base64Provider.java         # 密码编码/匹配（Base64 + 盐值）
+    │       │   │       │   ├── JwtAuthenticationFilter.java# JWT 认证过滤器
+    │       │   │       │   ├── JwtTokenProvider.java       # JWT 生成/解析/验证
+    │       │   │       │   └── UserDetailsServiceImpl.java # Spring Security UserDetailsService
+    │       │   │       ├── util/
+    │       │   │       │   ├── CloudflareR2Client.java     # R2 S3 客户端封装
+    │       │   │       │   ├── FileUtil.java               # 文件上传工具（上传至 R2）
+    │       │   │       │   ├── ToEntityUtil.java           # DTO → Entity 转换工具
+    │       │   │       │   └── ToVOUtil.java               # Entity → VO 转换工具
+    │       │   │       └── vo/                             # 视图对象（响应体）
+    │       │   │           ├── CartItemVO.java
+    │       │   │           ├── CategoryVO.java
+    │       │   │           ├── ChatContactVO.java
+    │       │   │           ├── ChatMessageVO.java
+    │       │   │           ├── DashboardVO.java
+    │       │   │           ├── OrderItemVO.java
+    │       │   │           ├── OrderVO.java
+    │       │   │           ├── PageResult.java             # 通用分页响应
+    │       │   │           ├── ProductVO.java
+    │       │   │           ├── Result.java                 # 统一响应格式
+    │       │   │           ├── ReviewVO.java
+    │       │   │           └── UserVO.java
+    │       │   └── resources/
+    │       │       ├── application.yml                    # 主配置（环境变量占位符）
+    │       │       ├── .env                                # 环境变量配置（敏感信息，Git 忽略）
+    │       │       └── .env.example                        # 环境变量模板
+    │       └── test/                                       # 测试目录（当前为空）
+    └── campus-second-hand-trading-platform-frontend/      # Vue 3 前端（实际目录名）
+        ├── package.json
+        ├── pnpm-lock.yaml
+        ├── vite.config.ts
+        ├── tsconfig.json / tsconfig.app.json / tsconfig.node.json
+        ├── index.html
+        ├── README.md
+        └── src/                                           # 前端源码
 ```
 
 ---
 
-## 5. 数据库设计
+## 5. 数据库设计（实际表结构）
 
-### 5.1 E-R 概要
+### 5.1 数据库信息
 
-```
-User 1───N Product    (用户发布多个商品)
-User 1───N Order      (用户有多个订单)
-User 1───N Review     (用户发表多条评价)
-Product 1───N OrderItem   (一件商品可被多次购买)
-Product 1───N ProductImage (一件商品多张图片)
-Product 1───N Favorite    (一件商品可被多人收藏)
-Product N───1 Category    (商品属于一个分类)
-Order 1───N OrderItem    (一个订单包含多个商品项)
-```
+- **数据库名**: cuzssp
+- **字符集**: utf8mb4 / utf8mb4_unicode_ci
+- **ORM 方式**: MyBatis-Plus 注解式 Mapper（`@Select` / `@Insert` / `@Update`），**无 XML 映射文件**
+- **主键策略**: `IdType.ASSIGN_ID`（雪花算法）
 
-### 5.2 表结构设计
+### 5.2 核心表结构
 
-#### 用户表 `user`
+#### 5.2.1 用户表 `user`
 
-| 字段          | 类型          | 说明                       |
-|---------------|---------------|----------------------------|
-| id            | BIGINT        | 主键，雪花ID                |
-| username      | VARCHAR(32)   | 用户名，唯一                |
-| password      | VARCHAR(128)  | BCrypt加密密文             |
-| nickname      | VARCHAR(32)   | 昵称                       |
-| avatar        | VARCHAR(255)  | 头像URL                    |
-| phone         | VARCHAR(16)   | 手机号                     |
-| email         | VARCHAR(64)   | 邮箱                       |
-| school        | VARCHAR(64)   | 学校                       |
-| campus        | VARCHAR(32)   | 校区                       |
-| role          | TINYINT       | 角色：0=用户 1=管理员      |
-| status        | TINYINT       | 状态：0=正常 1=封禁        |
-| credit_score  | INT           | 信誉分，默认100             |
-| created_at    | DATETIME      | 创建时间                   |
-| updated_at    | DATETIME      | 更新时间                   |
+| 字段         | 类型          | 说明                          |
+|--------------|---------------|-------------------------------|
+| id           | BIGINT (PK)   | 雪花ID                        |
+| username     | VARCHAR       | 用户名（唯一）                 |
+| password     | VARCHAR       | 密码（Base64+盐值编码存储）    |
+| nickname     | VARCHAR       | 昵称                          |
+| avatar       | VARCHAR       | 头像 URL                      |
+| phone        | VARCHAR       | 手机号                        |
+| email        | VARCHAR       | 邮箱                          |
+| school       | VARCHAR       | 学校                          |
+| campus       | VARCHAR       | 校区                          |
+| role         | INT           | 0=用户 1=管理员               |
+| status       | INT           | 0=正常 1=封禁                 |
+| credit_score | INT           | 信誉分，默认 100               |
+| created_at   | DATETIME      | 创建时间                      |
+| updated_at   | DATETIME      | 更新时间                      |
 
-#### 商品分类表 `category`
+#### 5.2.2 商品表 `product`
 
-| 字段      | 类型         | 说明               |
-|-----------|--------------|--------------------|
-| id        | BIGINT       | 主键               |
-| name      | VARCHAR(32)  | 分类名（教材/数码/衣物...）|
-| icon      | VARCHAR(255) | 分类图标URL         |
-| sort_order| INT          | 排序               |
-| created_at| DATETIME     | 创建时间            |
+| 字段          | 类型            | 说明                                    |
+|---------------|-----------------|-----------------------------------------|
+| id            | BIGINT (PK)     | 雪花ID                                  |
+| user_id       | BIGINT (FK)     | 发布者（卖家）                           |
+| category_id   | BIGINT (FK)     | 分类ID                                  |
+| title         | VARCHAR         | 标题                                    |
+| description   | TEXT            | 描述                                    |
+| price         | DECIMAL(10,2)   | 售价                                    |
+| original_price| DECIMAL(10,2)   | 原价                                    |
+| condition     | INT             | 0=全新 1=几乎全新 2=有使用痕迹           |
+| campus        | VARCHAR         | 所在校区                                 |
+| status        | INT             | 0=待审核 1=在售 2=已售出 3=已下架         |
+| view_count    | INT             | 浏览量，默认 0                           |
+| created_at    | DATETIME        | 创建时间                                 |
+| updated_at    | DATETIME        | 更新时间                                 |
 
-#### 商品表 `product`
+#### 5.2.3 订单表 `order`（SQL 关键字，代码中以 `OrderInfo` 实体映射）
 
-| 字段         | 类型          | 说明                                   |
-|--------------|---------------|----------------------------------------|
-| id           | BIGINT        | 主键                                   |
-| user_id      | BIGINT        | 发布者ID                               |
-| category_id  | BIGINT        | 分类ID                                 |
-| title        | VARCHAR(128)  | 标题                                   |
-| description  | TEXT          | 描述                                   |
-| price        | DECIMAL(10,2) | 价格                                   |
-| original_price| DECIMAL(10,2)| 原价（选填）                            |
-| condition    | TINYINT       | 新旧：1=全新 2=几乎全新 3=有使用痕迹   |
-| campus       | VARCHAR(32)   | 交易校区                               |
-| status       | TINYINT       | 0=待审核 1=在售 2=已售出 3=已下架      |
-| view_count   | INT           | 浏览量，默认0                          |
-| created_at   | DATETIME      | 发布时间                               |
-| updated_at   | DATETIME      | 更新时间                               |
+| 字段         | 类型            | 说明                                                    |
+|--------------|-----------------|---------------------------------------------------------|
+| id           | BIGINT (PK)     | 雪花ID                                                  |
+| order_no     | VARCHAR         | 订单编号（UUID 前20位）                                   |
+| buyer_id     | BIGINT (FK)     | 买家                                                    |
+| seller_id    | BIGINT (FK)     | 卖家                                                    |
+| total_amount | DECIMAL(10,2)   | 总金额                                                   |
+| status       | INT             | 0=待付款 1=待发货 2=待收货 3=已完成 4=已取消               |
+| remark       | VARCHAR         | 备注                                                    |
+| created_at   | DATETIME        | 创建时间                                                 |
+| paid_at      | DATETIME        | 支付时间                                                 |
+| shipped_at   | DATETIME        | 发货时间                                                 |
+| completed_at | DATETIME        | 完成时间                                                 |
 
-#### 商品图片表 `product_image`
+#### 5.2.4 其他表
 
-| 字段       | 类型         | 说明          |
-|------------|--------------|---------------|
-| id         | BIGINT       | 主键          |
-| product_id | BIGINT       | 商品ID        |
-| url        | VARCHAR(255) | 图片URL       |
-| sort_order | INT          | 排序（首图=1） |
-
-#### 订单表 `order`
-
-| 字段          | 类型          | 说明                                              |
-|---------------|---------------|---------------------------------------------------|
-| id            | BIGINT        | 主键                                              |
-| order_no      | VARCHAR(32)   | 订单编号（业务唯一）                               |
-| buyer_id      | BIGINT        | 买家ID                                            |
-| seller_id     | BIGINT        | 卖家ID                                            |
-| total_amount  | DECIMAL(10,2) | 总金额                                            |
-| status        | TINYINT       | 0=待付款 1=待发货 2=待收货 3=已完成 4=已取消      |
-| remark        | VARCHAR(255)  | 备注                                              |
-| created_at    | DATETIME      | 下单时间                                          |
-| paid_at       | DATETIME      | 付款时间                                          |
-| shipped_at    | DATETIME      | 发货时间                                          |
-| completed_at  | DATETIME      | 完成时间                                          |
-
-#### 订单明细表 `order_item`
-
-| 字段       | 类型          | 说明       |
-|------------|---------------|------------|
-| id         | BIGINT        | 主键       |
-| order_id   | BIGINT        | 订单ID     |
-| product_id | BIGINT        | 商品ID     |
-| price      | DECIMAL(10,2) | 成交单价   |
-| created_at | DATETIME      | 创建时间   |
-
-#### 购物车表 `cart`
-
-| 字段       | 类型     | 说明           |
-|------------|----------|----------------|
-| id         | BIGINT   | 主键           |
-| user_id    | BIGINT   | 用户ID         |
-| product_id | BIGINT   | 商品ID         |
-| created_at | DATETIME | 添加时间       |
-
-#### 收藏表 `favorite`
-
-| 字段       | 类型     | 说明     |
-|------------|----------|----------|
-| id         | BIGINT   | 主键     |
-| user_id    | BIGINT   | 用户ID   |
-| product_id | BIGINT   | 商品ID   |
-| created_at | DATETIME | 收藏时间 |
-
-#### 聊天消息表 `chat_message`
-
-| 字段          | 类型         | 说明                             |
-|---------------|--------------|----------------------------------|
-| id            | BIGINT       | 主键                             |
-| sender_id     | BIGINT       | 发送者ID                         |
-| receiver_id   | BIGINT       | 接收者ID                         |
-| product_id    | BIGINT       | 关联商品ID（可为空）              |
-| content       | TEXT         | 消息内容                         |
-| is_read       | TINYINT      | 0=未读 1=已读                    |
-| created_at    | DATETIME     | 发送时间                         |
-
-#### 评价表 `review`
-
-| 字段       | 类型         | 说明                         |
-|------------|--------------|------------------------------|
-| id         | BIGINT       | 主键                         |
-| order_id   | BIGINT       | 订单ID                       |
-| reviewer_id| BIGINT       | 评价者ID                     |
-| target_id  | BIGINT       | 被评价者ID                   |
-| rating     | TINYINT      | 评分 1-5                     |
-| content    | VARCHAR(500) | 评价内容                     |
-| created_at | DATETIME     | 评价时间                     |
-
-> 索引建议：
-> - `user(username) UNIQUE`、`product(category_id, status)`、`product(created_at)`
-> - `order(buyer_id, status)`、`order(seller_id, status)`
-> - `chat_message(sender_id, receiver_id)`、`chat_message(receiver_id, is_read)`
-> - 所有外键字段加普通索引
+| 表名             | 对应实体          | 关键字段                                |
+|------------------|-------------------|-----------------------------------------|
+| order_item       | OrderItem         | order_id, product_id, price             |
+| product_image    | ProductImage      | product_id, url, sort_order             |
+| category         | Category          | name, icon, sort_order                  |
+| cart             | CartItem          | user_id, product_id                     |
+| favorite         | Favorite          | user_id, product_id                     |
+| chat_message     | ChatMessage       | sender_id, receiver_id, product_id, content, is_read |
+| review           | Review            | order_id, reviewer_id, target_id, rating, content |
+| announcement     | Announcement      | title, content                          |
 
 ---
 
-## 6. API 接口设计
+## 6. API 接口文档（基于实际 Controller）
 
-### 6.1 通用约定
-
-- 基础路径: `http://localhost:8080/api`
-- 请求格式: `application/json`
-- 认证方式: Header `Authorization: Bearer <token>`
-- 统一响应格式:
+### 6.1 统一响应格式 `Result<T>`
 
 ```json
-{
-  "code": 200,
-  "message": "success",
-  "data": {}
-}
+{ "code": 200, "message": "success", "data": ... }
 ```
 
-- 分页响应:
-
+分页响应 `PageResult<T>`:
 ```json
-{
-  "code": 200,
-  "message": "success",
-  "data": {
-    "records": [],
-    "total": 100,
-    "page": 1,
-    "pageSize": 10
-  }
-}
+{ "code": 200, "message": "success", "data": { "records": [...], "total": 100, "page": 1, "pageSize": 12 } }
 ```
 
-### 6.2 接口列表
+### 6.2 认证模块 — `/api/auth`
 
-#### 认证模块 `/api/auth`
+| 方法   | 路径              | 认证 | 说明               | 请求体/参数                        |
+|--------|-------------------|------|--------------------|------------------------------------|
+| POST   | /api/auth/register| 否   | 用户注册           | `RegisterRequest` (JSON)           |
+| POST   | /api/auth/login   | 否   | 用户登录，返回 JWT | `LoginRequest` (JSON)              |
+| POST   | /api/auth/logout  | 是   | 登出               | Header: `Authorization: Bearer {}` |
+| GET    | /api/auth/me      | 是   | 获取当前用户信息   | Header: `Authorization: Bearer {}` |
 
-| 方法   | 路径              | 说明       | 认证 |
-|--------|-------------------|------------|------|
-| POST   | /auth/register    | 注册       | 否   |
-| POST   | /auth/login       | 登录       | 否   |
-| POST   | /auth/logout      | 退出       | 是   |
-| GET    | /auth/me          | 当前用户信息| 是   |
+### 6.3 用户模块 — `/api/user`
 
-#### 用户模块 `/api/user`
+| 方法 | 路径                | 认证 | 说明         | 请求体/参数                       |
+|------|---------------------|------|--------------|-----------------------------------|
+| GET  | /api/user/{id}      | 否   | 查看用户信息 | —                                 |
+| PUT  | /api/user/profile   | 是   | 修改个人资料 | `UpdateProfileRequest` (JSON)     |
+| PUT  | /api/user/password  | 是   | 修改密码     | `ChangePasswordRequest` (JSON)    |
+| POST | /api/user/avatar    | 是   | 修改头像     | `?image=URL`                      |
 
-| 方法   | 路径              | 说明           | 认证 |
-|--------|-------------------|----------------|------|
-| GET    | /user/{id}        | 用户详情       | 否   |
-| PUT    | /user/profile     | 编辑个人资料    | 是   |
-| PUT    | /user/password    | 修改密码       | 是   |
-| POST   | /user/avatar      | 上传头像       | 是   |
+### 6.4 商品模块 — `/api/products`
 
-#### 商品模块 `/api/products`
+| 方法 | 路径                     | 认证   | 说明                     | 参数                                                          |
+|------|--------------------------|--------|--------------------------|---------------------------------------------------------------|
+| GET  | /api/products            | 可选   | 商品列表（分页+筛选）    | `?keyword=&categoryId=&campus=&page=&pageSize=`               |
+| GET  | /api/products/{id}       | 可选   | 商品详情（浏览量+1）     | —                                                             |
+| POST | /api/products            | 是     | 发布商品（待审核）       | Body: Product JSON + `?images=url1&images=url2`               |
+| PUT  | /api/products/{id}       | 是     | 修改商品（回退待审核）   | Body: Product JSON + `?images=...`                            |
+| PUT  | /api/products/{id}/status| 是     | 修改商品状态             | `?status=0/1/2/3`                                             |
+| GET  | /api/products/my         | 是     | 我发布的商品列表         | `?page=&pageSize=`                                            |
 
-| 方法   | 路径                     | 说明            | 认证 |
-|--------|--------------------------|-----------------|------|
-| GET    | /products                | 商品列表（搜索+筛选+分页）| 否   |
-| GET    | /products/{id}           | 商品详情        | 否   |
-| POST   | /products                | 发布商品        | 是   |
-| PUT    | /products/{id}           | 编辑商品        | 是   |
-| PUT    | /products/{id}/status    | 下架商品        | 是   |
-| GET    | /products/my             | 我的发布列表     | 是   |
+### 6.5 收藏模块 — `/api/favorites`
 
-#### 分类模块 `/api/categories`
+| 方法   | 路径                          | 认证 | 说明           |
+|--------|-------------------------------|------|----------------|
+| GET    | /api/favorites                | 是   | 收藏列表（分页）|
+| POST   | /api/favorites                | 是   | 添加收藏       |
+| DELETE | /api/favorites/{productId}    | 是   | 取消收藏       |
+| GET    | /api/favorites/check/{productId}| 是 | 是否已收藏    |
 
-| 方法   | 路径              | 说明       | 认证 |
-|--------|-------------------|------------|------|
-| GET    | /categories       | 全部分类   | 否   |
+### 6.6 购物车模块 — `/api/cart`
 
-#### 订单模块 `/api/orders`
+| 方法   | 路径               | 认证 | 说明       |
+|--------|--------------------|------|------------|
+| GET    | /api/cart          | 是   | 购物车列表 |
+| POST   | /api/cart          | 是   | 加入购物车 (`?productId=`) |
+| DELETE | /api/cart/{productId}| 是 | 移除商品  |
 
-| 方法   | 路径                     | 说明            | 认证 |
-|--------|--------------------------|-----------------|------|
-| POST   | /orders                  | 创建订单        | 是   |
-| GET    | /orders                  | 订单列表（支持状态筛选）| 是   |
-| GET    | /orders/{id}             | 订单详情        | 是   |
-| PUT    | /orders/{id}/pay         | 模拟付款        | 是   |
-| PUT    | /orders/{id}/ship        | 卖家发货        | 是   |
-| PUT    | /orders/{id}/confirm     | 确认收货        | 是   |
-| PUT    | /orders/{id}/cancel      | 取消订单        | 是   |
+### 6.7 订单模块 — `/api/orders`
 
-#### 购物车模块 `/api/cart`
+| 方法 | 路径                  | 认证 | 说明                          |
+|------|-----------------------|------|-------------------------------|
+| POST | /api/orders           | 是   | 创建订单（商品变已售出）      |
+| GET  | /api/orders           | 是   | 订单列表 `?status=&page=&pageSize=` |
+| GET  | /api/orders/{id}      | 是   | 订单详情                      |
+| PUT  | /api/orders/{id}/pay  | 是   | 支付（无实际支付逻辑）        |
+| PUT  | /api/orders/{id}/ship | 是   | 卖家发货                      |
+| PUT  | /api/orders/{id}/confirm| 是 | 买家确认收货                  |
+| PUT  | /api/orders/{id}/cancel| 是  | 取消订单（恢复商品在售）      |
 
-| 方法   | 路径              | 说明           | 认证 |
-|--------|-------------------|----------------|------|
-| GET    | /cart             | 购物车列表     | 是   |
-| POST   | /cart             | 加入购物车     | 是   |
-| DELETE | /cart/{id}        | 移除商品       | 是   |
+> 订单状态流转: 待付款(0) → 待发货(1) → 待收货(2) → 已完成(3)；任意状态 → 已取消(4)
 
-#### 收藏模块 `/api/favorites`
+### 6.8 聊天模块 — `/api/chat`
 
-| 方法   | 路径                     | 说明            | 认证 |
-|--------|--------------------------|-----------------|------|
-| GET    | /favorites               | 收藏列表        | 是   |
-| POST   | /favorites               | 添加收藏        | 是   |
-| DELETE | /favorites/{productId}   | 取消收藏        | 是   |
-| GET    | /favorites/check/{productId} | 是否已收藏  | 是   |
+| 方法 | 路径                   | 认证 | 说明                 |
+|------|------------------------|------|----------------------|
+| GET  | /api/chat/contacts     | 是   | 联系人列表（含未读数）|
+| GET  | /api/chat/{contactId}  | 是   | 消息记录 `?page=&pageSize=` |
+| POST | /api/chat/send         | 是   | 发送消息 `SendMessageRequest` |
+| PUT  | /api/chat/read/{contactId}| 是| 标记已读             |
 
-#### 聊天模块 `/api/chat`
+WebSocket 连接: `ws://host:port/ws/chat?userId={userId}`（用于接收实时推送）
 
-| 方法   | 路径              | 说明           | 认证 |
-|--------|-------------------|----------------|------|
-| GET    | /chat/contacts    | 会话联系人列表 | 是   |
-| GET    | /chat/{contactId} | 历史消息       | 是   |
-| POST   | /chat/send        | 发送消息       | 是   |
-| PUT    | /chat/read/{contactId} | 标记已读  | 是   |
-| WS     | /ws/chat          | WebSocket连接  | 是   |
+### 6.9 评价模块 — `/api/reviews`
 
-#### 评价模块 `/api/reviews`
+| 方法 | 路径                    | 认证 | 说明                        |
+|------|-------------------------|------|-----------------------------|
+| POST | /api/reviews            | 是   | 创建评价（评分影响信誉分）  |
+| GET  | /api/reviews/user/{userId}| 否 | 查看用户评价记录（分页）    |
 
-| 方法   | 路径              | 说明           | 认证 |
-|--------|-------------------|----------------|------|
-| POST   | /reviews          | 发表评价       | 是   |
-| GET    | /reviews/user/{userId} | 用户评价列表| 否   |
+### 6.10 文件上传 — `/api/files`
 
-#### 文件上传 `/api/files`
+| 方法 | 路径               | 认证 | 说明                  |
+|------|--------------------|------|-----------------------|
+| POST | /api/files/upload  | 否   | 单文件上传 `multipart` |
+| POST | /api/files/uploads | 否   | 多文件上传 `multipart` |
 
-| 方法   | 路径              | 说明           | 认证 |
-|--------|-------------------|----------------|------|
-| POST   | /files/upload     | 单文件上传     | 是   |
-| POST   | /files/uploads    | 多文件上传     | 是   |
+### 6.11 分类管理 — `/api/categories`
 
-#### 后台管理 `/api/admin/...`
+| 方法   | 路径                  | 认证 | 说明                    |
+|--------|-----------------------|------|-------------------------|
+| GET    | /api/categories       | 否   | 获取所有分类（含商品数）|
+| POST   | /api/categories       | 否   | 新增分类                |
+| PUT    | /api/categories/{id}  | 否   | 修改分类                |
+| DELETE | /api/categories/{id}  | 否   | 删除分类（有商品则拒绝）|
 
-| 方法   | 路径                       | 说明           | 认证 |
-|--------|----------------------------|----------------|------|
-| GET    | /admin/dashboard           | 仪表盘数据     | 是(管理员) |
-| GET    | /admin/users               | 用户列表       | 是(管理员) |
-| PUT    | /admin/users/{id}/status   | 封禁/解封用户  | 是(管理员) |
-| GET    | /admin/products            | 商品列表       | 是(管理员) |
-| PUT    | /admin/products/{id}/audit | 审核商品       | 是(管理员) |
-| GET    | /admin/orders              | 订单列表       | 是(管理员) |
-| POST   | /admin/categories          | 新增分类       | 是(管理员) |
-| PUT    | /admin/categories/{id}     | 编辑分类       | 是(管理员) |
-| DELETE | /admin/categories/{id}     | 删除分类       | 是(管理员) |
+### 6.12 后台管理 — `/api/admin`
+
+| 方法 | 路径                           | 说明                              |
+|------|--------------------------------|-----------------------------------|
+| GET  | /api/admin/dashboard           | 仪表盘统计数据                    |
+| GET  | /api/admin/users               | 用户列表 `?page=&pageSize=&keyword=`|
+| PUT  | /api/admin/users/{id}/status   | 封禁/解封 `?status=0/1`           |
+| GET  | /api/admin/products            | 商品列表 `?page=&pageSize=&keyword=&status=`|
+| PUT  | /api/admin/products/{id}/status| 审核/下架 `?status=0/1/2/3`       |
+| GET  | /api/admin/orders              | 订单列表 `?page=&pageSize=&status=`|
 
 ---
 
-## 7. 开发环境搭建
+## 7. 安全机制（实际实现）
 
-### 7.1 环境要求
+### 7.1 密码加密
 
-| 工具      | 版本要求    | 说明               |
-|-----------|------------|--------------------|
-| JDK       | 21+        | Spring Boot 4 需要 |
-| Maven     | 3.9+       | 后端构建            |
-| Node.js   | 18+ / 20+  | 前端构建            |
-| pnpm      | 8+         | 推荐包管理器         |
-| MySQL     | 8.0+       | 数据库              |
-| Redis     | 7.x        | 缓存（可选）         |
-| IDE       | IntelliJ IDEA / VS Code | 开发工具   |
+使用 `Base64Provider`（`common/security/Base64Provider.java`），采用 **Base64 + 固定盐值** 方案：
 
-### 7.2 后端启动
-
-```bash
-# 1. 创建数据库
-mysql -u root -p
-CREATE DATABASE cuzssp DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
-# 2. 导入初始数据
-mysql -u root -p cuzssp < docs/sql/init.sql
-
-# 3. 修改 application-dev.yml 中的数据库连接信息
-
-# 4. 启动后端
-cd CuzShortSemester2026/code/backend
-mvn spring-boot:run -Dspring-boot.run.profiles=dev
+```java
+// 伪代码
+encode(password) = Base64.encode("cuzssp" + password + "2026webproject")
+matches(raw, encoded) = encode(raw).equals(encoded)
 ```
 
-### 7.3 前端启动
+> **注意**: 这不是 BCrypt，不是生产级密码哈希方案。盐值 `cuzssp` / `2026webproject` 硬编码在源码中。
+
+### 7.2 JWT 认证
+
+- `JwtTokenProvider`: 基于 `io.jsonwebtoken` (jjwt 0.12.6)，HMAC-SHA 签名
+- Token 包含: `sub`(userId), `username`, `role`
+- 过期时间: 配置中的毫秒值（注意 `JwtTokenProvider` 构造器对 `expiration` 做了 `* 1000` 转换）
+- `JwtAuthenticationFilter`: 从 `Authorization: Bearer xxx` 头解析，设置 Spring Security Context
+
+### 7.3 鉴权方式
+
+控制器层采用**手动解析 Token** 模式：各 Controller 注入 `JwtTokenProvider`，在方法内调用 `getCurrentUserId(token)` 解析用户 ID，而非完全依赖 Spring Security 注解（如 `@PreAuthorize`）。
+
+---
+
+## 8. 配置说明
+
+### 8.1 `application.yml` 关键配置项
+
+```yaml
+spring:
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:cuzssp}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:123456}
+  servlet:
+    multipart:
+      max-file-size: ${UPLOAD_MAX_FILE_SIZE:10MB}
+      max-request-size: ${UPLOAD_MAX_REQUEST_SIZE:50MB}
+
+server:
+  port: ${SERVER_PORT:8080}
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+jwt:
+  secret: ${JWT_SECRET:cuzssp-jwt-secret-key-2026-256-bits-default}
+  expiration: ${JWT_EXPIRATION:86400000}
+
+r2:
+  s3:
+    account-id: ${R2_ACCOUNT_ID:...}
+    access-key: ${R2_ACCESS_KEY_ID:...}
+    secret-key: ${R2_SECRET_ACCESS_KEY:...}
+    endpoint: ${R2_ENDPOINT:https://...r2.cloudflarestorage.com}
+    bucket-name: ${R2_BUCKET_NAME:demo}
+    child-folder: ${R2_CHILD_FOLDER:demo/2026/}
+    cdn-domain: ${R2_PUBLIC_URL:https://...}
+    region: ${R2_REGION:auto}
+```
+
+### 8.2 环境变量（`.env` / `.env.example`）
+
+所有敏感值和环境相关配置通过环境变量注入，详见 `src/main/resources/.env.example`。主要变量：
+
+- `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME`, `DB_PASSWORD` — 数据库连接
+- `JWT_SECRET`, `JWT_EXPIRATION` — JWT 配置
+- `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_ENDPOINT`, `R2_PUBLIC_URL`, `R2_REGION` — Cloudflare R2
+- `SERVER_PORT` — 服务端口
+- `UPLOAD_MAX_FILE_SIZE`, `UPLOAD_MAX_REQUEST_SIZE` — 上传限制（默认 10MB / 50MB）
+
+---
+
+## 9. 启动与部署
+
+### 9.1 后端启动
 
 ```bash
-cd CuzShortSemester2026/code/frontend
+# 1. 复制环境变量模板并填写实际值
+cp src/main/resources/.env.example src/main/resources/.env
+
+# 2. 创建数据库
+mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS cuzssp DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+
+# 3. 启动（使用 Maven Wrapper）
+cd CampusSecondHandTradingPlatform_backend
+./mvnw spring-boot:run
+```
+
+### 9.2 前端启动
+
+```bash
+cd campus-second-hand-trading-platform-frontend
 pnpm install
 pnpm dev
 # 访问 http://localhost:5173
 ```
 
-### 7.4 `application-dev.yml` 关键配置
+### 9.3 后端打包部署
 
-```yaml
-server:
-  port: 8080
-
-spring:
-  datasource:
-    url: jdbc:mysql://localhost:3306/cuzssp?useUnicode=true&characterEncoding=utf8mb4&serverTimezone=Asia/Shanghai
-    username: root
-    password: your_password
-    driver-class-name: com.mysql.cj.jdbc.Driver
-
-  servlet:
-    multipart:
-      max-file-size: 10MB
-      max-request-size: 50MB
-
-mybatis-plus:
-  configuration:
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # 开发阶段打印SQL
-  global-config:
-    db-config:
-      id-type: assign_id   # 雪花算法ID
-
-jwt:
-  secret: your-jwt-secret-key-at-least-256-bits-long
-  expiration: 86400000    # 24小时, 毫秒
-
-r2:
-  endpoint: https://<your-account-id>.r2.cloudflarestorage.com
-  access-key-id: your_r2_access_key_id
-  secret-access-key: your_r2_secret_access_key
-  bucket-name: cuz-trade-images
-  region: auto
-  public-url: https://your-domain.com  # 自定义域名或 R2 公共 URL
+```bash
+./mvnw clean package -DskipTests
+java -jar target/CampusSecondHandTradingPlatform_backend-0.0.1-SNAPSHOT.jar
 ```
 
 ---
 
-## 8. 开发规范
+## 10. 开发规范
 
-### 8.1 Git 分支策略
+### 10.1 代码架构
 
-```
-main        — 生产分支
-├── dev     — 开发主分支
-│   ├── feature/user-login     — 功能分支
-│   ├── feature/product-list
-│   └── ...
-└── release/v1.0 — 发布分支
-```
+- **后端分层**: Controller → Service(接口) → ServiceImpl(实现) → Mapper(注解式 SQL)
+- **Mapper 风格**: MyBatis 注解（`@Select`/`@Insert`/`@Update`），无 XML 映射文件
+- **包结构**: `com.cuzssp.campussecondhandtradingplatform_backend`
+- **实体转换**: DTO(请求) → `ToEntityUtil` → Entity → `ToVOUtil` → VO(响应)
+- **异常处理**: 统一 `@RestControllerAdvice` (`GlobalExceptionHandler`)，业务异常 `BusinessException`
+- **时间填充**: `MyMetaObjectHandler` 自动填充 `createdAt` / `updatedAt`
 
-### 8.2 命名规范
+### 10.2 命名规范
 
-| 类别       | 规范                     | 示例                         |
-|------------|--------------------------|------------------------------|
-| Java 类名  | UpperCamelCase           | `ProductController`          |
-| Java 方法  | lowerCamelCase           | `getProductList()`           |
-| 数据库表   | snake_case               | `product_image`              |
-| 数据库字段 | snake_case               | `created_at`                 |
-| RESTful URL| 短横线小写+资源名复数     | `/api/products/{id}`         |
-| Vue 组件   | PascalCase               | `ProductCard.vue`            |
-| Vue 文件   | kebab-case 或 PascalCase | `product-list.vue`           |
-| CSS 类名   | kebab-case               | `.product-card`              |
+| 类别         | 规范              | 示例                             |
+|--------------|-------------------|----------------------------------|
+| Java 类名    | UpperCamelCase    | `ProductController`              |
+| Java 方法    | lowerCamelCase    | `getProductList()`               |
+| 数据库表     | snake_case        | `product_image`, `chat_message`  |
+| RESTful URL  | 短横线+资源名复数  | `/api/products/{id}`             |
+| 包名         | 小写无下划线       | `campussecondhandtradingplatform_backend` |
 
-### 8.3 代码规范
+### 10.3 常量管理
 
-- **后端**: 遵循阿里巴巴Java开发手册, Controller → Service → Mapper 三层架构
-- **前端**: ESLint + Prettier 统一格式化, Composition API (`<script setup>`) 风格
-- **注释**: JavaDoc 注释 public 方法, 复杂逻辑加行内注释
-- **异常处理**: 统一用 `@RestControllerAdvice` 全局异常处理, 业务异常抛 `BusinessException`
+- `UserConstant`: 角色(`ROLE_USER=0`/`ROLE_ADMIN=1`)、状态(`STATUS_ABLE=0`/`STATUS_DISABLE=1`)、信誉分(`CREDIT_SCORE_DEFAULT=100`)
+- `ProductConstant`: 新旧程度(`CONDITION_100_NEW=0`/`CONDITION_95_NEW=1`/`CONDITION_85_NEW=2`)、状态(`STATUS_NEED_CHECK=0`→`STATUS_ON_SALE=1`→`STATUS_SOLD_OUT=2`→`STATUS_DISABLE=3`)
+- `OrderInfoConstant`: 状态(`STATUS_WAIT_PAY=0`→`STATUS_WAIT_DELIVER=1`→`STATUS_WAIT_RECEIVE=2`→`STATUS_COMPLETED=3` / `STATUS_CANCELLED=4`)
 
-### 8.4 提交规范
+### 10.4 提交规范
 
 遵循 Conventional Commits:
-
-```
-feat: 新增用户注册功能
-fix: 修复商品列表分页Bug
-docs: 更新API文档
-style: 格式化代码
-refactor: 重构订单Service
-test: 添加用户模块单元测试
-```
+- `feat:` 新增功能 | `fix:` 修复 Bug | `docs:` 文档更新
+- `refactor:` 重构 | `style:` 格式化 | `test:` 测试
 
 ---
 
-## 9. 开发顺序建议
+## 11. 待完善项 (TODO) 与已知问题
 
-| 阶段 | 内容                                           | 预计周期 |
-|------|------------------------------------------------|----------|
-| P1   | 项目初始化 + 数据库建表 + 用户认证模块          | 3 天     |
-| P2   | 商品模块（CRUD + 搜索 + 分类）                  | 4 天     |
-| P3   | 订单模块 + 购物车 + 收藏                        | 4 天     |
-| P4   | 聊天模块（WebSocket）                           | 3 天     |
-| P5   | 评价系统 + 用户信誉                             | 2 天     |
-| P6   | 后台管理端全部功能                              | 4 天     |
-| P7   | 文件上传 + 图片处理 + 前端联调 + 测试           | 3 天     |
+根据代码中标注的 TODO 和实际分析：
 
----
-
-## 10. 部署说明
-
-### 后端部署
-
-```bash
-# 打包
-mvn clean package -DskipTests
-
-# 运行
-java -jar -Dspring.profiles.active=prod backend/target/cuz-trade-1.0.0.jar
-```
-
-### 前端部署
-
-```bash
-pnpm build
-# dist/ 目录部署到 Nginx
-```
-
-### Nginx 配置示例
-
-```nginx
-server {
-    listen 80;
-    server_name trade.example.com;
-
-    # 前端
-    location / {
-        root /var/www/cuz-trade/dist;
-        try_files $uri $uri/ /index.html;
-    }
-
-    # API 代理
-    location /api/ {
-        proxy_pass http://localhost:8080;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-
-    # WebSocket 代理
-    location /ws/ {
-        proxy_pass http://localhost:8080;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-    }
-}
-```
+1. **商品图片上传**: `ProductServiceImpl.createProduct()` 中图片插入逻辑存在但标注"图片未能插入，前端是否上传？"
+2. **商品编辑功能**: `ProductController.updateProduct()` 标注"前端未做，无法验证是否可用"
+3. **密码安全**: 当前使用 Base64 + 硬编码盐值，建议升级为 BCrypt 或 Argon2
+4. **CORS 配置**: `CorsConfig` 和 `MyBatisPlusConfig` 当前为空类
+5. **无缓存层**: 项目未集成 Redis
+6. **公告模块**: `Announcement` 实体和 Mapper 已定义，但未暴露 API
+7. **分类 API 权限**: `/api/categories` 的增删改操作未做管理员鉴权
+8. **订单分页实现**: `OrderServiceImpl.getOrders()` 先查全部再内存过滤，数据量大时性能差
+9. **管理后台权限**: 用户/商品/订单管理 API 未做管理员鉴权
+10. **支付逻辑**: `payOrder` 直接变更状态，未对接真实支付
 
 ---
 
-> **文档维护**: 本 DEV.md 随项目迭代持续更新，每次功能变更需同步修改对应章节。
-
-│   ├── backend/                        # Spring Boot 后端
-│   │   ├── pom.xml                     # Maven 配置
-│   │   ├── src/
-│   │   │   ├── main/
-│   │   │   │   ├── java/com/cuzssp/campussecondhandtradingplatform_backend/
-│   │   │   │   │   ├── CampusSecondHandTradingPlatformBackendApplication.java        # 启动类
-│   │   │   │   │   ├── controller/
-│   │   │   │   │   │   ├── AuthController.java          # 认证接口
-│   │   │   │   │   │   ├── UserController.java          # 用户接口
-│   │   │   │   │   │   ├── ProductController.java       # 商品接口
-│   │   │   │   │   │   ├── CategoryController.java      # 分类接口
-│   │   │   │   │   │   ├── OrderController.java         # 订单接口
-│   │   │   │   │   │   ├── CartController.java          # 购物车接口
-│   │   │   │   │   │   ├── FavoriteController.java      # 收藏接口
-│   │   │   │   │   │   ├── ChatController.java          # 聊天接口
-│   │   │   │   │   │   ├── ReviewController.java        # 评价接口
-│   │   │   │   │   │   ├── FileController.java          # 文件上传接口
-│   │   │   │   │   │   └── admin/
-│   │   │   │   │   │       ├── AdminUserController.java
-│   │   │   │   │   │       ├── AdminProductController.java
-│   │   │   │   │   │       ├── AdminOrderController.java
-│   │   │   │   │   │       └── AdminDashboardController.java
-│   │   │   │   │   ├── service/
-│   │   │   │   │   │   ├── AuthService.java
-│   │   │   │   │   │   ├── UserService.java
-│   │   │   │   │   │   ├── ProductService.java
-│   │   │   │   │   │   ├── CategoryService.java
-│   │   │   │   │   │   ├── OrderService.java
-│   │   │   │   │   │   ├── CartService.java
-│   │   │   │   │   │   ├── FavoriteService.java
-│   │   │   │   │   │   ├── ChatService.java
-│   │   │   │   │   │   ├── ReviewService.java
-│   │   │   │   │   │   ├── FileService.java
-│   │   │   │   │   │   └── impl/
-│   │   │   │   │   │       ├── AuthServiceImpl.java
-│   │   │   │   │   │       ├── UserServiceImpl.java
-│   │   │   │   │   │       ├── ProductServiceImpl.java
-│   │   │   │   │   │       ├── CategoryServiceImpl.java
-│   │   │   │   │   │       ├── OrderServiceImpl.java
-│   │   │   │   │   │       ├── CartServiceImpl.java
-│   │   │   │   │   │       ├── FavoriteServiceImpl.java
-│   │   │   │   │   │       ├── ChatServiceImpl.java
-│   │   │   │   │   │       ├── ReviewServiceImpl.java
-│   │   │   │   │   │       └── FileServiceImpl.java
-│   │   │   │   │   ├── mapper/
-│   │   │   │   │   │   ├── UserMapper.java
-│   │   │   │   │   │   ├── ProductMapper.java
-│   │   │   │   │   │   ├── ProductImageMapper.java
-│   │   │   │   │   │   ├── CategoryMapper.java
-│   │   │   │   │   │   ├── OrderMapper.java
-│   │   │   │   │   │   ├── OrderItemMapper.java
-│   │   │   │   │   │   ├── CartMapper.java
-│   │   │   │   │   │   ├── FavoriteMapper.java
-│   │   │   │   │   │   ├── ChatMessageMapper.java
-│   │   │   │   │   │   └── ReviewMapper.java
-│   │   │   │   │   └── common/
-│   │   │   │   │       ├── pojo/
-│   │   │   │   │       │   ├── User.java
-│   │   │   │   │       │   ├── Product.java
-│   │   │   │   │       │   ├── ProductImage.java
-│   │   │   │   │       │   ├── Category.java
-│   │   │   │   │       │   ├── Order.java
-│   │   │   │   │       │   ├── OrderItem.java
-│   │   │   │   │       │   ├── Cart.java
-│   │   │   │   │       │   ├── Favorite.java
-│   │   │   │   │       │   ├── ChatMessage.java
-│   │   │   │   │       │   └── Review.java
-│   │   │   │   │       ├── dto/
-│   │   │   │   │       │   ├── request/
-│   │   │   │   │       │   │   ├── LoginRequest.java
-│   │   │   │   │       │   │   ├── RegisterRequest.java
-│   │   │   │   │       │   │   ├── ProductRequest.java
-│   │   │   │   │       │   │   └── OrderRequest.java
-│   │   │   │   │       │   └── response/
-│   │   │   │   │       │       ├── ApiResponse.java
-│   │   │   │   │       │       ├── PageResponse.java
-│   │   │   │   │       │       ├── LoginResponse.java
-│   │   │   │   │       │       └── ProductVO.java
-│   │   │   │   │       ├── config/
-│   │   │   │   │       │   ├── SecurityConfig.java
-│   │   │   │   │       │   ├── JwtConfig.java
-│   │   │   │   │       │   ├── CorsConfig.java
-│   │   │   │   │       │   ├── MyBatisPlusConfig.java
-│   │   │   │   │       │   ├── WebSocketConfig.java
-│   │   │   │   │       │   ├── FileUploadConfig.java
-│   │   │   │   │       │   └── R2Config.java
-│   │   │   │   │       ├── security/
-│   │   │   │   │       │   ├── JwtTokenProvider.java
-│   │   │   │   │       │   ├── JwtAuthenticationFilter.java
-│   │   │   │   │       │   └── UserDetailsServiceImpl.java
-│   │   │   │   │       ├── exception/
-│   │   │   │   │       │   ├── BusinessException.java
-│   │   │   │   │       │   └── GlobalExceptionHandler.java
-│   │   │   │   │       └── util/
-│   │   │   │   │           ├── FileUtil.java
-│   │   │   │   │           └── SnowflakeIdUtil.java
-│   │   │   │   └── resources/
-│   │   │   │       ├── application.yml
-│   │   │   │       ├── application-dev.yml
-│   │   │   │       ├── application-prod.yml
-│   │   │   │       └── mapper/
-│   │   │   └── test/
-│   │   └── uploads/
-│   │   │   │   │   │   └── R2Config.java               # Cloudflare R2 配置
-│   │   │   │   │   ├── controller/
-│   │   │   │   │   │   ├── AuthController.java          # 认证接口
-│   │   │   │   │   │   ├── UserController.java          # 用户接口
-│   │   │   │   │   │   ├── ProductController.java       # 商品接口
-│   │   │   │   │   │   ├── CategoryController.java      # 分类接口
-│   │   │   │   │   │   ├── OrderController.java         # 订单接口
-│   │   │   │   │   │   ├── CartController.java          # 购物车接口
-│   │   │   │   │   │   ├── FavoriteController.java      # 收藏接口
-│   │   │   │   │   │   ├── ChatController.java          # 聊天接口
-│   │   │   │   │   │   ├── ReviewController.java        # 评价接口
-│   │   │   │   │   │   ├── FileController.java          # 文件上传接口
-│   │   │   │   │   │   └── admin/
-│   │   │   │   │   │       ├── AdminUserController.java  # 管理-用户
-│   │   │   │   │   │       ├── AdminProductController.java
-│   │   │   │   │   │       ├── AdminOrderController.java
-│   │   │   │   │   │       └── AdminDashboardController.java
-│   │   │   │   │   ├── service/
-│   │   │   │   │   │   ├── AuthService.java
-│   │   │   │   │   │   ├── UserService.java
-│   │   │   │   │   │   ├── ProductService.java
-│   │   │   │   │   │   ├── CategoryService.java
-│   │   │   │   │   │   ├── OrderService.java
-│   │   │   │   │   │   ├── CartService.java
-│   │   │   │   │   │   ├── FavoriteService.java
-│   │   │   │   │   │   ├── ChatService.java
-│   │   │   │   │   │   ├── ReviewService.java
-│   │   │   │   │   │   └── FileService.java
-│   │   │   │   │   │   └── impl/                        # Service 实现类
-│   │   │   │   │   ├── mapper/                          # MyBatis-Plus Mapper
-│   │   │   │   │   │   ├── UserMapper.java
-│   │   │   │   │   │   ├── ProductMapper.java
-│   │   │   │   │   │   ├── ProductImageMapper.java
-│   │   │   │   │   │   ├── CategoryMapper.java
-│   │   │   │   │   │   ├── OrderMapper.java
-│   │   │   │   │   │   ├── CartMapper.java
-│   │   │   │   │   │   ├── FavoriteMapper.java
-│   │   │   │   │   │   ├── ChatMessageMapper.java
-│   │   │   │   │   │   └── ReviewMapper.java
-│   │   │   │   │   ├── entity/                          # 数据库实体
-│   │   │   │   │   │   ├── User.java
-│   │   │   │   │   │   ├── Product.java
-│   │   │   │   │   │   ├── ProductImage.java
-│   │   │   │   │   │   ├── Category.java
-│   │   │   │   │   │   ├── Order.java
-│   │   │   │   │   │   ├── OrderItem.java
-│   │   │   │   │   │   ├── Cart.java
-│   │   │   │   │   │   ├── Favorite.java
-│   │   │   │   │   │   ├── ChatMessage.java
-│   │   │   │   │   │   └── Review.java
-│   │   │   │   │   ├── dto/                             # 数据传输对象
-│   │   │   │   │   │   ├── request/
-│   │   │   │   │   │   │   ├── LoginRequest.java
-│   │   │   │   │   │   │   ├── RegisterRequest.java
-│   │   │   │   │   │   │   ├── ProductRequest.java
-│   │   │   │   │   │   │   ├── OrderRequest.java
-│   │   │   │   │   │   │   └── ...
-│   │   │   │   │   │   └── response/
-│   │   │   │   │   │       ├── ApiResponse.java         # 统一响应体
-│   │   │   │   │   │       ├── LoginResponse.java
-│   │   │   │   │   │       ├── ProductVO.java
-│   │   │   │   │   │       └── ...
-│   │   │   │   │   ├── security/
-│   │   │   │   │   │   ├── JwtTokenProvider.java        # JWT 工具类
-│   │   │   │   │   │   ├── JwtAuthenticationFilter.java # JWT 过滤器
-│   │   │   │   │   │   └── UserDetailsServiceImpl.java  # 用户详情加载
-│   │   │   │   │   ├── common/
-│   │   │   │   │   │   ├── Result.java                  # 统一返回类
-│   │   │   │   │   │   ├── PageResult.java              # 分页返回
-│   │   │   │   │   │   ├── BusinessException.java       # 业务异常
-│   │   │   │   │   │   └── GlobalExceptionHandler.java  # 全局异常处理
-│   │   │   │   │   └── util/
-│   │   │   │   │       ├── FileUtil.java
-│   │   │   │   │       └── SnowflakeIdUtil.java
-│   │   │   │   └── resources/
-│   │   │   │       ├── application.yml                  # 主配置
-│   │   │   │       ├── application-dev.yml              # 开发环境
-│   │   │   │       ├── application-prod.yml             # 生产环境
-│   │   │   │       └── mapper/                          # MyBatis XML（如需）
-│   │   │   └── test/
-│   │   └── uploads/                                     # 本地上传目录
-│   │
-│   └── frontend/                        # Vue 3 前端
-│       ├── package.json
-│       ├── vite.config.ts
-│       ├── index.html
-│       ├── tsconfig.json
-│       ├── src/
-│       │   ├── main.ts                  # 入口
-│       │   ├── App.vue                  # 根组件
-│       │   ├── router/
-│       │   │   └── index.ts             # 路由配置
-│       │   ├── stores/                  # Pinia 状态管理
-│       │   │   ├── user.ts              # 用户状态
-│       │   │   ├── cart.ts              # 购物车状态
-│       │   │   └── chat.ts              # 聊天状态
-│       │   ├── api/                     # 接口请求层
-│       │   │   ├── request.ts           # Axios 封装 + 拦截器
-│       │   │   ├── auth.ts
-│       │   │   ├── user.ts
-│       │   │   ├── product.ts
-│       │   │   ├── category.ts
-│       │   │   ├── order.ts
-│       │   │   ├── cart.ts
-│       │   │   ├── favorite.ts
-│       │   │   ├── chat.ts
-│       │   │   └── review.ts
-│       │   ├── views/                   # 页面视图
-│       │   │   ├── HomeView.vue         # 首页
-│       │   │   ├── LoginView.vue        # 登录
-│       │   │   ├── RegisterView.vue     # 注册
-│       │   │   ├── product/
-│       │   │   │   ├── ProductList.vue  # 商品列表
-│       │   │   │   ├── ProductDetail.vue# 商品详情
-│       │   │   │   └── ProductPublish.vue# 发布商品
-│       │   │   ├── order/
-│       │   │   │   ├── OrderList.vue    # 订单列表
-│       │   │   │   └── OrderDetail.vue  # 订单详情
-│       │   │   ├── user/
-│       │   │   │   ├── ProfileView.vue  # 个人主页
-│       │   │   │   └── MyProducts.vue   # 我的发布
-│       │   │   ├── chat/
-│       │   │   │   └── ChatView.vue     # 聊天页
-│       │   │   ├── favorite/
-│       │   │   │   └── FavoriteList.vue # 收藏列表
-│       │   │   └── admin/              # 后台管理
-│       │   │       ├── AdminLayout.vue
-│       │   │       ├── DashboardView.vue
-│       │   │       ├── UserManage.vue
-│       │   │       ├── ProductManage.vue
-│       │   │       └── OrderManage.vue
-│       │   ├── components/             # 公共组件
-│       │   │   ├── layout/
-│       │   │   │   ├── AppHeader.vue    # 顶部导航
-│       │   │   │   └── AppFooter.vue    # 底部
-│       │   │   ├── ProductCard.vue      # 商品卡片
-│       │   │   ├── SearchBar.vue        # 搜索栏
-│       │   │   ├── ImageUpload.vue      # 图片上传
-│       │   │   └── Pagination.vue       # 分页器
-│       │   ├── utils/
-│       │   │   ├── index.ts             # 通用工具函数
-│       │   │   └── validators.ts        # 表单校验
-│       │   └── styles/
-│       │       ├── variables.scss       # SCSS 变量
-│       │       └── global.scss          # 全局样式
-│       └── public/
-│           └── favicon.ico
-│
-└── docs/
-    └── sql/
-        └── init.sql                     # 数据库初始化脚本
-```
-
----
-
-## 5. 数据库设计
-
-### 5.1 E-R 概要
-
-```
-User 1───N Product    (用户发布多个商品)
-User 1───N Order      (用户有多个订单)
-User 1───N Review     (用户发表多条评价)
-Product 1───N OrderItem   (一件商品可被多次购买)
-Product 1───N ProductImage (一件商品多张图片)
-Product 1───N Favorite    (一件商品可被多人收藏)
-Product N───1 Category    (商品属于一个分类)
-Order 1───N OrderItem    (一个订单包含多个商品项)
-```
-
-### 5.2 表结构设计
-
-#### 用户表 `user`
-
-| 字段          | 类型          | 说明                       |
-|---------------|---------------|----------------------------|
-| id            | BIGINT        | 主键，雪花ID                |
-| username      | VARCHAR(32)   | 用户名，唯一                |
-| password      | VARCHAR(128)  | BCrypt加密密文             |
-| nickname      | VARCHAR(32)   | 昵称                       |
-| avatar        | VARCHAR(255)  | 头像URL                    |
-| phone         | VARCHAR(16)   | 手机号                     |
-| email         | VARCHAR(64)   | 邮箱                       |
-| school        | VARCHAR(64)   | 学校                       |
-| campus        | VARCHAR(32)   | 校区                       |
-| role          | TINYINT       | 角色：0=用户 1=管理员      |
-| status        | TINYINT       | 状态：0=正常 1=封禁        |
-| credit_score  | INT           | 信誉分，默认100             |
-| created_at    | DATETIME      | 创建时间                   |
-| updated_at    | DATETIME      | 更新时间                   |
-
-#### 商品分类表 `category`
-
-| 字段      | 类型         | 说明               |
-|-----------|--------------|--------------------|
-| id        | BIGINT       | 主键               |
-| name      | VARCHAR(32)  | 分类名（教材/数码/衣物...）|
-| icon      | VARCHAR(255) | 分类图标URL         |
-| sort_order| INT          | 排序               |
-| created_at| DATETIME     | 创建时间            |
-
-#### 商品表 `product`
-
-| 字段         | 类型          | 说明                                   |
-|--------------|---------------|----------------------------------------|
-| id           | BIGINT        | 主键                                   |
-| user_id      | BIGINT        | 发布者ID                               |
-| category_id  | BIGINT        | 分类ID                                 |
-| title        | VARCHAR(128)  | 标题                                   |
-| description  | TEXT          | 描述                                   |
-| price        | DECIMAL(10,2) | 价格                                   |
-| original_price| DECIMAL(10,2)| 原价（选填）                            |
-| condition    | TINYINT       | 新旧：1=全新 2=几乎全新 3=有使用痕迹   |
-| campus       | VARCHAR(32)   | 交易校区                               |
-| status       | TINYINT       | 0=待审核 1=在售 2=已售出 3=已下架      |
-| view_count   | INT           | 浏览量，默认0                          |
-| created_at   | DATETIME      | 发布时间                               |
-| updated_at   | DATETIME      | 更新时间                               |
-
-#### 商品图片表 `product_image`
-
-| 字段       | 类型         | 说明          |
-|------------|--------------|---------------|
-| id         | BIGINT       | 主键          |
-| product_id | BIGINT       | 商品ID        |
-| url        | VARCHAR(255) | 图片URL       |
-| sort_order | INT          | 排序（首图=1） |
-
-#### 订单表 `order`
-
-| 字段          | 类型          | 说明                                              |
-|---------------|---------------|---------------------------------------------------|
-| id            | BIGINT        | 主键                                              |
-| order_no      | VARCHAR(32)   | 订单编号（业务唯一）                               |
-| buyer_id      | BIGINT        | 买家ID                                            |
-| seller_id     | BIGINT        | 卖家ID                                            |
-| total_amount  | DECIMAL(10,2) | 总金额                                            |
-| status        | TINYINT       | 0=待付款 1=待发货 2=待收货 3=已完成 4=已取消      |
-| remark        | VARCHAR(255)  | 备注                                              |
-| created_at    | DATETIME      | 下单时间                                          |
-| paid_at       | DATETIME      | 付款时间                                          |
-| shipped_at    | DATETIME      | 发货时间                                          |
-| completed_at  | DATETIME      | 完成时间                                          |
-
-#### 订单明细表 `order_item`
-
-| 字段       | 类型          | 说明       |
-|------------|---------------|------------|
-| id         | BIGINT        | 主键       |
-| order_id   | BIGINT        | 订单ID     |
-| product_id | BIGINT        | 商品ID     |
-| price      | DECIMAL(10,2) | 成交单价   |
-| created_at | DATETIME      | 创建时间   |
-
-#### 购物车表 `cart`
-
-| 字段       | 类型     | 说明           |
-|------------|----------|----------------|
-| id         | BIGINT   | 主键           |
-| user_id    | BIGINT   | 用户ID         |
-| product_id | BIGINT   | 商品ID         |
-| created_at | DATETIME | 添加时间       |
-
-#### 收藏表 `favorite`
-
-| 字段       | 类型     | 说明     |
-|------------|----------|----------|
-| id         | BIGINT   | 主键     |
-| user_id    | BIGINT   | 用户ID   |
-| product_id | BIGINT   | 商品ID   |
-| created_at | DATETIME | 收藏时间 |
-
-#### 聊天消息表 `chat_message`
-
-| 字段          | 类型         | 说明                             |
-|---------------|--------------|----------------------------------|
-| id            | BIGINT       | 主键                             |
-| sender_id     | BIGINT       | 发送者ID                         |
-| receiver_id   | BIGINT       | 接收者ID                         |
-| product_id    | BIGINT       | 关联商品ID（可为空）              |
-| content       | TEXT         | 消息内容                         |
-| is_read       | TINYINT      | 0=未读 1=已读                    |
-| created_at    | DATETIME     | 发送时间                         |
-
-#### 评价表 `review`
-
-| 字段       | 类型         | 说明                         |
-|------------|--------------|------------------------------|
-| id         | BIGINT       | 主键                         |
-| order_id   | BIGINT       | 订单ID                       |
-| reviewer_id| BIGINT       | 评价者ID                     |
-| target_id  | BIGINT       | 被评价者ID                   |
-| rating     | TINYINT      | 评分 1-5                     |
-| content    | VARCHAR(500) | 评价内容                     |
-| created_at | DATETIME     | 评价时间                     |
-
-> 索引建议：
-> - `user(username) UNIQUE`、`product(category_id, status)`、`product(created_at)`
-> - `order(buyer_id, status)`、`order(seller_id, status)`
-> - `chat_message(sender_id, receiver_id)`、`chat_message(receiver_id, is_read)`
-> - 所有外键字段加普通索引
-
----
-
-## 6. API 接口设计
-
-### 6.1 通用约定
-
-- 基础路径: `http://localhost:8080/api`
-- 请求格式: `application/json`
-- 认证方式: Header `Authorization: Bearer <token>`
-- 统一响应格式:
-
-```json
-{
-  "code": 200,
-  "message": "success",
-  "data": {}
-}
-```
-
-- 分页响应:
-
-```json
-{
-  "code": 200,
-  "message": "success",
-  "data": {
-    "records": [],
-    "total": 100,
-    "page": 1,
-    "pageSize": 10
-  }
-}
-```
-
-### 6.2 接口列表
-
-#### 认证模块 `/api/auth`
-
-| 方法   | 路径              | 说明       | 认证 |
-|--------|-------------------|------------|------|
-| POST   | /auth/register    | 注册       | 否   |
-| POST   | /auth/login       | 登录       | 否   |
-| POST   | /auth/logout      | 退出       | 是   |
-| GET    | /auth/me          | 当前用户信息| 是   |
-
-#### 用户模块 `/api/user`
-
-| 方法   | 路径              | 说明           | 认证 |
-|--------|-------------------|----------------|------|
-| GET    | /user/{id}        | 用户详情       | 否   |
-| PUT    | /user/profile     | 编辑个人资料    | 是   |
-| PUT    | /user/password    | 修改密码       | 是   |
-| POST   | /user/avatar      | 上传头像       | 是   |
-
-#### 商品模块 `/api/products`
-
-| 方法   | 路径                     | 说明            | 认证 |
-|--------|--------------------------|-----------------|------|
-| GET    | /products                | 商品列表（搜索+筛选+分页）| 否   |
-| GET    | /products/{id}           | 商品详情        | 否   |
-| POST   | /products                | 发布商品        | 是   |
-| PUT    | /products/{id}           | 编辑商品        | 是   |
-| PUT    | /products/{id}/status    | 下架商品        | 是   |
-| GET    | /products/my             | 我的发布列表     | 是   |
-
-#### 分类模块 `/api/categories`
-
-| 方法   | 路径              | 说明       | 认证 |
-|--------|-------------------|------------|------|
-| GET    | /categories       | 全部分类   | 否   |
-
-#### 订单模块 `/api/orders`
-
-| 方法   | 路径                     | 说明            | 认证 |
-|--------|--------------------------|-----------------|------|
-| POST   | /orders                  | 创建订单        | 是   |
-| GET    | /orders                  | 订单列表（支持状态筛选）| 是   |
-| GET    | /orders/{id}             | 订单详情        | 是   |
-| PUT    | /orders/{id}/pay         | 模拟付款        | 是   |
-| PUT    | /orders/{id}/ship        | 卖家发货        | 是   |
-| PUT    | /orders/{id}/confirm     | 确认收货        | 是   |
-| PUT    | /orders/{id}/cancel      | 取消订单        | 是   |
-
-#### 购物车模块 `/api/cart`
-
-| 方法   | 路径              | 说明           | 认证 |
-|--------|-------------------|----------------|------|
-| GET    | /cart             | 购物车列表     | 是   |
-| POST   | /cart             | 加入购物车     | 是   |
-| DELETE | /cart/{id}        | 移除商品       | 是   |
-
-#### 收藏模块 `/api/favorites`
-
-| 方法   | 路径                     | 说明            | 认证 |
-|--------|--------------------------|-----------------|------|
-| GET    | /favorites               | 收藏列表        | 是   |
-| POST   | /favorites               | 添加收藏        | 是   |
-| DELETE | /favorites/{productId}   | 取消收藏        | 是   |
-| GET    | /favorites/check/{productId} | 是否已收藏  | 是   |
-
-#### 聊天模块 `/api/chat`
-
-| 方法   | 路径              | 说明           | 认证 |
-|--------|-------------------|----------------|------|
-| GET    | /chat/contacts    | 会话联系人列表 | 是   |
-| GET    | /chat/{contactId} | 历史消息       | 是   |
-| POST   | /chat/send        | 发送消息       | 是   |
-| PUT    | /chat/read/{contactId} | 标记已读  | 是   |
-| WS     | /ws/chat          | WebSocket连接  | 是   |
-
-#### 评价模块 `/api/reviews`
-
-| 方法   | 路径              | 说明           | 认证 |
-|--------|-------------------|----------------|------|
-| POST   | /reviews          | 发表评价       | 是   |
-| GET    | /reviews/user/{userId} | 用户评价列表| 否   |
-
-#### 文件上传 `/api/files`
-
-| 方法   | 路径              | 说明           | 认证 |
-|--------|-------------------|----------------|------|
-| POST   | /files/upload     | 单文件上传     | 是   |
-| POST   | /files/uploads    | 多文件上传     | 是   |
-
-#### 后台管理 `/api/admin/...`
-
-| 方法   | 路径                       | 说明           | 认证 |
-|--------|----------------------------|----------------|------|
-| GET    | /admin/dashboard           | 仪表盘数据     | 是(管理员) |
-| GET    | /admin/users               | 用户列表       | 是(管理员) |
-| PUT    | /admin/users/{id}/status   | 封禁/解封用户  | 是(管理员) |
-| GET    | /admin/products            | 商品列表       | 是(管理员) |
-| PUT    | /admin/products/{id}/audit | 审核商品       | 是(管理员) |
-| GET    | /admin/orders              | 订单列表       | 是(管理员) |
-| POST   | /admin/categories          | 新增分类       | 是(管理员) |
-| PUT    | /admin/categories/{id}     | 编辑分类       | 是(管理员) |
-| DELETE | /admin/categories/{id}     | 删除分类       | 是(管理员) |
-
----
-
-## 7. 开发环境搭建
-
-### 7.1 环境要求
-
-| 工具      | 版本要求    | 说明               |
-|-----------|------------|--------------------|
-| JDK       | 21+        | Spring Boot 4 需要 |
-| Maven     | 3.9+       | 后端构建            |
-| Node.js   | 18+ / 20+  | 前端构建            |
-| pnpm      | 8+         | 推荐包管理器         |
-| MySQL     | 8.0+       | 数据库              |
-| Redis     | 7.x        | 缓存（可选）         |
-| IDE       | IntelliJ IDEA / VS Code | 开发工具   |
-
-### 7.2 后端启动
-
-```bash
-# 1. 创建数据库
-mysql -u root -p
-CREATE DATABASE cuzssp DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
-# 2. 导入初始数据
-mysql -u root -p cuzssp < docs/sql/init.sql
-
-# 3. 修改 application-dev.yml 中的数据库连接信息
-
-# 4. 启动后端
-cd CuzShortSemester2026/code/backend
-mvn spring-boot:run -Dspring-boot.run.profiles=dev
-```
-
-### 7.3 前端启动
-
-```bash
-cd CuzShortSemester2026/code/frontend
-pnpm install
-pnpm dev
-# 访问 http://localhost:5173
-```
-
-### 7.4 `application-dev.yml` 关键配置
-
-```yaml
-server:
-  port: 8080
-
-spring:
-  datasource:
-    url: jdbc:mysql://localhost:3306/cuzssp?useUnicode=true&characterEncoding=utf8mb4&serverTimezone=Asia/Shanghai
-    username: root
-    password: your_password
-    driver-class-name: com.mysql.cj.jdbc.Driver
-
-  servlet:
-    multipart:
-      max-file-size: 10MB
-      max-request-size: 50MB
-
-mybatis-plus:
-  configuration:
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # 开发阶段打印SQL
-  global-config:
-    db-config:
-      id-type: assign_id   # 雪花算法ID
-
-jwt:
-  secret: your-jwt-secret-key-at-least-256-bits-long
-  expiration: 86400000    # 24小时, 毫秒
-
-r2:
-  endpoint: https://<your-account-id>.r2.cloudflarestorage.com
-  access-key-id: your_r2_access_key_id
-  secret-access-key: your_r2_secret_access_key
-  bucket-name: cuz-trade-images
-  region: auto
-  public-url: https://your-domain.com  # 自定义域名或 R2 公共 URL
-```
-
----
-
-## 8. 开发规范
-
-### 8.1 Git 分支策略
-
-```
-main        — 生产分支
-├── dev     — 开发主分支
-│   ├── feature/user-login     — 功能分支
-│   ├── feature/product-list
-│   └── ...
-└── release/v1.0 — 发布分支
-```
-
-### 8.2 命名规范
-
-| 类别       | 规范                     | 示例                         |
-|------------|--------------------------|------------------------------|
-| Java 类名  | UpperCamelCase           | `ProductController`          |
-| Java 方法  | lowerCamelCase           | `getProductList()`           |
-| 数据库表   | snake_case               | `product_image`              |
-| 数据库字段 | snake_case               | `created_at`                 |
-| RESTful URL| 短横线小写+资源名复数     | `/api/products/{id}`         |
-| Vue 组件   | PascalCase               | `ProductCard.vue`            |
-| Vue 文件   | kebab-case 或 PascalCase | `product-list.vue`           |
-| CSS 类名   | kebab-case               | `.product-card`              |
-
-### 8.3 代码规范
-
-- **后端**: 遵循阿里巴巴Java开发手册, Controller → Service → Mapper 三层架构
-- **前端**: ESLint + Prettier 统一格式化, Composition API (`<script setup>`) 风格
-- **注释**: JavaDoc 注释 public 方法, 复杂逻辑加行内注释
-- **异常处理**: 统一用 `@RestControllerAdvice` 全局异常处理, 业务异常抛 `BusinessException`
-
-### 8.4 提交规范
-
-遵循 Conventional Commits:
-
-```
-feat: 新增用户注册功能
-fix: 修复商品列表分页Bug
-docs: 更新API文档
-style: 格式化代码
-refactor: 重构订单Service
-test: 添加用户模块单元测试
-```
-
----
-
-## 9. 开发顺序建议
-
-| 阶段 | 内容                                           | 预计周期 |
-|------|------------------------------------------------|----------|
-| P1   | 项目初始化 + 数据库建表 + 用户认证模块          | 3 天     |
-| P2   | 商品模块（CRUD + 搜索 + 分类）                  | 4 天     |
-| P3   | 订单模块 + 购物车 + 收藏                        | 4 天     |
-| P4   | 聊天模块（WebSocket）                           | 3 天     |
-| P5   | 评价系统 + 用户信誉                             | 2 天     |
-| P6   | 后台管理端全部功能                              | 4 天     |
-| P7   | 文件上传 + 图片处理 + 前端联调 + 测试           | 3 天     |
-
----
-
-## 10. 部署说明
-
-### 后端部署
-
-```bash
-# 打包
-mvn clean package -DskipTests
-
-# 运行
-java -jar -Dspring.profiles.active=prod backend/target/cuz-trade-1.0.0.jar
-```
-
-### 前端部署
-
-```bash
-pnpm build
-# dist/ 目录部署到 Nginx
-```
-
-### Nginx 配置示例
-
-```nginx
-server {
-    listen 80;
-    server_name trade.example.com;
-
-    # 前端
-    location / {
-        root /var/www/cuz-trade/dist;
-        try_files $uri $uri/ /index.html;
-    }
-
-    # API 代理
-    location /api/ {
-        proxy_pass http://localhost:8080;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-
-    # WebSocket 代理
-    location /ws/ {
-        proxy_pass http://localhost:8080;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-    }
-}
-```
-
----
-
-> **文档维护**: 本 DEV.md 随项目迭代持续更新，每次功能变更需同步修改对应章节。
-
-# 校园二手交易平台 — 开发说明文档 (DEV.md)
-
-> **版本**: v1.0  
-> **日期**: 2026-07-05  
-> **项目名**: CuzShortSemester2026 — Campus Second-Hand Trading Platform
-
----
-
-## 1. 项目概述
-
-本项目是一个面向高校学生的校园二手物品交易 Web 应用，旨在为校内用户提供一个安全、便捷的二手商品发布、浏览、交易与交流平台。系统分为前台用户端和后台管理端，支持商品分类浏览、搜索筛选、在线聊天、订单管理、评价系统等核心功能。
-
----
-
-## 2. 技术栈
-
-| 层级   | 技术选择                          | 版本       |
-|--------|-----------------------------------|------------|
-| 后端   | Spring Boot                       | 4.x        |
-| 后端   | Spring Security + JWT             | —          |
-| 后端   | MyBatis-Plus                      | 3.5+       |
-| 后端   | MySQL Driver (Connector/J)        | 8.x        |
-| 数据库 | MySQL                             | 8.0+       |
-| 缓存   | Redis                             | 7.x（可选） |
-| 前端   | Vue                               | 3.4+       |
-| 前端   | Vue Router                        | 4.x        |
-| 前端   | Pinia (状态管理)                  | 2.x        |
-| 前端   | Element Plus (UI组件库)           | 2.x        |
-| 前端   | Axios                             | 1.x        |
-| 构建   | Vite                              | 5.x        |
-| 包管理 | pnpm / npm                        | 最新       |
-| 对象存储 | Cloudflare R2 (S3 Compatible API) | —          |
-| 后端   | AWS SDK for Java (S3)            | 2.x        |
-
----
-
-## 3. 需求分析
-
-### 3.1 用户角色
-
-| 角色         | 描述                                 |
-|--------------|--------------------------------------|
-| 普通用户     | 注册登录、浏览商品、发布商品、下单购买、聊天 |
-| 管理员       | 用户管理、商品审核、订单管理、系统配置     |
-
-### 3.2 功能模块
-
-#### 前台用户端
-
-| 模块       | 功能点                                                                 |
-|------------|------------------------------------------------------------------------|
-| 用户系统   | 注册、登录、退出、个人信息编辑、头像上传、密码修改、手机/邮箱绑定       |
-| 商品浏览   | 首页推荐、分类浏览、关键词搜索、条件筛选（价格/新旧/校区）、商品详情     |
-| 商品发布   | 发布商品（标题/描述/图片/价格/分类/新旧程度）、编辑、下架、已发布列表     |
-| 收藏系统   | 收藏/取消收藏商品、收藏列表                                             |
-| 订单系统   | 下单购买、订单列表（待付款/待发货/待收货/已完成/已取消）、取消订单       |
-| 聊天系统   | 买卖双方在线聊天（WebSocket）、消息列表、未读提醒                       |
-| 评价系统   | 交易完成后互评（星级 + 文字）、查看用户信誉                             |
-
-#### 后台管理端
-
-| 模块       | 功能点                                                                 |
-|------------|------------------------------------------------------------------------|
-| 仪表盘     | 用户数、商品数、订单数、交易额统计、图表展示                            |
-| 用户管理   | 用户列表、封禁/解封、信息查看                                           |
-| 商品管理   | 商品列表、审核通过/驳回、违规下架                                       |
-| 订单管理   | 订单列表、退款处理、订单状态查看                                         |
-| 分类管理   | 商品分类增删改查                                                       |
-| 公告管理   | 系统公告发布、管理                                                     |
-
-### 3.3 非功能性需求
-
-- **安全性**: 密码加密存储（BCrypt），JWT 令牌鉴权，SQL 注入防护，XSS 防护
-- **性能**: 首页首屏加载 < 3s，列表分页查询 < 500ms
-- **可用性**: 支持 500+ 并发用户
-- **可维护性**: 前后端分离，RESTful API，模块化组件
-- **图片存储**: Cloudflare R2（S3兼容对象存储，开发与生产统一方案）
-
----
-
-## 4. 项目目录结构
-
-```
-CuzShortSemester2026/
-├── code/
-│   ├── DEV.md                          # 本开发说明文档
-│   ├── backend/                        # Spring Boot 后端
-│   │   ├── pom.xml                     # Maven 配置
-│   │   ├── src/
-│   │   │   ├── main/
-│   │   │   │   ├── java/com/cuzssp/campussecondhandtradingplatform_backend/
-│   │   │   │   │   ├── CampusSecondHandTradingPlatformBackendApplication.java        # 启动类
-│   │   │   │   │   ├── config/
-│   │   │   │   │   │   ├── SecurityConfig.java          # Spring Security 配置
-│   │   │   │   │   │   ├── JwtConfig.java               # JWT 配置
-│   │   │   │   │   │   ├── CorsConfig.java              # 跨域配置
-│   │   │   │   │   │   ├── MyBatisPlusConfig.java       # MyBatis-Plus 配置
-│   │   │   │   │   │   ├── WebSocketConfig.java         # WebSocket 配置
-│   │   │   │   │   │   ├── FileUploadConfig.java        # 文件上传配置
-│   │   │   │   │   │   └── R2Config.java               # Cloudflare R2 配置
-│   │   │   │   │   ├── controller/
-│   │   │   │   │   │   ├── AuthController.java          # 认证接口
-│   │   │   │   │   │   ├── UserController.java          # 用户接口
-│   │   │   │   │   │   ├── ProductController.java       # 商品接口
-│   │   │   │   │   │   ├── CategoryController.java      # 分类接口
-│   │   │   │   │   │   ├── OrderController.java         # 订单接口
-│   │   │   │   │   │   ├── CartController.java          # 购物车接口
-│   │   │   │   │   │   ├── FavoriteController.java      # 收藏接口
-│   │   │   │   │   │   ├── ChatController.java          # 聊天接口
-│   │   │   │   │   │   ├── ReviewController.java        # 评价接口
-│   │   │   │   │   │   ├── FileController.java          # 文件上传接口
-│   │   │   │   │   │   └── admin/
-│   │   │   │   │   │       ├── AdminUserController.java  # 管理-用户
-│   │   │   │   │   │       ├── AdminProductController.java
-│   │   │   │   │   │       ├── AdminOrderController.java
-│   │   │   │   │   │       └── AdminDashboardController.java
-│   │   │   │   │   ├── service/
-│   │   │   │   │   │   ├── AuthService.java
-│   │   │   │   │   │   ├── UserService.java
-│   │   │   │   │   │   ├── ProductService.java
-│   │   │   │   │   │   ├── CategoryService.java
-│   │   │   │   │   │   ├── OrderService.java
-│   │   │   │   │   │   ├── CartService.java
-│   │   │   │   │   │   ├── FavoriteService.java
-│   │   │   │   │   │   ├── ChatService.java
-│   │   │   │   │   │   ├── ReviewService.java
-│   │   │   │   │   │   └── FileService.java
-│   │   │   │   │   │   └── impl/                        # Service 实现类
-│   │   │   │   │   ├── mapper/                          # MyBatis-Plus Mapper
-│   │   │   │   │   │   ├── UserMapper.java
-│   │   │   │   │   │   ├── ProductMapper.java
-│   │   │   │   │   │   ├── ProductImageMapper.java
-│   │   │   │   │   │   ├── CategoryMapper.java
-│   │   │   │   │   │   ├── OrderMapper.java
-│   │   │   │   │   │   ├── CartMapper.java
-│   │   │   │   │   │   ├── FavoriteMapper.java
-│   │   │   │   │   │   ├── ChatMessageMapper.java
-│   │   │   │   │   │   └── ReviewMapper.java
-│   │   │   │   │   ├── entity/                          # 数据库实体
-│   │   │   │   │   │   ├── User.java
-│   │   │   │   │   │   ├── Product.java
-│   │   │   │   │   │   ├── ProductImage.java
-│   │   │   │   │   │   ├── Category.java
-│   │   │   │   │   │   ├── Order.java
-│   │   │   │   │   │   ├── OrderItem.java
-│   │   │   │   │   │   ├── Cart.java
-│   │   │   │   │   │   ├── Favorite.java
-│   │   │   │   │   │   ├── ChatMessage.java
-│   │   │   │   │   │   └── Review.java
-│   │   │   │   │   ├── dto/                             # 数据传输对象
-│   │   │   │   │   │   ├── request/
-│   │   │   │   │   │   │   ├── LoginRequest.java
-│   │   │   │   │   │   │   ├── RegisterRequest.java
-│   │   │   │   │   │   │   ├── ProductRequest.java
-│   │   │   │   │   │   │   ├── OrderRequest.java
-│   │   │   │   │   │   │   └── ...
-│   │   │   │   │   │   └── response/
-│   │   │   │   │   │       ├── ApiResponse.java         # 统一响应体
-│   │   │   │   │   │       ├── LoginResponse.java
-│   │   │   │   │   │       ├── ProductVO.java
-│   │   │   │   │   │       └── ...
-│   │   │   │   │   ├── security/
-│   │   │   │   │   │   ├── JwtTokenProvider.java        # JWT 工具类
-│   │   │   │   │   │   ├── JwtAuthenticationFilter.java # JWT 过滤器
-│   │   │   │   │   │   └── UserDetailsServiceImpl.java  # 用户详情加载
-│   │   │   │   │   ├── common/
-│   │   │   │   │   │   ├── Result.java                  # 统一返回类
-│   │   │   │   │   │   ├── PageResult.java              # 分页返回
-│   │   │   │   │   │   ├── BusinessException.java       # 业务异常
-│   │   │   │   │   │   └── GlobalExceptionHandler.java  # 全局异常处理
-│   │   │   │   │   └── util/
-│   │   │   │   │       ├── FileUtil.java
-│   │   │   │   │       └── SnowflakeIdUtil.java
-│   │   │   │   └── resources/
-│   │   │   │       ├── application.yml                  # 主配置
-│   │   │   │       ├── application-dev.yml              # 开发环境
-│   │   │   │       ├── application-prod.yml             # 生产环境
-│   │   │   │       └── mapper/                          # MyBatis XML（如需）
-│   │   │   └── test/
-│   │   └── uploads/                                     # 本地上传目录
-│   │
-│   └── frontend/                        # Vue 3 前端
-│       ├── package.json
-│       ├── vite.config.ts
-│       ├── index.html
-│       ├── tsconfig.json
-│       ├── src/
-│       │   ├── main.ts                  # 入口
-│       │   ├── App.vue                  # 根组件
-│       │   ├── router/
-│       │   │   └── index.ts             # 路由配置
-│       │   ├── stores/                  # Pinia 状态管理
-│       │   │   ├── user.ts              # 用户状态
-│       │   │   ├── cart.ts              # 购物车状态
-│       │   │   └── chat.ts              # 聊天状态
-│       │   ├── api/                     # 接口请求层
-│       │   │   ├── request.ts           # Axios 封装 + 拦截器
-│       │   │   ├── auth.ts
-│       │   │   ├── user.ts
-│       │   │   ├── product.ts
-│       │   │   ├── category.ts
-│       │   │   ├── order.ts
-│       │   │   ├── cart.ts
-│       │   │   ├── favorite.ts
-│       │   │   ├── chat.ts
-│       │   │   └── review.ts
-│       │   ├── views/                   # 页面视图
-│       │   │   ├── HomeView.vue         # 首页
-│       │   │   ├── LoginView.vue        # 登录
-│       │   │   ├── RegisterView.vue     # 注册
-│       │   │   ├── product/
-│       │   │   │   ├── ProductList.vue  # 商品列表
-│       │   │   │   ├── ProductDetail.vue# 商品详情
-│       │   │   │   └── ProductPublish.vue# 发布商品
-│       │   │   ├── order/
-│       │   │   │   ├── OrderList.vue    # 订单列表
-│       │   │   │   └── OrderDetail.vue  # 订单详情
-│       │   │   ├── user/
-│       │   │   │   ├── ProfileView.vue  # 个人主页
-│       │   │   │   └── MyProducts.vue   # 我的发布
-│       │   │   ├── chat/
-│       │   │   │   └── ChatView.vue     # 聊天页
-│       │   │   ├── favorite/
-│       │   │   │   └── FavoriteList.vue # 收藏列表
-│       │   │   └── admin/              # 后台管理
-│       │   │       ├── AdminLayout.vue
-│       │   │       ├── DashboardView.vue
-│       │   │       ├── UserManage.vue
-│       │   │       ├── ProductManage.vue
-│       │   │       └── OrderManage.vue
-│       │   ├── components/             # 公共组件
-│       │   │   ├── layout/
-│       │   │   │   ├── AppHeader.vue    # 顶部导航
-│       │   │   │   └── AppFooter.vue    # 底部
-│       │   │   ├── ProductCard.vue      # 商品卡片
-│       │   │   ├── SearchBar.vue        # 搜索栏
-│       │   │   ├── ImageUpload.vue      # 图片上传
-│       │   │   └── Pagination.vue       # 分页器
-│       │   ├── utils/
-│       │   │   ├── index.ts             # 通用工具函数
-│       │   │   └── validators.ts        # 表单校验
-│       │   └── styles/
-│       │       ├── variables.scss       # SCSS 变量
-│       │       └── global.scss          # 全局样式
-│       └── public/
-│           └── favicon.ico
-│
-└── docs/
-    └── sql/
-        └── init.sql                     # 数据库初始化脚本
-```
-
----
-
-## 5. 数据库设计
-
-### 5.1 E-R 概要
-
-```
-User 1───N Product    (用户发布多个商品)
-User 1───N Order      (用户有多个订单)
-User 1───N Review     (用户发表多条评价)
-Product 1───N OrderItem   (一件商品可被多次购买)
-Product 1───N ProductImage (一件商品多张图片)
-Product 1───N Favorite    (一件商品可被多人收藏)
-Product N───1 Category    (商品属于一个分类)
-Order 1───N OrderItem    (一个订单包含多个商品项)
-```
-
-### 5.2 表结构设计
-
-#### 用户表 `user`
-
-| 字段          | 类型          | 说明                       |
-|---------------|---------------|----------------------------|
-| id            | BIGINT        | 主键，雪花ID                |
-| username      | VARCHAR(32)   | 用户名，唯一                |
-| password      | VARCHAR(128)  | BCrypt加密密文             |
-| nickname      | VARCHAR(32)   | 昵称                       |
-| avatar        | VARCHAR(255)  | 头像URL                    |
-| phone         | VARCHAR(16)   | 手机号                     |
-| email         | VARCHAR(64)   | 邮箱                       |
-| school        | VARCHAR(64)   | 学校                       |
-| campus        | VARCHAR(32)   | 校区                       |
-| role          | TINYINT       | 角色：0=用户 1=管理员      |
-| status        | TINYINT       | 状态：0=正常 1=封禁        |
-| credit_score  | INT           | 信誉分，默认100             |
-| created_at    | DATETIME      | 创建时间                   |
-| updated_at    | DATETIME      | 更新时间                   |
-
-#### 商品分类表 `category`
-
-| 字段      | 类型         | 说明               |
-|-----------|--------------|--------------------|
-| id        | BIGINT       | 主键               |
-| name      | VARCHAR(32)  | 分类名（教材/数码/衣物...）|
-| icon      | VARCHAR(255) | 分类图标URL         |
-| sort_order| INT          | 排序               |
-| created_at| DATETIME     | 创建时间            |
-
-#### 商品表 `product`
-
-| 字段         | 类型          | 说明                                   |
-|--------------|---------------|----------------------------------------|
-| id           | BIGINT        | 主键                                   |
-| user_id      | BIGINT        | 发布者ID                               |
-| category_id  | BIGINT        | 分类ID                                 |
-| title        | VARCHAR(128)  | 标题                                   |
-| description  | TEXT          | 描述                                   |
-| price        | DECIMAL(10,2) | 价格                                   |
-| original_price| DECIMAL(10,2)| 原价（选填）                            |
-| condition    | TINYINT       | 新旧：1=全新 2=几乎全新 3=有使用痕迹   |
-| campus       | VARCHAR(32)   | 交易校区                               |
-| status       | TINYINT       | 0=待审核 1=在售 2=已售出 3=已下架      |
-| view_count   | INT           | 浏览量，默认0                          |
-| created_at   | DATETIME      | 发布时间                               |
-| updated_at   | DATETIME      | 更新时间                               |
-
-#### 商品图片表 `product_image`
-
-| 字段       | 类型         | 说明          |
-|------------|--------------|---------------|
-| id         | BIGINT       | 主键          |
-| product_id | BIGINT       | 商品ID        |
-| url        | VARCHAR(255) | 图片URL       |
-| sort_order | INT          | 排序（首图=1） |
-
-#### 订单表 `order`
-
-| 字段          | 类型          | 说明                                              |
-|---------------|---------------|---------------------------------------------------|
-| id            | BIGINT        | 主键                                              |
-| order_no      | VARCHAR(32)   | 订单编号（业务唯一）                               |
-| buyer_id      | BIGINT        | 买家ID                                            |
-| seller_id     | BIGINT        | 卖家ID                                            |
-| total_amount  | DECIMAL(10,2) | 总金额                                            |
-| status        | TINYINT       | 0=待付款 1=待发货 2=待收货 3=已完成 4=已取消      |
-| remark        | VARCHAR(255)  | 备注                                              |
-| created_at    | DATETIME      | 下单时间                                          |
-| paid_at       | DATETIME      | 付款时间                                          |
-| shipped_at    | DATETIME      | 发货时间                                          |
-| completed_at  | DATETIME      | 完成时间                                          |
-
-#### 订单明细表 `order_item`
-
-| 字段       | 类型          | 说明       |
-|------------|---------------|------------|
-| id         | BIGINT        | 主键       |
-| order_id   | BIGINT        | 订单ID     |
-| product_id | BIGINT        | 商品ID     |
-| price      | DECIMAL(10,2) | 成交单价   |
-| created_at | DATETIME      | 创建时间   |
-
-#### 购物车表 `cart`
-
-| 字段       | 类型     | 说明           |
-|------------|----------|----------------|
-| id         | BIGINT   | 主键           |
-| user_id    | BIGINT   | 用户ID         |
-| product_id | BIGINT   | 商品ID         |
-| created_at | DATETIME | 添加时间       |
-
-#### 收藏表 `favorite`
-
-| 字段       | 类型     | 说明     |
-|------------|----------|----------|
-| id         | BIGINT   | 主键     |
-| user_id    | BIGINT   | 用户ID   |
-| product_id | BIGINT   | 商品ID   |
-| created_at | DATETIME | 收藏时间 |
-
-#### 聊天消息表 `chat_message`
-
-| 字段          | 类型         | 说明                             |
-|---------------|--------------|----------------------------------|
-| id            | BIGINT       | 主键                             |
-| sender_id     | BIGINT       | 发送者ID                         |
-| receiver_id   | BIGINT       | 接收者ID                         |
-| product_id    | BIGINT       | 关联商品ID（可为空）              |
-| content       | TEXT         | 消息内容                         |
-| is_read       | TINYINT      | 0=未读 1=已读                    |
-| created_at    | DATETIME     | 发送时间                         |
-
-#### 评价表 `review`
-
-| 字段       | 类型         | 说明                         |
-|------------|--------------|------------------------------|
-| id         | BIGINT       | 主键                         |
-| order_id   | BIGINT       | 订单ID                       |
-| reviewer_id| BIGINT       | 评价者ID                     |
-| target_id  | BIGINT       | 被评价者ID                   |
-| rating     | TINYINT      | 评分 1-5                     |
-| content    | VARCHAR(500) | 评价内容                     |
-| created_at | DATETIME     | 评价时间                     |
-
-> 索引建议：
-> - `user(username) UNIQUE`、`product(category_id, status)`、`product(created_at)`
-> - `order(buyer_id, status)`、`order(seller_id, status)`
-> - `chat_message(sender_id, receiver_id)`、`chat_message(receiver_id, is_read)`
-> - 所有外键字段加普通索引
-
----
-
-## 6. API 接口设计
-
-### 6.1 通用约定
-
-- 基础路径: `http://localhost:8080/api`
-- 请求格式: `application/json`
-- 认证方式: Header `Authorization: Bearer <token>`
-- 统一响应格式:
-
-```json
-{
-  "code": 200,
-  "message": "success",
-  "data": {}
-}
-```
-
-- 分页响应:
-
-```json
-{
-  "code": 200,
-  "message": "success",
-  "data": {
-    "records": [],
-    "total": 100,
-    "page": 1,
-    "pageSize": 10
-  }
-}
-```
-
-### 6.2 接口列表
-
-#### 认证模块 `/api/auth`
-
-| 方法   | 路径              | 说明       | 认证 |
-|--------|-------------------|------------|------|
-| POST   | /auth/register    | 注册       | 否   |
-| POST   | /auth/login       | 登录       | 否   |
-| POST   | /auth/logout      | 退出       | 是   |
-| GET    | /auth/me          | 当前用户信息| 是   |
-
-#### 用户模块 `/api/user`
-
-| 方法   | 路径              | 说明           | 认证 |
-|--------|-------------------|----------------|------|
-| GET    | /user/{id}        | 用户详情       | 否   |
-| PUT    | /user/profile     | 编辑个人资料    | 是   |
-| PUT    | /user/password    | 修改密码       | 是   |
-| POST   | /user/avatar      | 上传头像       | 是   |
-
-#### 商品模块 `/api/products`
-
-| 方法   | 路径                     | 说明            | 认证 |
-|--------|--------------------------|-----------------|------|
-| GET    | /products                | 商品列表（搜索+筛选+分页）| 否   |
-| GET    | /products/{id}           | 商品详情        | 否   |
-| POST   | /products                | 发布商品        | 是   |
-| PUT    | /products/{id}           | 编辑商品        | 是   |
-| PUT    | /products/{id}/status    | 下架商品        | 是   |
-| GET    | /products/my             | 我的发布列表     | 是   |
-
-#### 分类模块 `/api/categories`
-
-| 方法   | 路径              | 说明       | 认证 |
-|--------|-------------------|------------|------|
-| GET    | /categories       | 全部分类   | 否   |
-
-#### 订单模块 `/api/orders`
-
-| 方法   | 路径                     | 说明            | 认证 |
-|--------|--------------------------|-----------------|------|
-| POST   | /orders                  | 创建订单        | 是   |
-| GET    | /orders                  | 订单列表（支持状态筛选）| 是   |
-| GET    | /orders/{id}             | 订单详情        | 是   |
-| PUT    | /orders/{id}/pay         | 模拟付款        | 是   |
-| PUT    | /orders/{id}/ship        | 卖家发货        | 是   |
-| PUT    | /orders/{id}/confirm     | 确认收货        | 是   |
-| PUT    | /orders/{id}/cancel      | 取消订单        | 是   |
-
-#### 购物车模块 `/api/cart`
-
-| 方法   | 路径              | 说明           | 认证 |
-|--------|-------------------|----------------|------|
-| GET    | /cart             | 购物车列表     | 是   |
-| POST   | /cart             | 加入购物车     | 是   |
-| DELETE | /cart/{id}        | 移除商品       | 是   |
-
-#### 收藏模块 `/api/favorites`
-
-| 方法   | 路径                     | 说明            | 认证 |
-|--------|--------------------------|-----------------|------|
-| GET    | /favorites               | 收藏列表        | 是   |
-| POST   | /favorites               | 添加收藏        | 是   |
-| DELETE | /favorites/{productId}   | 取消收藏        | 是   |
-| GET    | /favorites/check/{productId} | 是否已收藏  | 是   |
-
-#### 聊天模块 `/api/chat`
-
-| 方法   | 路径              | 说明           | 认证 |
-|--------|-------------------|----------------|------|
-| GET    | /chat/contacts    | 会话联系人列表 | 是   |
-| GET    | /chat/{contactId} | 历史消息       | 是   |
-| POST   | /chat/send        | 发送消息       | 是   |
-| PUT    | /chat/read/{contactId} | 标记已读  | 是   |
-| WS     | /ws/chat          | WebSocket连接  | 是   |
-
-#### 评价模块 `/api/reviews`
-
-| 方法   | 路径              | 说明           | 认证 |
-|--------|-------------------|----------------|------|
-| POST   | /reviews          | 发表评价       | 是   |
-| GET    | /reviews/user/{userId} | 用户评价列表| 否   |
-
-#### 文件上传 `/api/files`
-
-| 方法   | 路径              | 说明           | 认证 |
-|--------|-------------------|----------------|------|
-| POST   | /files/upload     | 单文件上传     | 是   |
-| POST   | /files/uploads    | 多文件上传     | 是   |
-
-#### 后台管理 `/api/admin/...`
-
-| 方法   | 路径                       | 说明           | 认证 |
-|--------|----------------------------|----------------|------|
-| GET    | /admin/dashboard           | 仪表盘数据     | 是(管理员) |
-| GET    | /admin/users               | 用户列表       | 是(管理员) |
-| PUT    | /admin/users/{id}/status   | 封禁/解封用户  | 是(管理员) |
-| GET    | /admin/products            | 商品列表       | 是(管理员) |
-| PUT    | /admin/products/{id}/audit | 审核商品       | 是(管理员) |
-| GET    | /admin/orders              | 订单列表       | 是(管理员) |
-| POST   | /admin/categories          | 新增分类       | 是(管理员) |
-| PUT    | /admin/categories/{id}     | 编辑分类       | 是(管理员) |
-| DELETE | /admin/categories/{id}     | 删除分类       | 是(管理员) |
-
----
-
-## 7. 开发环境搭建
-
-### 7.1 环境要求
-
-| 工具      | 版本要求    | 说明               |
-|-----------|------------|--------------------|
-| JDK       | 21+        | Spring Boot 4 需要 |
-| Maven     | 3.9+       | 后端构建            |
-| Node.js   | 18+ / 20+  | 前端构建            |
-| pnpm      | 8+         | 推荐包管理器         |
-| MySQL     | 8.0+       | 数据库              |
-| Redis     | 7.x        | 缓存（可选）         |
-| IDE       | IntelliJ IDEA / VS Code | 开发工具   |
-
-### 7.2 后端启动
-
-```bash
-# 1. 创建数据库
-mysql -u root -p
-CREATE DATABASE cuzssp DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
-# 2. 导入初始数据
-mysql -u root -p cuzssp < docs/sql/init.sql
-
-# 3. 修改 application-dev.yml 中的数据库连接信息
-
-# 4. 启动后端
-cd CuzShortSemester2026/code/backend
-mvn spring-boot:run -Dspring-boot.run.profiles=dev
-```
-
-### 7.3 前端启动
-
-```bash
-cd CuzShortSemester2026/code/frontend
-pnpm install
-pnpm dev
-# 访问 http://localhost:5173
-```
-
-### 7.4 `application-dev.yml` 关键配置
-
-```yaml
-server:
-  port: 8080
-
-spring:
-  datasource:
-    url: jdbc:mysql://localhost:3306/cuzssp?useUnicode=true&characterEncoding=utf8mb4&serverTimezone=Asia/Shanghai
-    username: root
-    password: your_password
-    driver-class-name: com.mysql.cj.jdbc.Driver
-
-  servlet:
-    multipart:
-      max-file-size: 10MB
-      max-request-size: 50MB
-
-mybatis-plus:
-  configuration:
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # 开发阶段打印SQL
-  global-config:
-    db-config:
-      id-type: assign_id   # 雪花算法ID
-
-jwt:
-  secret: your-jwt-secret-key-at-least-256-bits-long
-  expiration: 86400000    # 24小时, 毫秒
-
-r2:
-  endpoint: https://<your-account-id>.r2.cloudflarestorage.com
-  access-key-id: your_r2_access_key_id
-  secret-access-key: your_r2_secret_access_key
-  bucket-name: cuz-trade-images
-  region: auto
-  public-url: https://your-domain.com  # 自定义域名或 R2 公共 URL
-```
-
----
-
-## 8. 开发规范
-
-### 8.1 Git 分支策略
-
-```
-main        — 生产分支
-├── dev     — 开发主分支
-│   ├── feature/user-login     — 功能分支
-│   ├── feature/product-list
-│   └── ...
-└── release/v1.0 — 发布分支
-```
-
-### 8.2 命名规范
-
-| 类别       | 规范                     | 示例                         |
-|------------|--------------------------|------------------------------|
-| Java 类名  | UpperCamelCase           | `ProductController`          |
-| Java 方法  | lowerCamelCase           | `getProductList()`           |
-| 数据库表   | snake_case               | `product_image`              |
-| 数据库字段 | snake_case               | `created_at`                 |
-| RESTful URL| 短横线小写+资源名复数     | `/api/products/{id}`         |
-| Vue 组件   | PascalCase               | `ProductCard.vue`            |
-| Vue 文件   | kebab-case 或 PascalCase | `product-list.vue`           |
-| CSS 类名   | kebab-case               | `.product-card`              |
-
-### 8.3 代码规范
-
-- **后端**: 遵循阿里巴巴Java开发手册, Controller → Service → Mapper 三层架构
-- **前端**: ESLint + Prettier 统一格式化, Composition API (`<script setup>`) 风格
-- **注释**: JavaDoc 注释 public 方法, 复杂逻辑加行内注释
-- **异常处理**: 统一用 `@RestControllerAdvice` 全局异常处理, 业务异常抛 `BusinessException`
-
-### 8.4 提交规范
-
-遵循 Conventional Commits:
-
-```
-feat: 新增用户注册功能
-fix: 修复商品列表分页Bug
-docs: 更新API文档
-style: 格式化代码
-refactor: 重构订单Service
-test: 添加用户模块单元测试
-```
-
----
-
-## 9. 开发顺序建议
-
-| 阶段 | 内容                                           | 预计周期 |
-|------|------------------------------------------------|----------|
-| P1   | 项目初始化 + 数据库建表 + 用户认证模块          | 3 天     |
-| P2   | 商品模块（CRUD + 搜索 + 分类）                  | 4 天     |
-| P3   | 订单模块 + 购物车 + 收藏                        | 4 天     |
-| P4   | 聊天模块（WebSocket）                           | 3 天     |
-| P5   | 评价系统 + 用户信誉                             | 2 天     |
-| P6   | 后台管理端全部功能                              | 4 天     |
-| P7   | 文件上传 + 图片处理 + 前端联调 + 测试           | 3 天     |
-
----
-
-## 10. 部署说明
-
-### 后端部署
-
-```bash
-# 打包
-mvn clean package -DskipTests
-
-# 运行
-java -jar -Dspring.profiles.active=prod backend/target/cuz-trade-1.0.0.jar
-```
-
-### 前端部署
-
-```bash
-pnpm build
-# dist/ 目录部署到 Nginx
-```
-
-### Nginx 配置示例
-
-```nginx
-server {
-    listen 80;
-    server_name trade.example.com;
-
-    # 前端
-    location / {
-        root /var/www/cuz-trade/dist;
-        try_files $uri $uri/ /index.html;
-    }
-
-    # API 代理
-    location /api/ {
-        proxy_pass http://localhost:8080;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-
-    # WebSocket 代理
-    location /ws/ {
-        proxy_pass http://localhost:8080;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-    }
-}
-```
-
----
-
-> **文档维护**: 本 DEV.md 随项目迭代持续更新，每次功能变更需同步修改对应章节。
+> **文档维护**: 本 DEV.md 随项目迭代持续更新。基于 2026-07-14 代码快照编写，反映实际 `CampusSecondHandTradingPlatform_backend` 代码状态。
