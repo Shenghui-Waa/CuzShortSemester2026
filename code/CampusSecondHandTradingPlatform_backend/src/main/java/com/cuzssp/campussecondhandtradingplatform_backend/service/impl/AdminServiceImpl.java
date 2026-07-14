@@ -108,7 +108,7 @@ public class AdminServiceImpl implements AdminService {
         PageHelper.startPage(page, pageSize);
         List<Product> all;
         if (keyword != null && !keyword.isEmpty())
-            all = productMapper.searchByKeyword(keyword, ProductConstant.STATUS_ON_SALE, null);
+            all = productMapper.searchByKeyword(keyword, ProductConstant.STATUS_ON_SALE);
         else
             all = productMapper.selectAll();
         if (status != null)

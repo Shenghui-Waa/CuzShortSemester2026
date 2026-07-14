@@ -32,15 +32,14 @@ public class ProductServiceImpl implements ProductService {
      */
     @Override
     public Result<PageResult<ProductVO>> getProductList(
-            ProductQueryDTO query, Long currentUserId, Integer priceBase
+            ProductQueryDTO query, Long currentUserId
     ) {
         PageHelper.startPage(query.getPage(), query.getPageSize());
         List<Product> page;
         if (query.getKeyword() != null && !query.getKeyword().isEmpty())
             page = productMapper.searchByKeyword(
                     query.getKeyword(),
-                    ProductConstant.STATUS_ON_SALE,
-                    priceBase
+                    ProductConstant.STATUS_ON_SALE
             );
         else if (
                 query.getCategoryId() != null && query.getCampus() != null
@@ -53,17 +52,15 @@ public class ProductServiceImpl implements ProductService {
         else if (query.getCategoryId() != null)
             page = productMapper.selectByCategoryId(
                     query.getCategoryId(),
-                    ProductConstant.STATUS_ON_SALE,
-                    priceBase
+                    ProductConstant.STATUS_ON_SALE
             );
         else if (query.getCampus() != null && !query.getCampus().isEmpty())
             page = productMapper.selectByCampus(
                     query.getCampus(),
-                    ProductConstant.STATUS_ON_SALE,
-                    priceBase
+                    ProductConstant.STATUS_ON_SALE
             );
         else
-            page = productMapper.selectAllActive(priceBase);
+            page = productMapper.selectAllActive();
         PageInfo<Product> pageInfo = new PageInfo<>(page);
         Set<Long> favoriteUserIds = (currentUserId != null)
                 ? new HashSet<>(favoriteMapper.selectFavoritedProductIdsByUserId(currentUserId))
