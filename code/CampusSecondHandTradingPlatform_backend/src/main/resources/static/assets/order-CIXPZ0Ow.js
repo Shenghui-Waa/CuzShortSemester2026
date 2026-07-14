@@ -1,1 +1,0 @@
-import{r as e}from"./index-C9J009Yi.js";var t={create:t=>e.post(`/orders`,t),list:t=>e.get(`/orders`,{params:t}),detail:t=>e.get(`/orders/${t}`),pay:t=>e.put(`/orders/${t}/pay`),ship:t=>e.put(`/orders/${t}/ship`),confirm:t=>e.put(`/orders/${t}/confirm`),cancel:t=>e.put(`/orders/${t}/cancel`)};export{t};
