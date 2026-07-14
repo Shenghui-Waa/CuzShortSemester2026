@@ -18,7 +18,7 @@
           class="side-menu"
           background-color="transparent"
           text-color="var(--sidebar-text)"
-          active-text-color="#409eff"
+          active-text-color="#fb1e47"
         >
           <el-menu-item index="/admin">
             <el-icon><DataLine /></el-icon>
@@ -124,8 +124,8 @@ html.dark .sidebar {
   color: #fff !important;
 }
 .side-menu :deep(.el-menu-item.is-active) {
-  color: #409eff !important;
-  background: rgba(64,158,255,.12) !important;
+  color: #fb1e47 !important;
+  background: rgba(251,30,71,.12) !important;
 }
 
 .sidebar-bottom {
@@ -148,8 +148,8 @@ html.dark .sidebar {
   white-space: nowrap;
 }
 .back-btn:hover {
-  background: rgba(255,255,255,.08) !important;
-  color: #fff !important;
+  background: rgba(251,30,71,.15) !important;
+  color: #fb1e47 !important;
 }
 
 .admin-layout.collapsed .back-btn {
@@ -165,12 +165,11 @@ html.dark .sidebar {
   background: var(--bg-page);
 }
 
-/* 暗色模式菜单文字 */
 html.dark .side-menu :deep(.el-menu-item) { color: #a0aec0; }
 html.dark .side-menu :deep(.el-menu-item:hover) { background: rgba(255,255,255,.06) !important; color: #e0e0e0 !important; }
-html.dark .side-menu :deep(.el-menu-item.is-active) { color: #409eff !important; }
+html.dark .side-menu :deep(.el-menu-item.is-active) { color: #cd2846 !important; background: rgba(251,30,71,.15) !important; }
+html.dark .back-btn:hover { background: rgba(205,40,70,.2) !important; color: #cd2846 !important; }
 
-/* Element Plus menu collapse 内部样式覆盖 */
 .el-menu--collapse { width: 64px; }
 .el-menu--collapse .el-menu-item { padding: 0 !important; justify-content: center; }
 </style>

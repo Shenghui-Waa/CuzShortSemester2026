@@ -21,16 +21,17 @@ public class ProductController {
      * 获取商品列表
      * @param query
      * @param token
+     * @param priceBase 按价格升降序，为空默认不参考价格排序
      * @return
      */
-    @GetMapping
+    @GetMapping("/{priceBase}")
     public Result<?> getProductList(
             ProductQueryDTO query,
-            @RequestHeader(value = "Authorization", required = false) String token
+            @RequestHeader(value = "Authorization", required = false) String token,
+            @PathVariable Integer priceBase
     ) {
         Long currentUserId = getCurrentUserId(token);
-        return productService.getProductList(query, currentUserId);
-
+        return productService.getProductList(query, currentUserId, priceBase);
     }
 
     /**

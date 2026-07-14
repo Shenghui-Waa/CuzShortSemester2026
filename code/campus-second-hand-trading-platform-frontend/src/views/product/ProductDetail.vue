@@ -126,7 +126,7 @@ function openChat() {
 .main-img { width: 100%; border-radius: 8px; max-height: 400px; object-fit: cover; }
 .thumbs { display: flex; gap: 8px; margin-top: 8px; }
 .thumbs img { width: 60px; height: 60px; object-fit: cover; border-radius: 4px; cursor: pointer; border: 2px solid transparent; }
-.thumbs img.act { border-color: #409eff; }
+.thumbs img.act { border-color: #fb1e47; }
 .info { flex: 1; }
 .info h1 { font-size: 22px; margin-bottom: 16px; }
 .price { font-size: 28px; color: #e6a23c; font-weight: 700; margin-bottom: 12px; }

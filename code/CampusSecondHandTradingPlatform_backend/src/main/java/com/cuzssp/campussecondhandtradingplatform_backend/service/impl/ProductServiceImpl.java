@@ -32,16 +32,20 @@ public class ProductServiceImpl implements ProductService {
      */
     @Override
     public Result<PageResult<ProductVO>> getProductList(
-            ProductQueryDTO query, Long currentUserId
+            ProductQueryDTO query, Long currentUserId, Integer priceBase
     ) {
         PageHelper.startPage(query.getPage(), query.getPageSize());
         List<Product> page;
         if (query.getKeyword() != null && !query.getKeyword().isEmpty())
             page = productMapper.searchByKeyword(
                     query.getKeyword(),
-                    ProductConstant.STATUS_ON_SALE
+                    ProductConstant.STATUS_ON_SALE,
+                    priceBase
             );
-        else if (query.getCategoryId() != null && query.getCampus() != null)
+        else if (
+                query.getCategoryId() != null && query.getCampus() != null
+                && !query.getCampus().isEmpty()
+        )
             page = productMapper.selectByCategoryAndCampus(
                     query.getCategoryId(),
                     query.getCampus(),
@@ -49,15 +53,17 @@ public class ProductServiceImpl implements ProductService {
         else if (query.getCategoryId() != null)
             page = productMapper.selectByCategoryId(
                     query.getCategoryId(),
-                    ProductConstant.STATUS_ON_SALE
+                    ProductConstant.STATUS_ON_SALE,
+                    priceBase
             );
-        else if (query.getCampus() != null)
+        else if (query.getCampus() != null && !query.getCampus().isEmpty())
             page = productMapper.selectByCampus(
                     query.getCampus(),
-                    ProductConstant.STATUS_ON_SALE
+                    ProductConstant.STATUS_ON_SALE,
+                    priceBase
             );
         else
-            page = productMapper.selectAllActive();
+            page = productMapper.selectAllActive(priceBase);
         PageInfo<Product> pageInfo = new PageInfo<>(page);
         Set<Long> favoriteUserIds = (currentUserId != null)
                 ? new HashSet<>(favoriteMapper.selectFavoritedProductIdsByUserId(currentUserId))

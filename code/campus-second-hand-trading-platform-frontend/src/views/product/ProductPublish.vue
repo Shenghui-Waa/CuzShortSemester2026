@@ -19,7 +19,7 @@
             <el-radio :value="2">有使用痕迹</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="校区" prop="campus"><el-input v-model="f.campus" placeholder="交易校区" /></el-form-item>
+        <el-form-item label="校区" prop="campus"><el-select v-model="f.campus" placeholder="选择校区" style="width:100%"><el-option label="下沙校区" value="下沙校区" /><el-option label="桐乡校区" value="桐乡校区" /></el-select></el-form-item>
         <el-form-item label="描述"><el-input v-model="f.description" type="textarea" :rows="4" placeholder="详细描述商品状况..." /></el-form-item>
         <el-form-item label="图片">
           <ImageUpload v-model="images" />
