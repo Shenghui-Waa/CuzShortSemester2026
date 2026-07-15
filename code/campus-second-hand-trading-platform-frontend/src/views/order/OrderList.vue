@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="page">
     <AppHeader />
     <div class="page-container">
@@ -37,7 +37,7 @@
             <el-button size="small" type="success" v-if="row.status===2 && isBuyer(row)" @click="doConfirm(row)">确认收货</el-button>
             <el-button size="small" type="danger" v-if="row.status<3 && isBuyer(row)" @click="doCancel(row)">取消</el-button>
             <el-button size="small" type="primary" v-if="row.status===1 && isSeller(row)" @click="doShip(row)">发货</el-button>
-            <el-button size="small" v-if="row.status===3" @click="showReview(row)">评价</el-button>
+            <el-button size="small" v-if="row.status===3 && isBuyer(row)" @click="showReview(row)">评价</el-button>
           </template>
         </el-table-column>
       </el-table>

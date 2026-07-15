@@ -28,10 +28,12 @@ html.dark .el-input__wrapper { background: #262626; box-shadow: 0 0 0 1px var(--
 html.dark .el-input__inner { color: var(--text-primary); }
 html.dark .el-select .el-input__wrapper { background: #262626; }
 html.dark .el-dialog { background: var(--bg-card); }
+html.dark .el-dialog__title { color: #fff !important; }
 html.dark .el-tabs__header { border-color: var(--border-color); }
 html.dark .el-pagination button, html.dark .el-pager li { background: var(--bg-card); }
 html.dark .el-descriptions__body { background: var(--bg-card); }
-html.dark .el-descriptions__label { background: transparent; }
+html.dark .el-descriptions__label { background: transparent; color: #e0e0e0 !important; }
+html.dark .el-descriptions__content { color: #fff !important; }
 html.dark .el-dropdown-menu { background: var(--bg-card); }
 html.dark .el-dropdown-menu__item { color: var(--text-primary); }
 html.dark .el-dropdown-menu__item:hover { background: #262626; }

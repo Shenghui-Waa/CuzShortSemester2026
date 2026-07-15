@@ -13,5 +13,6 @@ public interface ProductService {
     Result<ProductVO> createProduct(Long userId, Product product, List<String> images);
     Result<ProductVO> updateProduct(Long userId, Long productId, Product product, List<String> images);
     Result<Void> updateProductStatus(Long userId, Long productId, Integer status);
+    Result<Void> deleteProduct(Long userId, Long productId);
     Result<PageResult<ProductVO>> getMyProducts(Long userId, Integer page, Integer pageSize);
 }

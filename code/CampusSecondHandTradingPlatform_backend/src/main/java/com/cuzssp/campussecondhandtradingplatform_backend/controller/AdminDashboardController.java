@@ -99,7 +99,8 @@ public class AdminDashboardController {
     @PutMapping("/products/{id}/status")
     public Result<?> updateProductStatus(
             @PathVariable Long id,
-            @RequestParam Integer status) {
+            @RequestParam Integer status
+    ) {
         return adminService.updateProductStatus(id, status);
     }
 
