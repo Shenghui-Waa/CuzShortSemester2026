@@ -44,9 +44,13 @@ export const adminApi = {
   dashboard: () => request.get("/admin/dashboard"),
   userList: (params: any) => request.get("/admin/users", { params }),
   updateUserStatus: (id: number, status: number) => request.put(`/admin/users/${id}/status`, null, { params: { status } }),
+  addAdmin: (data: any) => request.post("/admin/users/newadmin", data),
   productList: (params: any) => request.get("/admin/products", { params }),
   updateProductStatus: (id: number, status: number) => request.put(`/admin/products/${id}/status`, null, { params: { status } }),
   orderList: (params: any) => request.get("/admin/orders", { params }),
+  categoryCreate: (data: any) => request.post("/admin/category/add", data),
+  categoryUpdate: (id: number, data: any) => request.put(`/admin/category/upd/${id}`, data),
+  categoryDelete: (id: number) => request.delete(`/admin/category/del/${id}`),
 };
 
 

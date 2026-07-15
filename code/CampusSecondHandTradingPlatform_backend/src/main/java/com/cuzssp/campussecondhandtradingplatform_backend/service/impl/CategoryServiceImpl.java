@@ -1,4 +1,5 @@
 package com.cuzssp.campussecondhandtradingplatform_backend.service.impl;
+
 import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.Category;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.util.ToVOUtil;
 import com.cuzssp.campussecondhandtradingplatform_backend.mapper.CategoryMapper;
@@ -34,6 +35,7 @@ public class CategoryServiceImpl implements CategoryService {
         return Result.success(categoryVOs);
     }
 
+    // 管理员操作
     /**
      * 创建分类
      * @param category

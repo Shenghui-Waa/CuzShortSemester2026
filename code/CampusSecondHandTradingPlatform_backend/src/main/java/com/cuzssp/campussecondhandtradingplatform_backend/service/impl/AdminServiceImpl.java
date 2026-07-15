@@ -1,7 +1,12 @@
 package com.cuzssp.campussecondhandtradingplatform_backend.service.impl;
 
 import com.cuzssp.campussecondhandtradingplatform_backend.common.constant.ProductConstant;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.constant.UserConstant;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.RegisterRequest;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.*;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.exception.BusinessException;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.security.Base64Provider;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.util.ToEntityUtil;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.util.ToVOUtil;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.*;
 import com.cuzssp.campussecondhandtradingplatform_backend.mapper.*;
@@ -19,6 +24,7 @@ import java.util.stream.Collectors;
 public class AdminServiceImpl implements AdminService {
     @Autowired private UserMapper userMapper;
 
+    @Autowired private Base64Provider base64Provider;
     @Autowired private OrderMapper orderMapper;
     @Autowired private OrderItemMapper orderItemMapper;
 
@@ -34,6 +40,16 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public Result<DashboardVO> getDashboard() {
         return Result.success(ToVOUtil.toDashboardVO(userMapper, productMapper, orderMapper));
+    }
+
+    @Override
+    public Result<UserVO> addAdmin(RegisterRequest request) {
+        if (userMapper.countByUsername(request.getUsername()) > 0)
+            throw new BusinessException("Admin name already exists");
+        User user = ToEntityUtil.toUserEntity(request, base64Provider);
+        user.setRole(UserConstant.ROLE_ADMIN);
+        userMapper.insert(user);
+        return Result.success(ToVOUtil.toUserVO(user));
     }
 
     /**
