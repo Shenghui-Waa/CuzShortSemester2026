@@ -3,13 +3,16 @@
     <AppHeader />
     <div class="page-container">
       <h2>我的订单</h2>
-      <el-tabs v-model="statusFilter" @tab-change="fetchList">
-        <el-tab-pane label="全部" name="" />
-        <el-tab-pane label="待付款" name="0" />
-        <el-tab-pane label="待发货" name="1" />
-        <el-tab-pane label="待收货" name="2" />
-        <el-tab-pane label="已完成" name="3" />
-      </el-tabs>
+      <div class="tabs-wrapper">
+        <el-tabs v-model="statusFilter" @tab-change="fetchList" ref="tabsRef">
+          <el-tab-pane label="全部" name="" />
+          <el-tab-pane label="待付款" name="0" />
+          <el-tab-pane label="待发货" name="1" />
+          <el-tab-pane label="待收货" name="2" />
+          <el-tab-pane label="已完成" name="3" />
+        </el-tabs>
+        <div class="tab-indicator" :style="tabIndicatorStyle"></div>
+      </div>
       <el-table :data="orders" stripe>
         <el-table-column prop="orderNo" label="订单号" width="190" />
         <el-table-column label="商品" min-width="200">
@@ -55,7 +58,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, onMounted, nextTick } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import AppHeader from "@/components/layout/AppHeader.vue";
 import AppFooter from "@/components/layout/AppFooter.vue";
@@ -80,6 +83,7 @@ onMounted(async () => {
   await userStore.ensureUserInfo();
   uid.value = userStore.userInfo?.id || 0;
   fetchList();
+  nextTick(() => { setupTabIndicator(); });
 });
 
 function isBuyer(o: any) { return o.buyerId === uid.value; }
@@ -142,4 +146,44 @@ async function submitReview() {
     ElMessage.success("评价成功"); reviewVisible.value = false;
   } catch {}
 }
+
+const tabsRef = ref();
+const tabIndicatorStyle = ref({ left: "0px", width: "0px", opacity: "0" });
+
+function setupTabIndicator() {
+  const el = tabsRef.value?.$el;
+  if (!el) return;
+  const gridEl = el.closest(".tabs-wrapper") as HTMLElement;
+  if (!gridEl) return;
+  const nav = el.querySelector(".el-tabs__nav") as HTMLElement;
+  if (!nav) return;
+  const items = nav.querySelectorAll(".el-tabs__item");
+  items.forEach((item: HTMLElement) => {
+    item.addEventListener("mouseenter", () => {
+      const itemRect = item.getBoundingClientRect();
+      const wrapRect = gridEl.getBoundingClientRect();
+      tabIndicatorStyle.value = {
+        left: (itemRect.left - wrapRect.left + 6) + "px",
+        width: (itemRect.width - 12) + "px",
+        opacity: "1",
+      };
+    });
+  });
+  nav.addEventListener("mouseleave", () => {
+    tabIndicatorStyle.value = { left: "0px", width: "0px", opacity: "0" };
+  });
+}
 </script>
+
+
+<style scoped>
+.tabs-wrapper { position: relative; }
+.tab-indicator {
+  position: absolute; top: 0; height: 2px;
+  background: var(--el-color-primary);
+  border-radius: 1px;
+  transition: left 0.35s cubic-bezier(0.4, 0, 0.2, 1), width 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s;
+  pointer-events: none; z-index: 3;
+}
+
+</style>

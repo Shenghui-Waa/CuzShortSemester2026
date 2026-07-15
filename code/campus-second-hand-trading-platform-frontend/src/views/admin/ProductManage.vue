@@ -1,6 +1,6 @@
 ﻿<template>
   <div>
-    <h2>商品管理</h2>
+    <div class="header-row"><h2>商品管理</h2></div>
     <el-input v-model="keyword" placeholder="搜索商品" style="width:240px;margin-bottom:16px" clearable @change="fetch" />
     <el-table :data="products" stripe>
       <el-table-column prop="id" label="ID" width="80" /><el-table-column prop="title" label="标题" />
@@ -29,3 +29,12 @@ async function fetch() { const r: any = await adminApi.productList({ page: page.
 function onPage(p: number) { page.value = p; fetch(); }
 async function audit(id: number, status: number) { await adminApi.updateProductStatus(id, status); ElMessage.success("操作成功"); fetch(); }
 </script>
+
+<style scoped>
+.header-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.header-row h2 { margin: 0; }
+</style>
+

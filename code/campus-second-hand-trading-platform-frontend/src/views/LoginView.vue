@@ -44,7 +44,10 @@ async function login() {
 <style scoped>
 .auth-page { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: var(--bg-page); }
 .card { background: var(--bg-card); padding: 40px; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,.08); width: 380px; }
-.card h2 { text-align: center; margin-bottom: 24px; font-size: 24px; }
+.card h2 { text-align: center; margin-bottom: 24px; font-size: 24px; color: var(--text-primary); }
 .tip { text-align: center; font-size: 14px; color: var(--text-muted); }
+
+html.dark .auth-page { background: var(--bg-page); }
+html.dark .card { background: var(--bg-card); box-shadow: var(--shadow); }
 </style>
 

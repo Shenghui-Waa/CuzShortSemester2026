@@ -1,10 +1,12 @@
 package com.cuzssp.campussecondhandtradingplatform_backend.controller;
 
+import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.RegisterRequest;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.*;
 import com.cuzssp.campussecondhandtradingplatform_backend.service.AdminService;
 
 import com.cuzssp.campussecondhandtradingplatform_backend.service.CategoryService;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.Result;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -14,6 +16,9 @@ public class AdminDashboardController {
 
     @Autowired private AdminService adminService;
 
+    // 分类操作
+    @Autowired private CategoryService categoryService;
+
     /**
      * 获取仪表盘
      * @return
@@ -21,6 +26,19 @@ public class AdminDashboardController {
     @GetMapping("/dashboard")
     public Result<?> getDashboard() {
         return adminService.getDashboard();
+    }
+
+    // 用户管理
+    /**
+     * 添加管理员
+     * @param request
+     * @return
+     */
+    @PostMapping("/users/newadmin")
+    public Result<?> addAdmin(
+            @Valid @RequestBody RegisterRequest request
+    ) {
+        return adminService.addAdmin(request);
     }
 
     /**
@@ -53,6 +71,7 @@ public class AdminDashboardController {
         return adminService.updateUserStatus(id, status);
     }
 
+    // 商品管理
     /**
      * 获取商品列表
      * @param page
@@ -84,6 +103,7 @@ public class AdminDashboardController {
         return adminService.updateProductStatus(id, status);
     }
 
+    // 订单管理 仅查看
     /**
      * 获取订单表
      * @param page
@@ -98,6 +118,45 @@ public class AdminDashboardController {
             @RequestParam(required = false) Integer status
     ) {
         return adminService.getOrders(page, pageSize, status);
+    }
+
+    // 分类管理
+    /**
+     * 创建分类信息
+     * @param category
+     * @return
+     */
+    @PostMapping("/category/add")
+    public Result<?> createCategory(
+            @RequestBody Category category
+    ) {
+        return categoryService.createCategory(category);
+    }
+
+    /**
+     * 修改分类信息 基于 id
+     * @param id
+     * @param category
+     * @return
+     */
+    @PutMapping("/category/upd/{id}")
+    public Result<?> updateCategory(
+            @PathVariable Long id,
+            @RequestBody Category category
+    ) {
+        return categoryService.updateCategory(id, category);
+    }
+
+    /**
+     * 删除分类信息 基于 id
+     * @param id
+     * @return
+     */
+    @DeleteMapping("/category/del/{id}")
+    public Result<?> deleteCategory(
+            @PathVariable Long id
+    ) {
+        return categoryService.deleteCategory(id);
     }
 
 }

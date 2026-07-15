@@ -8,15 +8,20 @@ import "./styles/variables.scss";
 import "./styles/global.scss";
 import { authApi } from "./api/auth";
 import { useUserStore } from "./stores/user";
+import { useThemeStore } from "./stores/theme";
 
 const app = createApp(App);
 const pinia = createPinia();
 app.use(pinia);
 app.use(router);
 app.use(ElementPlus);
+
+// 立即初始化主题，确保刷新后暗色生效
+useThemeStore();
+
 app.mount("#app");
 
-// 启动后校验已有 token 是否有效，无效则清除，防止自动登录无效账户
+// 启动后校验已有 token 是否有效，无效则清除
 async function validateToken() {
   const token = localStorage.getItem("token");
   if (!token) return;

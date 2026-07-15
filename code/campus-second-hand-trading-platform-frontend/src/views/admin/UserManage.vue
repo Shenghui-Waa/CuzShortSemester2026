@@ -1,6 +1,9 @@
-﻿<template>
+<template>
   <div>
-    <h2>用户管理</h2>
+    <div class="header-row">
+      <h2>用户管理</h2>
+      <el-button type="primary" @click="openDialog">添加管理员</el-button>
+    </div>
     <el-input v-model="keyword" placeholder="搜索用户名/昵称" style="width:240px;margin-bottom:16px" clearable @change="fetch" />
     <el-table :data="users" stripe>
       <el-table-column prop="id" label="ID" width="80" /><el-table-column prop="username" label="用户名" />
@@ -9,10 +12,28 @@
       <el-table-column label="操作" width="120"><template #default="{row}"><el-button size="small" :type="row.status?'success':'danger'" @click="toggle(row)">{{ row.status?'解封':'封禁' }}</el-button></template></el-table-column>
     </el-table>
     <Pagination :total="total" @change="onPage" />
+
+    <el-dialog v-model="dialogVisible" title="添加管理员" width="420px" :close-on-click-modal="false">
+      <el-form :model="form" :rules="rules" ref="formRef" label-width="80px">
+        <el-form-item prop="username" label="用户名">
+          <el-input v-model="form.username" placeholder="请输入用户名" />
+        </el-form-item>
+        <el-form-item prop="school" label="学校">
+          <el-input v-model="form.school" placeholder="请输入学校" />
+        </el-form-item>
+        <el-form-item prop="campus" label="校区">
+          <el-input v-model="form.campus" placeholder="请输入校区" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="submitting" @click="submit">确认添加</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, reactive, onMounted } from "vue";
 import { ElMessage } from "element-plus";
 import Pagination from "@/components/Pagination.vue";
 import { adminApi } from "@/api/index";
@@ -21,4 +42,43 @@ onMounted(() => fetch());
 async function fetch() { const r: any = await adminApi.userList({ page: page.value, pageSize: 10, keyword: keyword.value }); users.value = r.data?.records||[]; total.value = r.data?.total||0; }
 function onPage(p: number) { page.value = p; fetch(); }
 async function toggle(row: any) { await adminApi.updateUserStatus(row.id, row.status?0:1); ElMessage.success("操作成功"); fetch(); }
+
+const dialogVisible = ref(false);
+const submitting = ref(false);
+const formRef = ref();
+const form = reactive({ username: "", school: "", campus: "" });
+const rules = {
+  username: [{ required: true, message: "请输入用户名", trigger: "blur" }],
+  school: [{ required: true, message: "请输入学校", trigger: "blur" }],
+  campus: [{ required: true, message: "请输入校区", trigger: "blur" }],
+};
+
+function openDialog() {
+  form.username = "";
+  form.school = "";
+  form.campus = "";
+  dialogVisible.value = true;
+}
+
+async function submit() {
+  const ok = await formRef.value?.validate().catch(() => false);
+  if (!ok) return;
+  submitting.value = true;
+  try {
+    await adminApi.addAdmin({ username: form.username, password: "123456", school: form.school, campus: form.campus });
+    ElMessage.success("管理员添加成功");
+    dialogVisible.value = false;
+    fetch();
+  } catch {} finally {
+    submitting.value = false;
+  }
+}
 </script>
+
+<style scoped>
+.header-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.header-row h2 { margin: 0; }
+</style>

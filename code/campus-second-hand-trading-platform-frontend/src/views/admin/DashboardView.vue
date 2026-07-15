@@ -1,6 +1,6 @@
 ﻿<template>
   <div class="dashboard">
-    <h2 style="margin-bottom:20px">Dashboard</h2>
+    <h2 style="margin-bottom:16px">Dashboard</h2>
 
     <!-- 统计卡片 -->
     <el-row :gutter="16">
@@ -16,7 +16,7 @@
     <el-row :gutter="20" style="margin-top:24px">
       <el-col :span="14">
         <el-card shadow="hover">
-          <h4 style="margin-bottom:16px">数据对比</h4>
+          <h4 class="card-title">数据对比</h4>
           <div class="bar-chart">
             <div class="bar-item" v-for="item in barData" :key="item.label">
               <div class="bar-label">{{ item.label }}</div>
@@ -30,11 +30,12 @@
       </el-col>
       <el-col :span="10">
         <el-card shadow="hover">
-          <h4 style="margin-bottom:16px">快捷入口</h4>
-          <div style="display:flex;flex-direction:column;gap:10px">
-            <el-button @click="$router.push('/admin/users')" :icon="User" style="justify-content:flex-start">用户管理</el-button>
-            <el-button @click="$router.push('/admin/products')" :icon="Goods" style="justify-content:flex-start">商品管理</el-button>
-            <el-button @click="$router.push('/admin/orders')" :icon="List" style="justify-content:flex-start">订单管理</el-button>
+          <h4 class="card-title">快捷入口</h4>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <el-button @click="$router.push('/admin/users')" style="width:100%;justify-content:flex-start;margin-left:0"><el-icon style="margin-right:8px"><User /></el-icon>用户管理</el-button>
+            <el-button @click="$router.push('/admin/products')" style="width:100%;justify-content:flex-start;margin-left:0"><el-icon style="margin-right:8px"><Goods /></el-icon>商品管理</el-button>
+            <el-button @click="$router.push('/admin/orders')" style="width:100%;justify-content:flex-start;margin-left:0"><el-icon style="margin-right:8px"><List /></el-icon>订单管理</el-button>
+            <el-button @click="$router.push('/admin/categories')" style="width:100%;justify-content:flex-start;margin-left:0"><el-icon style="margin-right:8px"><Menu /></el-icon>分类管理</el-button>
           </div>
           <el-divider />
           <el-descriptions :column="1" size="small">
@@ -51,7 +52,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
-import { User, Goods, List } from "@element-plus/icons-vue";
+import { User, Goods, List, Menu } from "@element-plus/icons-vue";
 import { adminApi } from "@/api/index";
 import { formatPrice } from "@/utils";
 
@@ -95,4 +96,25 @@ const barData = computed(() => {
 .bar-track { flex: 1; height: 24px; background: var(--border-light); border-radius: 12px; overflow: hidden; }
 .bar-fill { height: 100%; border-radius: 12px; transition: width .8s cubic-bezier(.4,0,.2,1); min-width: 4px; }
 .bar-val { width: 52px; font-size: 14px; font-weight: 600; color: var(--text-primary); flex-shrink: 0; text-align: right; }
+
+.card-title { margin-bottom: 16px; font-size: 16px; color: var(--text-primary); }
+
+
+
+/* 暗色模式覆盖 */
+html.dark .card-title { color: #e0e0e0; }
+html.dark .stat-label { color: #b0b0b0; }
+html.dark .bar-label { color: #b0b0b0; }
+html.dark .bar-track { background: #2d2d2d; }
+html.dark .bar-val { color: var(--text-primary); }
+html.dark :deep(.el-descriptions__label) {
+  color: #d8d8d8 !important;
+  background: transparent !important;
+}
+html.dark :deep(.el-descriptions__content) {
+  color: #e0e0e0 !important;
+}
+html.dark :deep(.el-card__body) {
+  color: var(--text-primary);
+}
 </style>
