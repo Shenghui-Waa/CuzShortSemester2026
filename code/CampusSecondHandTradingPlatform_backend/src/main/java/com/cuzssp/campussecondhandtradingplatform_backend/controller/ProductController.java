@@ -66,7 +66,6 @@ public class ProductController {
 
     /**
      * 修改商品
-     * TODO: 前端未做，无法验证是否可用，仅作逻辑确认
      * @param token
      * @param id
      * @param product
@@ -99,6 +98,21 @@ public class ProductController {
     ) {
         Long currentUserId = getCurrentUserId(token);
         return productService.updateProductStatus(currentUserId, id, status);
+    }
+
+    /**
+     * 删除商品
+     * @param token
+     * @param id
+     * @return
+     */
+    @DeleteMapping("/{id}/del")
+    public Result<?> removeProduct(
+            @RequestHeader("Authorization") String token,
+            @PathVariable Long id
+    ) {
+        Long currentUserId = getCurrentUserId(token);
+        return productService.deleteProduct(currentUserId, id);
     }
 
     /**

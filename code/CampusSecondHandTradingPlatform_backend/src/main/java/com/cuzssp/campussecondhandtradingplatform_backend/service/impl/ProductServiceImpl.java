@@ -178,13 +178,26 @@ public class ProductServiceImpl implements ProductService {
      * @return
      */
     @Override
-    public Result<Void> updateProductStatus(Long userId, Long productId, Integer status) {
+    public Result<Void> updateProductStatus(
+            Long userId, Long productId, Integer status
+    ) {
         Product product = productMapper.selectById(productId);
         if (product == null)
             return Result.error(404, "Product not found");
         product.setStatus(status);
         product.setUpdatedAt(LocalDateTime.now());
         productMapper.updateById(product);
+        return Result.success();
+    }
+
+    @Override
+    public Result<Void> deleteProduct(
+            Long userId, Long productId
+    ) {
+        Product product = productMapper.selectById(productId);
+        if (product == null)
+            return Result.error(404, "Product not found");
+        productMapper.deleteById(product.getId());
         return Result.success();
     }
 

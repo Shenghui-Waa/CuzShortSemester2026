@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="page">
     <AppHeader />
     <div class="page-container" style="max-width:800px">
@@ -18,7 +18,7 @@
         <el-button type="primary" v-if="order.status===1 && isSeller" @click="doShip">发货</el-button>
         <el-button type="success" v-if="order.status===2 && isBuyer" @click="doConfirm">确认收货</el-button>
         <el-button type="danger" v-if="order.status<3 && isBuyer" @click="doCancel">取消订单</el-button>
-        <el-button v-if="order.status===3" @click="showReview">评价</el-button>
+        <el-button v-if="order.status===3 && isBuyer" @click="showReview">评价</el-button>
       </div>
       <h3 style="margin-top:20px">商品明细</h3>
       <el-table :data="order?.items||[]" stripe>

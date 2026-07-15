@@ -2,7 +2,7 @@
   <div class="page">
     <AppHeader />
     <div class="page-container" style="max-width:700px">
-      <h2>发布商品</h2>
+      <h2>{{ editId ? "再次上架" : "发布商品" }}</h2>
       <el-form :model="f" :rules="rules" ref="rf" label-width="80px" @submit.prevent="submit">
         <el-form-item label="标题" prop="title"><el-input v-model="f.title" placeholder="请输入商品标题" /></el-form-item>
         <el-form-item label="分类" prop="categoryId">
@@ -42,7 +42,9 @@ import ImageUpload from "@/components/ImageUpload.vue";
 import { productApi } from "@/api/product";
 import { categoryApi } from "@/api/index";
 
+import { useRoute } from "vue-router";
 const router = useRouter();
+const route = useRoute();
 const rf = ref();
 const loading = ref(false);
 const categories = ref<any[]>([]);
@@ -66,16 +68,40 @@ const rules = {
   campus: [{ required: true, message: "请输入校区", trigger: "blur" }],
 };
 
-onMounted(async () => { const r: any = await categoryApi.getAll(); categories.value = r.data || []; });
+const editId = ref<string | null>(null);
+
+onMounted(async () => {
+  const r: any = await categoryApi.getAll();
+  categories.value = r.data || [];
+  const q = route.query;
+  if (q.id) {
+    editId.value = q.id as string;
+    f.title = (q.title as string) || "";
+    f.price = Number(q.price) || 0;
+    f.categoryId = Number(q.categoryId) || null;
+    f.condition = Number(q.condition) ?? 0;
+    f.campus = (q.campus as string) || "";
+    f.description = (q.description as string) || "";
+    f.originalPrice = Number(q.originalPrice) || 0;
+    try {
+      const detail: any = await productApi.detail(Number(q.id));
+      if (detail.data?.images) images.value = detail.data.images;
+    } catch {}
+  }
+});
 
 async function submit() {
   const ok = await rf.value?.validate().catch(() => false);
   if (!ok) return;
   loading.value = true;
   try {
-    // body: 商品JSON  +  query: images=url1&images=url2
-    await productApi.create({ ...f }, images.value);
-    ElMessage.success("发布成功，等待审核");
+    if (editId.value) {
+      await productApi.update(Number(editId.value), { ...f }, images.value);
+      ElMessage.success("已重新上架，等待审核");
+    } else {
+      await productApi.create({ ...f }, images.value);
+      ElMessage.success("发布成功，等待审核");
+    }
     router.push("/my-products");
   } catch {} finally { loading.value = false; }
 }

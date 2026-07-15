@@ -58,6 +58,12 @@ function removeUrl(i: number) {
 .img-preview { width: 100px; height: 100px; border-radius: 6px; overflow: hidden; position: relative; }
 .img-preview img { width: 100%; height: 100%; object-fit: cover; }
 .img-remove { position: absolute; top: 2px; right: 2px; width: 20px; height: 20px; background: rgba(0,0,0,.6); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; line-height: 1; }
-.upload-trigger { width: 100px; height: 100px; border: 1px dashed #d9d9d9; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.upload-trigger {
+  width: 100px; height: 100px;
+  border: 1px dashed #d9d9d9; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: border-color .2s;
+}
 .upload-trigger:hover { border-color: #fb1e47; }
+.upload-trigger :deep(> *) { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
 </style>
