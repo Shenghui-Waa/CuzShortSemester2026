@@ -203,7 +203,9 @@ public class ToVOUtil {
         );
     }
 
-    public static ReviewVO toReviewVO(Review review, User reviewer) {
+    public static ReviewVO toReviewVO(
+            Review review, User reviewer
+    ) {
         ReviewVO reviewVO = new ReviewVO();
         reviewVO.setId(review.getId());
         reviewVO.setOrderId(review.getOrderId());
@@ -217,5 +219,20 @@ public class ToVOUtil {
             reviewVO.setReviewerAvatar(reviewer.getAvatar());
         }
         return reviewVO;
+    }
+
+    public static ChatMessageVO toChatMessageVO(
+            ChatMessage msg
+    ) {
+        ChatMessageVO chatMessageVO = new ChatMessageVO();
+        chatMessageVO.setId(msg.getId());
+        chatMessageVO.setSenderId(msg.getSenderId());
+        chatMessageVO.setReceiverId(msg.getReceiverId());
+        chatMessageVO.setProductId(msg.getProductId());
+        chatMessageVO.setContent(msg.getContent());
+        chatMessageVO.setIsRead(msg.getIsRead());
+        chatMessageVO.setCreatedAt(msg.getCreatedAt());
+
+        return chatMessageVO;
     }
 }

@@ -1,4 +1,4 @@
-package com.cuzssp.campussecondhandtradingplatform_backend.common.config;
+package com.cuzssp.campussecondhandtradingplatform_backend.common.handler;
 
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
