@@ -5,15 +5,16 @@ import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.SendMessage
 import com.cuzssp.campussecondhandtradingplatform_backend.common.security.JwtTokenProvider;
 import com.cuzssp.campussecondhandtradingplatform_backend.service.ChatService;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.Result;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.beans.factory.annotation.Autowired;
 
 @RestController
 @RequestMapping("/api/chat")
+@RequiredArgsConstructor
 public class ChatController {
 
-    @Autowired private ChatService chatService;
-    @Autowired private JwtTokenProvider jwtTokenProvider;
+    private final ChatService chatService;
+    private final JwtTokenProvider jwtTokenProvider;
 
 
     @GetMapping("/contacts")

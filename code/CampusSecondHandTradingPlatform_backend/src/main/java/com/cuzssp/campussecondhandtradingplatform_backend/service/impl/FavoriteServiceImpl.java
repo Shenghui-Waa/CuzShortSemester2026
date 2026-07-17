@@ -7,19 +7,20 @@ import com.cuzssp.campussecondhandtradingplatform_backend.service.FavoriteServic
 import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.*;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class FavoriteServiceImpl implements FavoriteService {
-    @Autowired private FavoriteMapper favoriteMapper;
-    @Autowired private ProductMapper productMapper;
-    @Autowired private ProductImageMapper productImageMapper;
-    @Autowired private UserMapper userMapper;
-    @Autowired private CategoryMapper categoryMapper;
+    private final FavoriteMapper favoriteMapper;
+    private final ProductMapper productMapper;
+    private final ProductImageMapper productImageMapper;
+    private final UserMapper userMapper;
+    private final CategoryMapper categoryMapper;
 
     /**
      * 加喜欢

@@ -1,4 +1,5 @@
 package com.cuzssp.campussecondhandtradingplatform_backend.service.impl;
+
 import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.CartItem;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.util.ToEntityUtil;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.util.ToVOUtil;
@@ -9,18 +10,19 @@ import com.cuzssp.campussecondhandtradingplatform_backend.mapper.UserMapper;
 import com.cuzssp.campussecondhandtradingplatform_backend.service.CartService;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.Result;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.CartItemVO;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class CartServiceImpl implements CartService {
-    @Autowired private CartMapper cartMapper;
-    @Autowired private ProductMapper productMapper;
-    @Autowired private ProductImageMapper productImageMapper;
-    @Autowired private UserMapper userMapper;
+    private final CartMapper cartMapper;
+    private final ProductMapper productMapper;
+    private final ProductImageMapper productImageMapper;
+    private final UserMapper userMapper;
 
     /**
      * 获取购物车物品

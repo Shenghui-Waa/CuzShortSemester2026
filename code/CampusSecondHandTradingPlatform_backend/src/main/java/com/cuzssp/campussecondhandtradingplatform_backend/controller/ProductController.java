@@ -6,16 +6,18 @@ import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.Product;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.security.JwtTokenProvider;
 import com.cuzssp.campussecondhandtradingplatform_backend.service.ProductService;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.Result;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/products")
+@RequiredArgsConstructor
 public class ProductController {
 
-    @Autowired private ProductService productService;
-    @Autowired private JwtTokenProvider jwtTokenProvider;
+    private final ProductService productService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     /**
      * 获取商品列表

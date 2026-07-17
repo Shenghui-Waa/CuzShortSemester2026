@@ -14,24 +14,26 @@ import com.cuzssp.campussecondhandtradingplatform_backend.service.AdminService;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import jakarta.annotation.Nullable;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class AdminServiceImpl implements AdminService {
-    @Autowired private UserMapper userMapper;
+    private final UserMapper userMapper;
 
-    @Autowired private Base64Provider base64Provider;
-    @Autowired private OrderMapper orderMapper;
-    @Autowired private OrderItemMapper orderItemMapper;
+    private final Base64Provider base64Provider;
+    private final OrderMapper orderMapper;
+    private final OrderItemMapper orderItemMapper;
 
-    @Autowired private ProductMapper productMapper;
-    @Autowired private ProductImageMapper productImageMapper;
+    private final ProductMapper productMapper;
+    private final ProductImageMapper productImageMapper;
 
-    @Autowired private CategoryMapper categoryMapper;
+    private final CategoryMapper categoryMapper;
 
     /**
      * 获取仪表盘

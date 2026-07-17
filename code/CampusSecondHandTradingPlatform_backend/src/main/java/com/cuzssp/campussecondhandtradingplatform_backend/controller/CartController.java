@@ -4,15 +4,16 @@ import com.cuzssp.campussecondhandtradingplatform_backend.common.security.JwtTok
 
 import com.cuzssp.campussecondhandtradingplatform_backend.service.CartService;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.Result;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.beans.factory.annotation.Autowired;
 
 @RestController
 @RequestMapping("/api/cart")
+@RequiredArgsConstructor
 public class CartController {
 
-    @Autowired private CartService cartService;
-    @Autowired private JwtTokenProvider jwtTokenProvider;
+    private final CartService cartService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     /**
      * 获取购物车

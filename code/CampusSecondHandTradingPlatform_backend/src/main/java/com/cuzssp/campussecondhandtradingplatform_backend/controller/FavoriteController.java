@@ -4,15 +4,16 @@ import com.cuzssp.campussecondhandtradingplatform_backend.common.security.JwtTok
 
 import com.cuzssp.campussecondhandtradingplatform_backend.service.FavoriteService;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.Result;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.beans.factory.annotation.Autowired;
 
 @RestController
 @RequestMapping("/api/favorites")
+@RequiredArgsConstructor
 public class FavoriteController {
 
-    @Autowired private FavoriteService favoriteService;
-    @Autowired private JwtTokenProvider jwtTokenProvider;
+    private final FavoriteService favoriteService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     /**
      * 获取喜欢列表

@@ -5,15 +5,17 @@ import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.CreateOrder
 import com.cuzssp.campussecondhandtradingplatform_backend.common.security.JwtTokenProvider;
 import com.cuzssp.campussecondhandtradingplatform_backend.service.OrderService;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.Result;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @RestController
 @RequestMapping("/api/orders")
+@RequiredArgsConstructor
 public class OrderController {
 
-    @Autowired private OrderService orderService;
-    @Autowired private JwtTokenProvider jwtTokenProvider;
+    private final OrderService orderService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     /**
      * 创建订单

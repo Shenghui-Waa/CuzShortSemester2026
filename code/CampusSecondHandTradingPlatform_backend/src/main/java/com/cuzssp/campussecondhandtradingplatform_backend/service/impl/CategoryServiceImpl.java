@@ -8,17 +8,18 @@ import com.cuzssp.campussecondhandtradingplatform_backend.service.CategoryServic
 import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.Result;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.CategoryVO;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.exception.BusinessException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class CategoryServiceImpl implements CategoryService {
-    @Autowired private CategoryMapper categoryMapper;
-    @Autowired private ProductMapper productMapper;
+    private final CategoryMapper categoryMapper;
+    private final ProductMapper productMapper;
 
     /**
      * 获取所有分类

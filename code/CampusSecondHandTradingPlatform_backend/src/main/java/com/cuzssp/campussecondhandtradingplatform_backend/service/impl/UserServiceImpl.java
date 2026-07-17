@@ -9,14 +9,14 @@ import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.UserVO;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.UpdateProfileRequest;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.ChangePasswordRequest;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.exception.BusinessException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
-    @Autowired private UserMapper userMapper;
-    @Autowired private Base64Provider base64Provider;
+    private final UserMapper userMapper;
+    private final Base64Provider base64Provider;
 
     @Override
     public Result<UserVO> getUserById(Long id) {

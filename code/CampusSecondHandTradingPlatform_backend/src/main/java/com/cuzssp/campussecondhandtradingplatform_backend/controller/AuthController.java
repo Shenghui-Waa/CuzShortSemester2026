@@ -6,15 +6,16 @@ import com.cuzssp.campussecondhandtradingplatform_backend.common.security.JwtTok
 import com.cuzssp.campussecondhandtradingplatform_backend.service.AuthService;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.Result;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.beans.factory.annotation.Autowired;
 
 @RestController
 @RequestMapping("/api/auth")
+@RequiredArgsConstructor
 public class AuthController {
 
-    @Autowired private AuthService authService;
-    @Autowired private JwtTokenProvider jwtTokenProvider;
+    private final AuthService authService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     /**
      * 注册

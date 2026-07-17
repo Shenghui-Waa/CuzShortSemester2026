@@ -1,5 +1,5 @@
 ﻿<template>
-  <div class="page" style="height:100vh;overflow-y: hidden;">
+  <div class="page">
     <AppHeader />
     <div class="chat-container">
       <div class="contacts-panel">
@@ -281,13 +281,7 @@ function showTimeSep(idx: number) {
   flex: 1;
   max-height: 80vh;
   overflow-y: auto;
-
-  scrollbar-width: thin;
-  scrollbar-color: #bf7683 transparent;
 }
-.contact-list::-webkit-scrollbar { width: 6px; }
-.contact-list::-webkit-scrollbar-thumb { background: #bf7683; border-radius: 3px; }
-.contact-list::-webkit-scrollbar-track { background: transparent; }
 
 .contact-item {
   display: flex;
@@ -355,13 +349,7 @@ function showTimeSep(idx: number) {
   display: flex;
   flex-direction: column;
   gap: 10px;
-
-  scrollbar-width: thin;
-  scrollbar-color: #bf7683 transparent;
 }
-.messages::-webkit-scrollbar { width: 6px; }
-.messages::-webkit-scrollbar-thumb { background: #bf7683; border-radius: 3px; }
-.messages::-webkit-scrollbar-track { background: transparent; }
 
 .msg-row { display: flex; flex-shrink: 0; }
 .msg-row.mine { justify-content: flex-end; }
@@ -424,6 +412,20 @@ function showTimeSep(idx: number) {
 }
 .profile-label { width: 50px; color: #909399; flex-shrink: 0; }
 .profile-row .el-button { margin-left: auto; }
+
+.contact-list,
+.messages {
+  scrollbar-width: thin;
+  scrollbar-color: #bf7683 transparent;
+}
+.contact-list::-webkit-scrollbar,
+.messages::-webkit-scrollbar { width: 6px; }
+.contact-list::-webkit-scrollbar-thumb,
+.messages::-webkit-scrollbar-thumb { background: #bf7683; border-radius: 3px; }
+.contact-list::-webkit-scrollbar-track,
+.messages::-webkit-scrollbar-track { background: transparent; }
+
+.page { height: 100vh; overflow: hidden; }
 
 html.dark .contacts-panel { border-color: #333; }
 html.dark .chat-area { border-color: #333; }
