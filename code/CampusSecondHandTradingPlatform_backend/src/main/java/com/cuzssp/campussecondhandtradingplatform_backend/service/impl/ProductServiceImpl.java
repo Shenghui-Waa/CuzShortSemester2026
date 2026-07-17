@@ -103,7 +103,6 @@ public class ProductServiceImpl implements ProductService {
 
     /**
      * 发布商品
-     * TODO: 图片未能插入，前端是否上传？
      * @param userId
      * @param product
      * @param images
@@ -119,7 +118,6 @@ public class ProductServiceImpl implements ProductService {
         product.setCreatedAt(LocalDateTime.now());
         product.setUpdatedAt(LocalDateTime.now());
         productMapper.insert(product);
-        // TODO: 以下循环逻辑无效，须确认 images 是否传入
         if (images != null) {
             for (int i = 0; i < images.size(); i++) {
                 ProductImage productImage = new ProductImage();

@@ -11,7 +11,10 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(new com.cuzssp.campussecondhandtradingplatform_backend.common.config.ChatWebSocketHandler(), "/ws/chat")
+        registry.addHandler(
+                new com.cuzssp.campussecondhandtradingplatform_backend
+                        .common.config.ChatWebSocketHandler(), "/ws/chat"
+                )
                 .setAllowedOrigins("*");
     }
 }
