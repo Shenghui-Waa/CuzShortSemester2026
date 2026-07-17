@@ -182,8 +182,7 @@ async function toggleFav() {
 }
 
 function openChat() {
-  router.push("/chat");
-  ElMessage.info("请通过消息页面联系卖家");
+  router.push({ path: "/chat", query: { contactId: product.value.userId, contactName: product.value.sellerName } });
 }
 
 async function delist() {

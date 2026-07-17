@@ -1,5 +1,7 @@
 package com.cuzssp.campussecondhandtradingplatform_backend.service.impl;
 
+import com.cuzssp.campussecondhandtradingplatform_backend.common.constant.ChatMessageConstant;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.constant.UserConstant;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.ChatMessage;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.User;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.handler.ChatWebSocketHandler;
@@ -32,13 +34,15 @@ public class ChatServiceImpl implements ChatService {
             contactMap.putIfAbsent(msg.getReceiverId(), new ChatContactVO());
             contactMap.get(msg.getReceiverId()).setContactId(msg.getReceiverId());
             contactMap.get(msg.getReceiverId()).setLastMessage(msg.getContent());
+            contactMap.get(msg.getReceiverId()).setLastTime(msg.getCreatedAt().toString());
         }
         for (ChatMessage msg : received) {
             contactMap.putIfAbsent(msg.getSenderId(), new ChatContactVO());
             ChatContactVO vo = contactMap.get(msg.getSenderId());
             vo.setContactId(msg.getSenderId()); vo.setLastMessage(msg.getContent());
-            if (msg.getIsRead() == 0)
+            if (msg.getIsRead() == ChatMessageConstant.READ_STATUS_NO)
                 vo.setUnreadCount((vo.getUnreadCount() == null ? 0 : vo.getUnreadCount()) + 1);
+            vo.setLastTime(msg.getCreatedAt().toString());
         }
         List<ChatContactVO> chatContactVOs = new ArrayList<>();
         for (ChatContactVO chatContactVO : contactMap.values()) {
@@ -49,6 +53,7 @@ public class ChatServiceImpl implements ChatService {
             }
             chatContactVOs.add(chatContactVO);
         }
+
         return Result.success(chatContactVOs);
     }
 
@@ -56,8 +61,9 @@ public class ChatServiceImpl implements ChatService {
     public Result<List<ChatMessageVO>> getMessages(
             Long userId, Long contactId, Integer page, Integer pageSize
     ) {
-        PageHelper.startPage(page, pageSize);
         List<ChatMessage> chatMessageList = chatMessageMapper.selectByConversation(userId, contactId);
+
+        PageHelper.startPage(page, pageSize);
         List<ChatMessageVO> chatMessageVOs = chatMessageList.stream()
                 .map(ToVOUtil::toChatMessageVO)
                 .collect(Collectors.toList());
@@ -69,12 +75,14 @@ public class ChatServiceImpl implements ChatService {
     public Result<ChatMessageVO> sendMessage(
             Long senderId, Long receiverId, Long productId, String content
     ) {
+
         ChatMessage message = ToEntityUtil.toChatMessageEntity(
                 senderId, receiverId, productId, content
         );
         chatMessageMapper.insert(message);
         ChatMessageVO chatMessageVO = ToVOUtil.toChatMessageVO(message);
         ChatWebSocketHandler.sendMessageToUser(receiverId, content);
+
         return Result.success(chatMessageVO);
     }
 
