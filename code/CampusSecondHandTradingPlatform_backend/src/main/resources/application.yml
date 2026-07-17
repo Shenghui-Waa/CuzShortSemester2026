@@ -33,7 +33,7 @@ mybatis-plus:
 
 jwt:
   secret: ${JWT_SECRET:cuzssp-jwt-secret-key-2026-256-bits-default}
-  expiration: ${JWT_EXPIRATION:86400000}
+  expiration: ${JWT_EXPIRATION:86400}
 
 r2:
   s3:
