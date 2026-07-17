@@ -1,9 +1,9 @@
-﻿# 校园二手交易平台 — 开发说明文档 (DEV.md)
+# 校园二手交易平台 — 开发说明文档 (DEV.md)
 
-> **版本**: v2.0  
-> **日期**: 2026-07-14  
+> **版本**: v2.6.0  
+> **日期**: 2026-07-17  
 > **项目名**: CuzShortSemester2026 — Campus Second-Hand Trading Platform  
-> **说明**: 本文档基于项目实际代码结构编写，反映当前代码的真实状态。
+> **说明**: 基于项目实际代码结构 v2.5.5 快照编写，反映当前前后端代码的真实状态。本文档涵盖后端 (Spring Boot 4.0.7) 和前端 (Vue 3 + TypeScript) 完整架构。
 
 ---
 
@@ -20,21 +20,24 @@
 | 后端框架   | Spring Boot                           | **4.0.7**      |
 | 安全框架   | Spring Security + JWT (jjwt)          | **0.12.6**     |
 | ORM        | MyBatis-Plus (spring-boot4-starter)   | **3.5.16**     |
-| 数据库驱动 | MySQL Connector/J                     | 随 Spring Boot |
+| 数据库驱动 | MySQL Connector/J                     | 随 Spring Boot 4.x |
 | 分页插件   | PageHelper                            | **2.1.1**      |
 | 对象存储   | AWS SDK for Java S3 (Cloudflare R2)   | **2.46.21**    |
 | 开发工具   | Lombok                                | 随 Spring Boot |
 | Java 版本  | Java                                  | **17**         |
 | 数据库     | MySQL                                 | 8.0+           |
-| 前端框架   | Vue 3 + TypeScript                    | 3.x            |
-| 前端路由   | Vue Router                            | 4.x            |
-| 状态管理   | Pinia                                 | 2.x            |
-| UI 组件库  | Element Plus                          | 2.x            |
-| HTTP 客户端| Axios                                  | 1.x            |
-| 构建工具   | Vite                                  | 5.x            |
+| 前端框架   | Vue 3 + TypeScript                    | **3.5.39**     |
+| 前端路由   | Vue Router                            | **4.6.4**      |
+| 状态管理   | Pinia                                 | **2.3.1**      |
+| UI 组件库  | Element Plus                          | **2.14.2**     |
+| HTTP 客户端| Axios                                  | **1.18.1**     |
+| 构建工具   | Vite                                  | **8.1.1**      |
+| CSS 预处理 | Sass                                  | **1.101.0**    |
 | 包管理     | pnpm                                  | —              |
 
-> **注意**: 实际项目**未使用 Redis**，无缓存层。密码加密采用自定义 Base64 + 盐值方案，**非 BCrypt**。
+> **注意**: 
+> - 实际项目**未使用 Redis**，无缓存层。
+> - 密码加密采用自定义 Base64 + 盐值方案 (`"cuzssp" + rawPassword + "2026webproject"`)，**非 BCrypt**（虽然 SecurityConfig 中注入了 BCryptPasswordEncoder Bean，但实际业务未使用）。
 
 ---
 
@@ -53,398 +56,392 @@
 
 ### 3.2 功能模块
 
-#### 前台用户端（已实现）
+#### 前台用户端
 
-| 模块     | 功能点                                                                           | Controller            |
-|----------|----------------------------------------------------------------------------------|-----------------------|
-| 用户认证 | 注册、登录、登出、获取当前用户信息 (`/me`)                                        | `AuthController`      |
-| 用户管理 | 查看用户信息、编辑个人资料、修改密码、上传头像                                     | `UserController`      |
-| 商品浏览 | 分页列表、关键词搜索、分类+校区联合筛选、商品详情（含浏览量计数）、我发布的列表      | `ProductController`   |
-| 商品发布 | 发布商品（含图片）、编辑商品、修改商品状态（上架/下架）                              | `ProductController`   |
+| 模块     | 功能点                                                                            | Controller            |
+|----------|-----------------------------------------------------------------------------------|-----------------------|
+| 用户认证 | 注册、登录、登出、获取当前用户信息 (`/me`)                                           | `AuthController`      |
+| 用户管理 | 查看用户信息、编辑个人资料（昵称/手机/邮箱/学校/校区）、修改密码、上传头像             | `UserController`      |
+| 商品浏览 | 分页列表、关键词搜索、分类+校区联合筛选、价格区间筛选、条件筛选、排序、商品详情（含浏览量自增） | `ProductController`   |
+| 商品发布 | 发布商品（先上传图片至R2，再传URL数组参数+JSON body）、编辑商品、修改商品状态（上架/下架） | `ProductController`   |
 | 收藏系统 | 收藏/取消收藏、收藏列表（分页）、检查是否已收藏                                    | `FavoriteController`  |
 | 购物车   | 加入购物车、移除、查看购物车列表                                                  | `CartController`      |
 | 订单系统 | 创建订单、订单列表（分页+状态筛选）、详情、支付/发货/收货/取消                       | `OrderController`     |
 | 聊天系统 | 联系人列表、消息记录（分页）、发送消息、标记已读（WebSocket 推送 + HTTP REST）       | `ChatController`      |
-| 评价系统 | 创建评价（星级+文字）、查看用户评价记录（分页）、评分影响信誉分                      | `ReviewController`    |
+| 评价系统 | 创建评价（星级+文字）、查看用户评价记录（分页）、评分影响信誉分（>=3星+1, <3星-1）    | `ReviewController`    |
 | 文件上传 | 单文件上传、多文件上传（上传至 Cloudflare R2）                                     | `FileController`      |
 | 分类浏览 | 获取全部分类（含各分类商品数）                                                     | `CategoryController`  |
 
-#### 后台管理端（已实现）
+#### 后台管理端
 
 | 模块     | 功能点                                                                 | Controller               |
 |----------|------------------------------------------------------------------------|---------------------------|
-| 仪表盘   | 用户总数、商品总数、订单总数、交易总额、今日新增用户、今日新增订单        | `AdminDashboardController`|
-| 用户管理 | 用户列表（分页+关键词搜索）、封禁/解封                                    | `AdminDashboardController`|
-| 商品管理 | 商品列表（分页+关键词+状态筛选）、审核/下架                               | `AdminDashboardController`|
-| 订单管理 | 订单列表（分页+状态筛选）                                                | `AdminDashboardController`|
+| 仪表盘   | 用户数、商品数、订单数、今日新增用户、今日新增订单（`DashboardVO`）        | `AdminDashboardController` |
+| 分类管理 | 新增/编辑/删除分类（通过管理端路由 `/api/admin/category/**`）              | `AdminDashboardController` (委托 `CategoryService`) |
+| 用户管理 | 用户列表（分页+关键字）、修改用户状态（启用/封禁）、新增管理员              | `AdminDashboardController` |
+| 商品管理 | 商品列表（分页+关键字+状态筛选）、修改商品状态（审核通过/下架）            | `AdminDashboardController` |
+| 订单管理 | 订单列表（分页+状态筛选），仅查看                                        | `AdminDashboardController` |
 
-> 分类的增删改查通过 `CategoryController` 实现（未纳入 admin 路径），公告模块实体已定义但前端和后台管理功能尚未接入。
+### 3.3 前端页面路由表
 
-### 3.3 非功能性需求
-
-- **安全性**: 密码自定义编码存储（Base64 + 盐值 `cuzssp...2026webproject`），JWT 令牌鉴权（Spring Security Filter），参数化 SQL 防注入
-- **图片存储**: Cloudflare R2（S3 兼容 API），使用 AWS SDK for Java v2
-- **前后端分离**: RESTful API 设计，JSON 通信
-- **WebSocket**: 聊天消息实时推送（路径 `/ws/chat?userId=`）
-
----
-
-## 4. 项目目录结构（实际）
-
-```
-CuzShortSemester2026/
-└── code/
-    ├── DEV.md                                              # 本开发说明文档
-    ├── CampusSecondHandTradingPlatform_backend/            # Spring Boot 后端（实际目录名）
-    │   ├── pom.xml                                         # Maven 配置 (Spring Boot 4.0.7)
-    │   ├── mvnw / mvnw.cmd                                 # Maven Wrapper
-    │   ├── HELP.md                                         # Spring Boot 官方参考
-    │   └── src/
-    │       ├── main/
-    │       │   ├── java/com/cuzssp/campussecondhandtradingplatform_backend/
-    │       │   │   ├── CampusSecondHandTradingPlatformBackendApplication.java  # 启动类
-    │       │   │   ├── controller/
-    │       │   │   │   ├── AdminDashboardController.java   # 后台管理：仪表盘/用户/商品/订单管理
-    │       │   │   │   ├── AuthController.java             # 认证：注册/登录/登出/me
-    │       │   │   │   ├── CartController.java             # 购物车：增删查
-    │       │   │   │   ├── CategoryController.java         # 分类：CRUD
-    │       │   │   │   ├── ChatController.java             # 聊天：联系人/消息/发送/已读
-    │       │   │   │   ├── FavoriteController.java         # 收藏：增删查/校验
-    │       │   │   │   ├── FileController.java             # 文件：单/多文件上传
-    │       │   │   │   ├── OrderController.java            # 订单：创建/列表/详情/支付/发货/收货/取消
-    │       │   │   │   ├── ProductController.java          # 商品：列表/详情/发布/编辑/状态/我的
-    │       │   │   │   ├── ReviewController.java           # 评价：创建/查看
-    │       │   │   │   └── UserController.java             # 用户：信息/资料/密码/头像
-    │       │   │   ├── service/
-    │       │   │   │   ├── AdminService.java
-    │       │   │   │   ├── AuthService.java
-    │       │   │   │   ├── CartService.java
-    │       │   │   │   ├── CategoryService.java
-    │       │   │   │   ├── ChatService.java
-    │       │   │   │   ├── FavoriteService.java
-    │       │   │   │   ├── FileService.java
-    │       │   │   │   ├── OrderService.java
-    │       │   │   │   ├── ProductService.java
-    │       │   │   │   ├── ReviewService.java
-    │       │   │   │   └── UserService.java
-    │       │   │   ├── service/impl/                       # 以上接口的实现类
-    │       │   │   ├── mapper/                             # MyBatis 注解式 Mapper（无 XML）
-    │       │   │   │   ├── AnnouncementMapper.java
-    │       │   │   │   ├── CartMapper.java
-    │       │   │   │   ├── CategoryMapper.java
-    │       │   │   │   ├── ChatMessageMapper.java
-    │       │   │   │   ├── FavoriteMapper.java
-    │       │   │   │   ├── OrderItemMapper.java
-    │       │   │   │   ├── OrderMapper.java
-    │       │   │   │   ├── ProductImageMapper.java
-    │       │   │   │   ├── ProductMapper.java
-    │       │   │   │   ├── ReviewMapper.java
-    │       │   │   │   └── UserMapper.java
-    │       │   │   └── common/
-    │       │   │       ├── config/
-    │       │   │       │   ├── ChatWebSocketHandler.java   # WebSocket 消息处理（基于 userId 的会话管理）
-    │       │   │       │   ├── CorsConfig.java             # CORS 配置（当前为空类）
-    │       │   │       │   ├── MyBatisPlusConfig.java      # MyBatis-Plus 配置（当前为空类）
-    │       │   │       │   ├── MyMetaObjectHandler.java    # 自动填充 createdAt/updatedAt
-    │       │   │       │   ├── S3Config.java               # R2/S3 配置属性绑定
-    │       │   │       │   └── WebSocketConfig.java        # WebSocket 注册 (/ws/chat)
-    │       │   │       ├── constant/
-    │       │   │       │   ├── OrderInfoConstant.java      # 订单状态常量
-    │       │   │       │   ├── ProductConstant.java        # 商品状态/新旧常量
-    │       │   │       │   └── UserConstant.java           # 用户角色/状态/信誉常量
-    │       │   │       ├── dto/                            # 数据传输对象（请求体）
-    │       │   │       │   ├── ChangePasswordRequest.java
-    │       │   │       │   ├── CreateOrderRequest.java
-    │       │   │       │   ├── LoginRequest.java
-    │       │   │       │   ├── ProductQueryDTO.java
-    │       │   │       │   ├── RegisterRequest.java
-    │       │   │       │   ├── ReviewRequest.java
-    │       │   │       │   ├── SendMessageRequest.java
-    │       │   │       │   └── UpdateProfileRequest.java
-    │       │   │       ├── entity/                         # 数据库实体（11 张表）
-    │       │   │       │   ├── Announcement.java           # 公告表 announcement
-    │       │   │       │   ├── CartItem.java               # 购物车表 cart
-    │       │   │       │   ├── Category.java               # 分类表 category
-    │       │   │       │   ├── ChatMessage.java            # 聊天消息表 chat_message
-    │       │   │       │   ├── Favorite.java               # 收藏表 favorite
-    │       │   │       │   ├── OrderInfo.java              # 订单表 order
-    │       │   │       │   ├── OrderItem.java              # 订单项表 order_item
-    │       │   │       │   ├── Product.java                # 商品表 product
-    │       │   │       │   ├── ProductImage.java           # 商品图片表 product_image
-    │       │   │       │   ├── Review.java                 # 评价表 review
-    │       │   │       │   └── User.java                   # 用户表 user
-    │       │   │       ├── exception/
-    │       │   │       │   ├── BusinessException.java      # 业务异常
-    │       │   │       │   └── GlobalExceptionHandler.java # 全局异常处理 (@RestControllerAdvice)
-    │       │   │       ├── security/
-    │       │   │       │   ├── Base64Provider.java         # 密码编码/匹配（Base64 + 盐值）
-    │       │   │       │   ├── JwtAuthenticationFilter.java# JWT 认证过滤器
-    │       │   │       │   ├── JwtTokenProvider.java       # JWT 生成/解析/验证
-    │       │   │       │   └── UserDetailsServiceImpl.java # Spring Security UserDetailsService
-    │       │   │       ├── util/
-    │       │   │       │   ├── CloudflareR2Client.java     # R2 S3 客户端封装
-    │       │   │       │   ├── FileUtil.java               # 文件上传工具（上传至 R2）
-    │       │   │       │   ├── ToEntityUtil.java           # DTO → Entity 转换工具
-    │       │   │       │   └── ToVOUtil.java               # Entity → VO 转换工具
-    │       │   │       └── vo/                             # 视图对象（响应体）
-    │       │   │           ├── CartItemVO.java
-    │       │   │           ├── CategoryVO.java
-    │       │   │           ├── ChatContactVO.java
-    │       │   │           ├── ChatMessageVO.java
-    │       │   │           ├── DashboardVO.java
-    │       │   │           ├── OrderItemVO.java
-    │       │   │           ├── OrderVO.java
-    │       │   │           ├── PageResult.java             # 通用分页响应
-    │       │   │           ├── ProductVO.java
-    │       │   │           ├── Result.java                 # 统一响应格式
-    │       │   │           ├── ReviewVO.java
-    │       │   │           └── UserVO.java
-    │       │   └── resources/
-    │       │       ├── application.yml                    # 主配置（环境变量占位符）
-    │       │       ├── .env                                # 环境变量配置（敏感信息，Git 忽略）
-    │       │       └── .env.example                        # 环境变量模板
-    │       └── test/                                       # 测试目录（当前为空）
-    └── campus-second-hand-trading-platform-frontend/      # Vue 3 前端（实际目录名）
-        ├── package.json
-        ├── pnpm-lock.yaml
-        ├── vite.config.ts
-        ├── tsconfig.json / tsconfig.app.json / tsconfig.node.json
-        ├── index.html
-        ├── README.md
-        └── src/                                           # 前端源码
-```
+| 路径 | 页面组件 | 需认证 | 需管理员 |
+|------|----------|--------|----------|
+| `/` | HomeView (首页) | | |
+| `/login` | LoginView (登录) | | |
+| `/register` | RegisterView (注册) | | |
+| `/products` | ProductList (商品列表) | | |
+| `/products/:id` | ProductDetail (商品详情) | | |
+| `/publish` | ProductPublish (发布商品) | yes | |
+| `/cart` | CartView (购物车) | yes | |
+| `/orders` | OrderList (订单列表) | yes | |
+| `/orders/:id` | OrderDetail (订单详情) | yes | |
+| `/profile` | ProfileView (个人中心) | yes | |
+| `/my-products` | MyProducts (我的商品) | yes | |
+| `/favorites` | FavoriteList (收藏) | yes | |
+| `/chat` | ChatView (聊天) | yes | |
+| `/admin` | DashboardView (仪表盘) | yes | yes |
+| `/admin/users` | UserManage (用户管理) | yes | yes |
+| `/admin/products` | ProductManage (商品管理) | yes | yes |
+| `/admin/orders` | OrderManage (订单管理) | yes | yes |
+| `/admin/categories` | CategoryManage (分类管理) | yes | yes |
 
 ---
 
-## 5. 数据库设计（实际表结构）
+## 4. 项目结构
 
-### 5.1 数据库信息
+### 4.1 后端完整包结构
 
-- **数据库名**: cuzssp
-- **字符集**: utf8mb4 / utf8mb4_unicode_ci
-- **ORM 方式**: MyBatis-Plus 注解式 Mapper（`@Select` / `@Insert` / `@Update`），**无 XML 映射文件**
-- **主键策略**: `IdType.ASSIGN_ID`（雪花算法）
+```
+CampusSecondHandTradingPlatform_backend/
+├── pom.xml                                          # Maven (Spring Boot 4.0.7)
+├── mvnw / mvnw.cmd                                 # Maven Wrapper
+├── HELP.md                                         # Spring Boot 参考文档
+├── src/main/java/com/cuzssp/campussecondhandtradingplatform_backend/
+│   ├── CampusSecondHandTradingPlatformBackendApplication.java  # 启动类
+│   ├── controller/                                 # 控制层 (11 个)
+│   │   ├── AdminDashboardController.java           # 后台管理 (仪表盘+CRUD)
+│   │   ├── AuthController.java                     # 用户认证 (register/login/me)
+│   │   ├── CartController.java                     # 购物车 (list/add/remove)
+│   │   ├── CategoryController.java                 # 前台分类浏览 (GET only)
+│   │   ├── ChatController.java                     # 聊天 (contacts/messages/send/read)
+│   │   ├── FavoriteController.java                 # 收藏 (list/add/remove/check)
+│   │   ├── FileController.java                     # 文件上传 (R2 single/multi)
+│   │   ├── OrderController.java                    # 订单 (create/list/detail/pay/ship/confirm/cancel)
+│   │   ├── ProductController.java                  # 商品 (list/detail/create/update/status/my)
+│   │   ├── ReviewController.java                   # 评价 (create/userReviews)
+│   │   ├── SpaController.java                      # SPA 前端路由回退 (forward:/index.html)
+│   │   └── UserController.java                     # 用户 (profile/password/avatar)
+│   ├── service/                                    # 服务接口 (11 个)
+│   │   ├── AdminService / AuthService / CartService / CategoryService
+│   │   ├── ChatService / FavoriteService / FileService / OrderService
+│   │   ├── ProductService / ReviewService / UserService
+│   ├── service/impl/                               # 服务实现 (11 个, 一一对应)
+│   ├── mapper/                                     # MyBatis Mapper 接口 (11 个, 纯注解风格)
+│   │   ├── AnnouncementMapper.java                 # 公告 (实体/Mapper已定义, Service/API未暴露)
+│   │   ├── CartMapper / CategoryMapper / ChatMessageMapper
+│   │   ├── FavoriteMapper / OrderMapper / OrderItemMapper
+│   │   ├── ProductMapper / ProductImageMapper
+│   │   ├── ReviewMapper / UserMapper
+│   ├── common/
+│   │   ├── config/
+│   │   │   ├── CorsConfig.java                     # CORS 配置 (独立管理跨域规则)
+│   │   │   ├── MyBatisPlusConfig.java              # MyBatis-Plus 配置 (空壳类)
+│   │   │   ├── MyMetaObjectHandler.java            # 自动填充 createdAt/updatedAt
+│   │   │   ├── S3Config.java                       # R2 配置属性绑定 (@ConfigurationProperties)
+│   │   │   ├── SecurityConfig.java                 # Spring Security (URL权限+JWT Filter+BCrypt Bean; CORS委托给CorsConfig)
+│   │   │   ├── ChatWebSocketHandler.java           # WebSocket 连接管理 (并发Map, 仅推送)
+│   │   │   └── WebSocketConfig.java                # WebSocket 注册 (/ws/chat, 允许所有来源)
+│   │   ├── constant/
+│   │   │   ├── UserConstant.java                   # 角色(0/1) + 状态(0/1) + 信誉分默认值(100)
+│   │   │   ├── ProductConstant.java                # 新旧程度(0/1/2) + 状态(0/1/2/3) + 浏览量默认(0)
+│   │   │   └── OrderInfoConstant.java              # 订单状态(0/1/2/3/4)
+│   │   ├── dto/                                    # 请求 DTO (8 个)
+│   │   │   ├── ChangePasswordRequest.java
+│   │   │   ├── CreateOrderRequest.java
+│   │   │   ├── LoginRequest.java
+│   │   │   ├── ProductQueryDTO.java                # 商品多条件查询 (keyword/categoryId/campus/price/condition/sort)
+│   │   │   ├── RegisterRequest.java
+│   │   │   ├── ReviewRequest.java
+│   │   │   ├── SendMessageRequest.java
+│   │   │   └── UpdateProfileRequest.java
+│   │   ├── entity/                                 # 数据库实体 (10 个, 含 Announcement)
+│   │   │   ├── Announcement.java                   # @TableName("announcement")
+│   │   │   ├── CartItem.java                       # @TableName("cart")
+│   │   │   ├── Category.java                       # @TableName("category")
+│   │   │   ├── ChatMessage.java                    # @TableName("chat_message")
+│   │   │   ├── Favorite.java                       # @TableName("favorite")
+│   │   │   ├── OrderInfo.java                      # @TableName("`order`") — 注意反引号包裹 SQL 关键字
+│   │   │   ├── OrderItem.java                      # @TableName("order_item")
+│   │   │   ├── Product.java                        # @TableName("product")
+│   │   │   ├── ProductImage.java                   # @TableName("product_image")
+│   │   │   ├── Review.java                         # @TableName("review")
+│   │   │   └── User.java                           # @TableName("user")
+│   │   ├── exception/
+│   │   │   ├── BusinessException.java              # 业务异常 (code+message)
+│   │   │   └── GlobalExceptionHandler.java         # 全局异常处理 (Business/MaxUpload/Exception)
+│   │   ├── security/
+│   │   │   ├── Base64Provider.java                 # 密码加密 (Base64 + 硬编码盐值)
+│   │   │   ├── JwtAuthenticationFilter.java        # JWT 认证过滤器
+│   │   │   ├── JwtTokenProvider.java               # JWT 生成/解析/验证
+│   │   │   └── UserDetailsServiceImpl.java         # Spring Security UserDetailsService
+│   │   ├── util/
+│   │   │   ├── CloudflareR2Client.java             # R2 S3Client 构建 + CRUD 操作
+│   │   │   ├── FileUtil.java                       # 文件上传至 R2 (MultipartFile -> URL)
+│   │   │   ├── ToEntityUtil.java                   # DTO -> Entity 转换工具
+│   │   │   └── ToVOUtil.java                       # Entity -> VO 转换工具
+│   │   └── vo/                                     # 响应 VO (10 个)
+│   │       ├── CartItemVO / CategoryVO / ChatContactVO / ChatMessageVO
+│   │       ├── DashboardVO / OrderItemVO / OrderVO / PageResult
+│   │       ├── ProductVO / Result / ReviewVO / UserVO
+│   └── resources/
+│       ├── application.yml                         # 主配置 (数据源/上传限制/JWT/R2/MyBatis-Plus)
+│       ├── .env / .env.example                     # 环境变量
+│       └── static/                                 # 前端构建产物部署目录
+├── src/test/                                       # 测试代码 (待完善)
+└── docs/
+    └── sql/
+        └── init.sql                                # 数据库初始化脚本 (含示例数据)
+```
 
-### 5.2 核心表结构
-
-#### 5.2.1 用户表 `user`
-
-| 字段         | 类型          | 说明                          |
-|--------------|---------------|-------------------------------|
-| id           | BIGINT (PK)   | 雪花ID                        |
-| username     | VARCHAR       | 用户名（唯一）                 |
-| password     | VARCHAR       | 密码（Base64+盐值编码存储）    |
-| nickname     | VARCHAR       | 昵称                          |
-| avatar       | VARCHAR       | 头像 URL                      |
-| phone        | VARCHAR       | 手机号                        |
-| email        | VARCHAR       | 邮箱                          |
-| school       | VARCHAR       | 学校                          |
-| campus       | VARCHAR       | 校区                          |
-| role         | INT           | 0=用户 1=管理员               |
-| status       | INT           | 0=正常 1=封禁                 |
-| credit_score | INT           | 信誉分，默认 100               |
-| created_at   | DATETIME      | 创建时间                      |
-| updated_at   | DATETIME      | 更新时间                      |
-
-#### 5.2.2 商品表 `product`
-
-| 字段          | 类型            | 说明                                    |
-|---------------|-----------------|-----------------------------------------|
-| id            | BIGINT (PK)     | 雪花ID                                  |
-| user_id       | BIGINT (FK)     | 发布者（卖家）                           |
-| category_id   | BIGINT (FK)     | 分类ID                                  |
-| title         | VARCHAR         | 标题                                    |
-| description   | TEXT            | 描述                                    |
-| price         | DECIMAL(10,2)   | 售价                                    |
-| original_price| DECIMAL(10,2)   | 原价                                    |
-| condition     | INT             | 0=全新 1=几乎全新 2=有使用痕迹           |
-| campus        | VARCHAR         | 所在校区                                 |
-| status        | INT             | 0=待审核 1=在售 2=已售出 3=已下架         |
-| view_count    | INT             | 浏览量，默认 0                           |
-| created_at    | DATETIME        | 创建时间                                 |
-| updated_at    | DATETIME        | 更新时间                                 |
-
-#### 5.2.3 订单表 `order`（SQL 关键字，代码中以 `OrderInfo` 实体映射）
-
-| 字段         | 类型            | 说明                                                    |
-|--------------|-----------------|---------------------------------------------------------|
-| id           | BIGINT (PK)     | 雪花ID                                                  |
-| order_no     | VARCHAR         | 订单编号（UUID 前20位）                                   |
-| buyer_id     | BIGINT (FK)     | 买家                                                    |
-| seller_id    | BIGINT (FK)     | 卖家                                                    |
-| total_amount | DECIMAL(10,2)   | 总金额                                                   |
-| status       | INT             | 0=待付款 1=待发货 2=待收货 3=已完成 4=已取消               |
-| remark       | VARCHAR         | 备注                                                    |
-| created_at   | DATETIME        | 创建时间                                                 |
-| paid_at      | DATETIME        | 支付时间                                                 |
-| shipped_at   | DATETIME        | 发货时间                                                 |
-| completed_at | DATETIME        | 完成时间                                                 |
-
-#### 5.2.4 其他表
-
-| 表名             | 对应实体          | 关键字段                                |
-|------------------|-------------------|-----------------------------------------|
-| order_item       | OrderItem         | order_id, product_id, price             |
-| product_image    | ProductImage      | product_id, url, sort_order             |
-| category         | Category          | name, icon, sort_order                  |
-| cart             | CartItem          | user_id, product_id                     |
-| favorite         | Favorite          | user_id, product_id                     |
-| chat_message     | ChatMessage       | sender_id, receiver_id, product_id, content, is_read |
-| review           | Review            | order_id, reviewer_id, target_id, rating, content |
-| announcement     | Announcement      | title, content                          |
+> **注意**: 后端使用 MyBatis 注解方式 (`@Select`/`@Insert`/`@Update`)，无 XML 映射文件，且继承 MyBatis-Plus `BaseMapper` 以获得内置 CRUD 方法 (`selectById`/`insert`/`updateById`/`selectAll` 等)。
 
 ---
 
-## 6. API 接口文档（基于实际 Controller）
+## 5. 核心业务流程（后端）
 
-### 6.1 统一响应格式 `Result<T>`
+### 5.1 用户认证与会话管理 (AuthController)
 
-```json
-{ "code": 200, "message": "success", "data": ... }
-```
+| 端点                       | 方法 | 鉴权   | 说明                                                     |
+|----------------------------|------|--------|----------------------------------------------------------|
+| `POST /api/auth/register`  | 公开 | —      | 注册：密码经 Base64Provider 编码（盐值拼装格式: `cuzssp`+password+`2026webproject`） |
+| `POST /api/auth/login`     | 公开 | —      | 登录：返回 JWT Token，payload 含 `sub`(userId), `username`, `role` |
+| `POST /api/auth/logout`    | 需认证 | —     | 登出（无状态 JWT，客户端清除 Token 即可）                    |
+| `GET /api/auth/me`         | 需认证 | —     | 从 JWT 解析 userId 后查询用户信息                           |
 
-分页响应 `PageResult<T>`:
-```json
-{ "code": 200, "message": "success", "data": { "records": [...], "total": 100, "page": 1, "pageSize": 12 } }
-```
+### 5.2 API 权限矩阵 (SecurityConfig)
 
-### 6.2 认证模块 — `/api/auth`
+| URL 模式                        | 方法         | 权限            |
+|---------------------------------|--------------|-----------------|
+| `/api/auth/register`, `/api/auth/login` | POST | 公开 (permitAll) |
+| `/api/categories/**`           | GET          | 公开            |
+| `/api/categories/**`           | POST/PUT/DELETE | ROLE_ADMIN  |
+| `/api/products/**`             | ALL          | 公开 (permitAll) |
+| `/api/user/**`                 | ALL          | 公开 (permitAll) — 内部通过 JWT 手动鉴权 |
+| `/api/reviews/user/**`         | ALL          | 公开 (permitAll) |
+| `/api/admin/**`                | ALL          | ROLE_ADMIN     |
+| `/ws/**`                       | ALL          | 公开            |
+| `/`, `/index.html`, `/assets/**`, `/favicon.ico` | GET | 公开 |
+| 其他所有                       | ALL          | 需认证 (authenticated) |
 
-| 方法   | 路径              | 认证 | 说明               | 请求体/参数                        |
-|--------|-------------------|------|--------------------|------------------------------------|
-| POST   | /api/auth/register| 否   | 用户注册           | `RegisterRequest` (JSON)           |
-| POST   | /api/auth/login   | 否   | 用户登录，返回 JWT | `LoginRequest` (JSON)              |
-| POST   | /api/auth/logout  | 是   | 登出               | Header: `Authorization: Bearer {}` |
-| GET    | /api/auth/me      | 是   | 获取当前用户信息   | Header: `Authorization: Bearer {}` |
+> **注意**: CORS 配置已从 `SecurityConfig` 迁移至 `CorsConfig`（独立 `@Configuration` 类），`SecurityConfig` 通过 `@Autowired CorsConfigurationSource` 注入引用。允许所有来源、允许凭据、允许 GET/POST/PUT/DELETE/OPTIONS。
 
-### 6.3 用户模块 — `/api/user`
+### 5.3 商品管理 (ProductController)
 
-| 方法 | 路径                | 认证 | 说明         | 请求体/参数                       |
-|------|---------------------|------|--------------|-----------------------------------|
-| GET  | /api/user/{id}      | 否   | 查看用户信息 | —                                 |
-| PUT  | /api/user/profile   | 是   | 修改个人资料 | `UpdateProfileRequest` (JSON)     |
-| PUT  | /api/user/password  | 是   | 修改密码     | `ChangePasswordRequest` (JSON)    |
-| POST | /api/user/avatar    | 是   | 修改头像     | `?image=URL`                      |
+商品生命周期：`待审核(0)` -> `在售(1)` -> `已售出(2)` 或 `已下架(3)`。
 
-### 6.4 商品模块 — `/api/products`
+**图片上传流程**: 前端先调用 `POST /api/files/upload` 将图片上传至 Cloudflare R2，获取 URL 数组；再调用 `POST /api/products?images=url1&images=url2` (URL 作为查询参数) + JSON Body 创建商品，后端将 URL 写入 `product_image` 表。
 
-| 方法 | 路径                     | 认证   | 说明                     | 参数                                                          |
-|------|--------------------------|--------|--------------------------|---------------------------------------------------------------|
-| GET  | /api/products            | 可选   | 商品列表（分页+筛选）    | `?keyword=&categoryId=&campus=&page=&pageSize=`               |
-| GET  | /api/products/{id}       | 可选   | 商品详情（浏览量+1）     | —                                                             |
-| POST | /api/products            | 是     | 发布商品（待审核）       | Body: Product JSON + `?images=url1&images=url2`               |
-| PUT  | /api/products/{id}       | 是     | 修改商品（回退待审核）   | Body: Product JSON + `?images=...`                            |
-| PUT  | /api/products/{id}/status| 是     | 修改商品状态             | `?status=0/1/2/3`                                             |
-| GET  | /api/products/my         | 是     | 我发布的商品列表         | `?page=&pageSize=`                                            |
+**商品查询 (ProductQueryDTO)** 支持以下筛选条件:
+- `keyword` — 关键词搜索（模糊匹配 title）
+- `categoryId` — 分类筛选
+- `campus` — 校区筛选
+- `minPrice` / `maxPrice` — 价格区间
+- `condition` — 新旧程度筛选
+- `sortBy` — 排序字段（默认 `created_at`）
+- `sortOrder` — 排序方向（默认 `desc`）
 
-### 6.5 收藏模块 — `/api/favorites`
+### 5.4 订单管理 (OrderController)
 
-| 方法   | 路径                          | 认证 | 说明           |
-|--------|-------------------------------|------|----------------|
-| GET    | /api/favorites                | 是   | 收藏列表（分页）|
-| POST   | /api/favorites                | 是   | 添加收藏       |
-| DELETE | /api/favorites/{productId}    | 是   | 取消收藏       |
-| GET    | /api/favorites/check/{productId}| 是 | 是否已收藏    |
+状态流转：`待付款(0)` -> `待发货(1)` -> `待收货(2)` -> `已完成(3)`；任意非终态可 -> `已取消(4)`。
 
-### 6.6 购物车模块 — `/api/cart`
+| 端点                         | 方法 | 说明                          |
+|------------------------------|------|-------------------------------|
+| `POST /api/orders`          | 需认证 | 创建订单（`CreateOrderRequest`: productId, remark） |
+| `GET /api/orders`           | 需认证 | 订单列表（分页 + status 筛选，先查全部再内存过滤） |
+| `GET /api/orders/{id}`      | 需认证 | 订单详情（含 `OrderItemVO` 列表） |
+| `PUT /api/orders/{id}/pay`  | 需认证 | 支付（直接变更状态为"待发货"）  |
+| `PUT /api/orders/{id}/ship` | 需认证 | 发货（仅卖家可操作）           |
+| `PUT /api/orders/{id}/confirm` | 需认证 | 确认收货（仅买家可操作）       |
+| `PUT /api/orders/{id}/cancel` | 需认证 | 取消订单                      |
 
-| 方法   | 路径               | 认证 | 说明       |
-|--------|--------------------|------|------------|
-| GET    | /api/cart          | 是   | 购物车列表 |
-| POST   | /api/cart          | 是   | 加入购物车 (`?productId=`) |
-| DELETE | /api/cart/{productId}| 是 | 移除商品  |
+- **订单编号** (`orderNo`): 通过 `UUID.randomUUID().toString().replace("-","").substring(0,20)` 生成 20 位唯一字符串。
+- **支付逻辑**: `payOrder()` 直接变更状态为"待发货"，未对接真实支付。
 
-### 6.7 订单模块 — `/api/orders`
+### 5.5 聊天系统
 
-| 方法 | 路径                  | 认证 | 说明                          |
-|------|-----------------------|------|-------------------------------|
-| POST | /api/orders           | 是   | 创建订单（商品变已售出）      |
-| GET  | /api/orders           | 是   | 订单列表 `?status=&page=&pageSize=` |
-| GET  | /api/orders/{id}      | 是   | 订单详情                      |
-| PUT  | /api/orders/{id}/pay  | 是   | 支付（无实际支付逻辑）        |
-| PUT  | /api/orders/{id}/ship | 是   | 卖家发货                      |
-| PUT  | /api/orders/{id}/confirm| 是 | 买家确认收货                  |
-| PUT  | /api/orders/{id}/cancel| 是  | 取消订单（恢复商品在售）      |
+| 端点                              | 方法      | 说明                                                                  |
+|-----------------------------------|-----------|-----------------------------------------------------------------------|
+| `GET /api/chat/contacts`          | 需认证    | 联系人列表 (`ChatContactVO`: contactName, lastMessage, unreadCount)    |
+| `GET /api/chat/{contactId}`       | 需认证    | 聊天记录（分页）                                                        |
+| `POST /api/chat/send`             | 需认证    | 发送消息 -> 持久化到 DB + WebSocket 推送给接收者                          |
+| `PUT /api/chat/read/{contactId}`  | 需认证    | 标记已读（将该联系人的消息 `is_read` 设为 1）                            |
+| `WS /ws/chat?userId={id}`         | WebSocket | 仅用于**接收**实时推送通知；消息**发送**走 HTTP 接口                      |
 
-> 订单状态流转: 待付款(0) → 待发货(1) → 待收货(2) → 已完成(3)；任意状态 → 已取消(4)
+WebSocket 连接通过 URL 参数 `userId` 标识用户，`ChatWebSocketHandler` 内部以 `ConcurrentHashMap<Long, WebSocketSession>` 管理连接。消息通过 HTTP 接口持久化后，调用 `ChatWebSocketHandler.sendMessageToUser()` 进行推送。
 
-### 6.8 聊天模块 — `/api/chat`
+### 5.6 文件上传 (FileController)
 
-| 方法 | 路径                   | 认证 | 说明                 |
-|------|------------------------|------|----------------------|
-| GET  | /api/chat/contacts     | 是   | 联系人列表（含未读数）|
-| GET  | /api/chat/{contactId}  | 是   | 消息记录 `?page=&pageSize=` |
-| POST | /api/chat/send         | 是   | 发送消息 `SendMessageRequest` |
-| PUT  | /api/chat/read/{contactId}| 是| 标记已读             |
+| 端点                          | 方法 | 说明              |
+|-------------------------------|------|-------------------|
+| `POST /api/files/upload`     | 需认证 | 单文件上传 (`@RequestPart("file")`) |
+| `POST /api/files/upload/batch` | 需认证 | 多文件上传 (`@RequestPart("files")`) |
 
-WebSocket 连接: `ws://host:port/ws/chat?userId={userId}`（用于接收实时推送）
+上传路径：`{childFolder}/cuzssp-{UUID}.{ext}`，返回 CDN 完整 URL（使用 `R2_PUBLIC_URL` 配置）。
 
-### 6.9 评价模块 — `/api/reviews`
+### 5.7 统一响应格式
 
-| 方法 | 路径                    | 认证 | 说明                        |
-|------|-------------------------|------|-----------------------------|
-| POST | /api/reviews            | 是   | 创建评价（评分影响信誉分）  |
-| GET  | /api/reviews/user/{userId}| 否 | 查看用户评价记录（分页）    |
+返回数据格式：`Result<T>` 封装体，包含 `code`(Integer), `message`(String), `data`(T)。
+- 成功: `Result.success(data)` -> `{code:200, message:"success", data:...}`
+- 业务异常: `Result.error(code, message)` -> HTTP 状态码跟随业务 code
+- 系统异常: `Result.error(500, "Internal server error")`
 
-### 6.10 文件上传 — `/api/files`
+### 5.8 仪表盘 (AdminDashboardController)
 
-| 方法 | 路径               | 认证 | 说明                  |
-|------|--------------------|------|-----------------------|
-| POST | /api/files/upload  | 否   | 单文件上传 `multipart` |
-| POST | /api/files/uploads | 否   | 多文件上传 `multipart` |
+`GET /api/admin/dashboard` 返回 `DashboardVO`:
 
-### 6.11 分类管理 — `/api/categories`
+| 字段 | 说明 | 来源 |
+|------|------|------|
+| `userCount` | 总用户数 | `userMapper.countAll()` |
+| `productCount` | 总商品数 | `productMapper.countAll()` |
+| `orderCount` | 总订单数 | `orderMapper.countAll()` |
+| `totalAmount` | 交易总额 | `orderMapper` 聚合 |
+| `todayNewUsers` | 今日新增用户 | `userMapper.countTodayNew()` |
+| `todayNewOrders` | 今日新增订单 | `orderMapper` 聚合 |
 
-| 方法   | 路径                  | 认证 | 说明                    |
-|--------|-----------------------|------|-------------------------|
-| GET    | /api/categories       | 否   | 获取所有分类（含商品数）|
-| POST   | /api/categories       | 否   | 新增分类                |
-| PUT    | /api/categories/{id}  | 否   | 修改分类                |
-| DELETE | /api/categories/{id}  | 否   | 删除分类（有商品则拒绝）|
+### 5.9 评价系统
 
-### 6.12 后台管理 — `/api/admin`
+- `POST /api/reviews` — 创建评价 (`ReviewRequest`: orderId, targetId, rating 1-5, content)
+- `GET /api/reviews/user/{userId}` — 用户评价记录（分页）
+- 评分影响: >=3 星 -> 被评者信誉分 +1，<3 星 -> 被评者信誉分 -1
 
-| 方法 | 路径                           | 说明                              |
-|------|--------------------------------|-----------------------------------|
-| GET  | /api/admin/dashboard           | 仪表盘统计数据                    |
-| GET  | /api/admin/users               | 用户列表 `?page=&pageSize=&keyword=`|
-| PUT  | /api/admin/users/{id}/status   | 封禁/解封 `?status=0/1`           |
-| GET  | /api/admin/products            | 商品列表 `?page=&pageSize=&keyword=&status=`|
-| PUT  | /api/admin/products/{id}/status| 审核/下架 `?status=0/1/2/3`       |
-| GET  | /api/admin/orders              | 订单列表 `?page=&pageSize=&status=`|
+### 5.10 SPA 路由回退
+
+`SpaController` 将所有非静态资源路径 (`/{path:[^\\.]*}`) 转发到 `forward:/index.html`，支持 Vue Router History 模式下的前端路由。
 
 ---
 
-## 7. 安全机制（实际实现）
+## 6. 数据库设计
 
-### 7.1 密码加密
+### 6.1 数据表概览
 
-使用 `Base64Provider`（`common/security/Base64Provider.java`），采用 **Base64 + 固定盐值** 方案：
+| 表名           | 说明     | 关键字段 |
+|----------------|----------|----------|
+| `user`         | 用户     | `id`(PK), `username`(UNIQUE), `password`, `nickname`, `avatar`, `phone`, `email`, `school`, `campus`, `role`, `status`, `credit_score`, `created_at`, `updated_at` |
+| `category`     | 商品分类 | `id`(PK), `name`, `icon`, `sort_order`, `created_at` |
+| `product`      | 商品     | `id`(PK), `user_id`, `category_id`, `title`, `description`, `price`, `original_price`, `condition`, `campus`, `status`, `view_count`, `created_at`, `updated_at` |
+| `product_image`| 商品图片 | `id`(PK), `product_id`, `url`, `sort_order` |
+| `` `order` `` / `order_info` | 订单 | `id`(PK), `order_no`, `buyer_id`, `seller_id`, `total_amount`, `status`, `remark`, `created_at`, `paid_at`, `shipped_at`, `completed_at` |
+| `order_item`   | 订单明细 | `id`(PK), `order_id`, `product_id`, `price`, `created_at` |
+| `cart`         | 购物车   | `id`(PK), `user_id`, `product_id`, `created_at`, UNIQUE(`user_id`,`product_id`) |
+| `favorite`     | 收藏     | `id`(PK), `user_id`, `product_id`, `created_at`, UNIQUE(`user_id`,`product_id`) |
+| `chat_message` | 聊天消息 | `id`(PK), `sender_id`, `receiver_id`, `product_id`, `content`, `is_read`, `created_at` |
+| `review`       | 评价     | `id`(PK), `order_id`, `reviewer_id`, `target_id`, `rating`, `content`, `created_at` |
+| `announcement` | 系统公告 | `id`(PK), `title`, `content`, `created_at`, `updated_at` |
 
-```java
-// 伪代码
-encode(password) = Base64.encode("cuzssp" + password + "2026webproject")
-matches(raw, encoded) = encode(raw).equals(encoded)
-```
+> **主键策略**: 所有表使用雪花算法 `IdType.ASSIGN_ID`（MyBatis-Plus 自动生成）
+> **注意**: `OrderInfo` 实体映射 `@TableName("`order`")`，而 `init.sql` 末尾有 `RENAME TABLE order TO order_info` 语句。部署时需确认实际表名。
 
-> **注意**: 这不是 BCrypt，不是生产级密码哈希方案。盐值 `cuzssp` / `2026webproject` 硬编码在源码中。
+### 6.2 初始化数据
 
-### 7.2 JWT 认证
+`init.sql` 预置：
+- 8 个商品分类：教材教辅、数码产品、生活用品、服饰鞋包、运动户外、美妆护肤、图书文具、其他
+- 1 个管理员账号：`admin / password`（密码为 Base64 编码后的值）
 
-- `JwtTokenProvider`: 基于 `io.jsonwebtoken` (jjwt 0.12.6)，HMAC-SHA 签名
-- Token 包含: `sub`(userId), `username`, `role`
-- 过期时间: 配置中的毫秒值（注意 `JwtTokenProvider` 构造器对 `expiration` 做了 `* 1000` 转换）
-- `JwtAuthenticationFilter`: 从 `Authorization: Bearer xxx` 头解析，设置 Spring Security Context
+### 6.3 关键字段规则
 
-### 7.3 鉴权方式
-
-控制器层采用**手动解析 Token** 模式：各 Controller 注入 `JwtTokenProvider`，在方法内调用 `getCurrentUserId(token)` 解析用户 ID，而非完全依赖 Spring Security 注解（如 `@PreAuthorize`）。
+| 字段              | 枚举值                                      | 说明                          |
+|-------------------|---------------------------------------------|-------------------------------|
+| `user.role`       | 0=用户, 1=管理员                             | `UserConstant`               |
+| `user.status`     | 0=正常, 1=封禁                               | `UserConstant`               |
+| `user.credit_score` | 默认100; 好评(>=3星)+1, 差评(<3星)-1          |                              |
+| `product.condition` | 0=全新, 1=95新, 2=85新                     | `ProductConstant` 常量值; 实体字段注释误写为 1/2/3，实际代码使用常量 0/1/2 |
+| `product.status`  | 0=待审核, 1=在售, 2=已售出, 3=已下架         | `ProductConstant`            |
+| `order.status`    | 0=待付款, 1=待发货, 2=待收货, 3=已完成, 4=已取消 | `OrderInfoConstant`       |
+| `chat_message.is_read` | 0=未读, 1=已读                          |                              |
 
 ---
 
-## 8. 配置说明
+## 7. 前端架构说明
 
-### 8.1 `application.yml` 关键配置项
+### 7.1 目录结构
+
+```
+campus-second-hand-trading-platform-frontend/
+├── index.html
+├── package.json / pnpm-lock.yaml / pnpm-workspace.yaml
+├── vite.config.ts / tsconfig.json / tsconfig.app.json / tsconfig.node.json
+├── public/
+└── src/
+    ├── main.ts                    # 应用入口
+    ├── App.vue                    # 根组件 (含主题切换)
+    ├── router/index.ts            # Vue Router (18 条路由 + beforeEach 守卫)
+    ├── stores/
+    │   ├── user.ts                # 用户状态: token/userInfo/role/isLogin/isAdmin/ensureUserInfo
+    │   └── theme.ts               # 暗色主题: isDark/toggle
+    ├── api/
+    │   ├── request.ts             # Axios 封装 (baseURL /api, 自动 Bearer, 401 跳转)
+    │   ├── auth.ts                # 认证 API
+    │   ├── product.ts             # 商品 API
+    │   ├── order.ts               # 订单 API
+    │   ├── user.ts                # 用户 API
+    │   └── index.ts               # 其他 API (cart/favorite/chat/review/file/category/admin)
+    ├── styles/
+    │   ├── global.scss            # 全局样式 + 暗色模式 CSS 变量
+    │   └── variables.scss         # SCSS 变量
+    ├── utils/
+    │   ├── icons.ts               # Element Plus 图标注册
+    │   └── index.ts               # 工具函数
+    ├── components/
+    │   ├── ImageUpload.vue        # 多图上传组件 (调用 R2)
+    │   ├── Pagination.vue         # 统一分页器
+    │   ├── ProductCard.vue        # 商品卡片
+    │   ├── SearchBar.vue          # 搜索栏
+    │   └── layout/
+    │       ├── AppHeader.vue      # 前台顶部导航 (Logo + 导航 + 搜索 + 用户菜单 + 暗色切换)
+    │       └── AppFooter.vue      # 底部版权信息
+    └── views/
+        ├── HomeView.vue           # 首页 (分类展示 + 最新/推荐商品)
+        ├── LoginView.vue          # 登录
+        ├── RegisterView.vue       # 注册 (学校/校区选择)
+        ├── product/
+        │   ├── ProductList.vue    # 商品列表 (筛选 + 排序)
+        │   ├── ProductDetail.vue  # 商品详情 (图片轮播 + 卖家信息 + 收藏/聊天入口)
+        │   └── ProductPublish.vue # 商品发布/编辑
+        ├── cart/CartView.vue      # 购物车
+        ├── order/
+        │   ├── OrderList.vue      # 订单列表 (按状态 Tab 筛选)
+        │   └── OrderDetail.vue    # 订单详情 + 状态操作
+        ├── favorite/FavoriteList.vue # 收藏列表
+        ├── chat/ChatView.vue      # 聊天 (联系人列表 + 消息气泡)
+        ├── user/
+        │   ├── ProfileView.vue    # 个人中心 (头像/资料编辑/信誉分)
+        │   └── MyProducts.vue     # 我的商品
+        └── admin/
+            ├── AdminLayout.vue    # 后台布局 (侧边导航 + 折叠 + 暗色模式 + 菜单高亮指示器)
+            ├── DashboardView.vue  # 仪表盘统计卡片
+            ├── UserManage.vue     # 用户管理 (列表 + 封禁/启用 + 新增管理员弹窗)
+            ├── ProductManage.vue  # 商品管理 (审核通过/下架)
+            ├── OrderManage.vue    # 订单管理 (查看)
+            └── CategoryManage.vue # 分类管理 (增删改)
+```
+
+### 7.2 状态管理 (Pinia)
+
+- **`useUserStore`** (`stores/user.ts`): Token 管理（localStorage 持久化）、用户信息缓存、角色判断、`ensureUserInfo()` 懒加载方法（用于需要 userId 的场景如订单/聊天）
+- **`useThemeStore`** (`stores/theme.ts`): 白天/黑夜主题切换，通过切换 `html.dark` CSS 类 + CSS 变量控制全局配色
+
+### 7.3 HTTP 请求 (Axios)
+
+`api/request.ts` 统一封装：
+- `baseURL: "/api"`（开发时通过 Vite 代理转发至 `http://localhost:8080`）
+- 请求拦截器：自动附加 `Authorization: Bearer {token}`
+- 响应拦截器：自动解包 `res.data`；401 时清除 token 并跳转登录页；错误时 `ElMessage.error` 提示
+
+---
+
+## 8. 配置与环境变量
+
+### 8.1 application.yml 核心配置
 
 ```yaml
 spring:
@@ -456,18 +453,20 @@ spring:
     multipart:
       max-file-size: ${UPLOAD_MAX_FILE_SIZE:10MB}
       max-request-size: ${UPLOAD_MAX_REQUEST_SIZE:50MB}
-
-server:
-  port: ${SERVER_PORT:8080}
+  config:
+    import: optional:classpath:.env[.properties]     # 环境变量注入 (无外部依赖)
 
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: assign_id                            # 雪花 ID
 
 jwt:
   secret: ${JWT_SECRET:cuzssp-jwt-secret-key-2026-256-bits-default}
-  expiration: ${JWT_EXPIRATION:86400000}
+  expiration: ${JWT_EXPIRATION:86400000}             # 单位: 秒 (代码内 *1000 转毫秒使用)
 
 r2:
   s3:
@@ -483,13 +482,13 @@ r2:
 
 ### 8.2 环境变量（`.env` / `.env.example`）
 
-所有敏感值和环境相关配置通过环境变量注入，详见 `src/main/resources/.env.example`。主要变量：
+所有敏感值通过 `spring.config.import` 机制从 `.env` 文件注入（`spring-dotenv` 依赖已在 pom.xml 注释掉，使用 Spring Boot 原生 `.env[.properties]` 解析）。主要变量：
 
 - `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME`, `DB_PASSWORD` — 数据库连接
-- `JWT_SECRET`, `JWT_EXPIRATION` — JWT 配置
-- `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_ENDPOINT`, `R2_PUBLIC_URL`, `R2_REGION` — Cloudflare R2
-- `SERVER_PORT` — 服务端口
-- `UPLOAD_MAX_FILE_SIZE`, `UPLOAD_MAX_REQUEST_SIZE` — 上传限制（默认 10MB / 50MB）
+- `JWT_SECRET`, `JWT_EXPIRATION` — JWT 配置 (**expiration 单位为秒**)
+- `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_ENDPOINT`, `R2_PUBLIC_URL`, `R2_REGION` — Cloudflare R2 配置
+- `SERVER_PORT` — 服务端口（默认 8080）
+- `UPLOAD_MAX_FILE_SIZE`, `UPLOAD_MAX_REQUEST_SIZE` — 上传限制 (`.env` 实际设置为 2MB/10MB)
 
 ---
 
@@ -501,28 +500,37 @@ r2:
 # 1. 复制环境变量模板并填写实际值
 cp src/main/resources/.env.example src/main/resources/.env
 
-# 2. 创建数据库
+# 2. 创建数据库并初始化
 mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS cuzssp DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+mysql -u root -p cuzssp < ../docs/sql/init.sql
 
 # 3. 启动（使用 Maven Wrapper）
 cd CampusSecondHandTradingPlatform_backend
 ./mvnw spring-boot:run
+# 后端启动在 http://localhost:8080
 ```
 
-### 9.2 前端启动
+### 9.2 前端启动（开发模式）
 
 ```bash
 cd campus-second-hand-trading-platform-frontend
 pnpm install
 pnpm dev
-# 访问 http://localhost:5173
+# 访问 http://localhost:5173 (Vite 代理 /api -> localhost:8080)
 ```
 
-### 9.3 后端打包部署
+### 9.3 生产部署
 
 ```bash
+# 后端打包
+cd CampusSecondHandTradingPlatform_backend
 ./mvnw clean package -DskipTests
 java -jar target/CampusSecondHandTradingPlatform_backend-0.0.1-SNAPSHOT.jar
+
+# 前端构建
+cd campus-second-hand-trading-platform-frontend
+pnpm build
+# 将 dist/ 部署至后端 static/ 目录或使用 Nginx 反向代理
 ```
 
 ---
@@ -531,12 +539,15 @@ java -jar target/CampusSecondHandTradingPlatform_backend-0.0.1-SNAPSHOT.jar
 
 ### 10.1 代码架构
 
-- **后端分层**: Controller → Service(接口) → ServiceImpl(实现) → Mapper(注解式 SQL)
-- **Mapper 风格**: MyBatis 注解（`@Select`/`@Insert`/`@Update`），无 XML 映射文件
+- **后端分层**: Controller -> Service(接口) -> ServiceImpl(实现) -> Mapper(注解式 SQL)
+- **Mapper 风格**: MyBatis 注解（`@Select`/`@Insert`/`@Update`），无 XML 映射文件；同时继承 MyBatis-Plus `BaseMapper` 获得内置 CRUD
 - **包结构**: `com.cuzssp.campussecondhandtradingplatform_backend`
-- **实体转换**: DTO(请求) → `ToEntityUtil` → Entity → `ToVOUtil` → VO(响应)
-- **异常处理**: 统一 `@RestControllerAdvice` (`GlobalExceptionHandler`)，业务异常 `BusinessException`
+- **实体转换**: DTO(请求) -> `ToEntityUtil` -> Entity -> `ToVOUtil` -> VO(响应)
+- **异常处理**: 统一 `@RestControllerAdvice` (`GlobalExceptionHandler`)，业务异常 `BusinessException(code, message)`
 - **时间填充**: `MyMetaObjectHandler` 自动填充 `createdAt` / `updatedAt`
+- **Spring Security**: `SecurityConfig` 集中配置 URL 权限规则和 JWT Filter；CORS 独立于 `CorsConfig` (注入 `CorsConfigurationSource` Bean)；`MyBatisPlusConfig` 为空壳保留类
+- **WebSocket**: 原生 Spring WebSocket，仅作服务端->客户端推送（消息发送走 HTTP），通过 URL 参数 `?userId=` 标识连接
+- **主键生成**: MyBatis-Plus `IdType.ASSIGN_ID` 雪花算法
 
 ### 10.2 命名规范
 
@@ -551,8 +562,8 @@ java -jar target/CampusSecondHandTradingPlatform_backend-0.0.1-SNAPSHOT.jar
 ### 10.3 常量管理
 
 - `UserConstant`: 角色(`ROLE_USER=0`/`ROLE_ADMIN=1`)、状态(`STATUS_ABLE=0`/`STATUS_DISABLE=1`)、信誉分(`CREDIT_SCORE_DEFAULT=100`)
-- `ProductConstant`: 新旧程度(`CONDITION_100_NEW=0`/`CONDITION_95_NEW=1`/`CONDITION_85_NEW=2`)、状态(`STATUS_NEED_CHECK=0`→`STATUS_ON_SALE=1`→`STATUS_SOLD_OUT=2`→`STATUS_DISABLE=3`)
-- `OrderInfoConstant`: 状态(`STATUS_WAIT_PAY=0`→`STATUS_WAIT_DELIVER=1`→`STATUS_WAIT_RECEIVE=2`→`STATUS_COMPLETED=3` / `STATUS_CANCELLED=4`)
+- `ProductConstant`: 新旧程度(`CONDITION_100_NEW=0`/`CONDITION_95_NEW=1`/`CONDITION_85_NEW=2`)、状态(`STATUS_NEED_CHECK=0`->`STATUS_ON_SALE=1`->`STATUS_SOLD_OUT=2`->`STATUS_DISABLE=3`)、默认浏览量(`VIEW_COUNT_DEFAULT=0`)
+- `OrderInfoConstant`: 状态(`STATUS_WAIT_PAY=0`->`STATUS_WAIT_DELIVER=1`->`STATUS_WAIT_RECEIVE=2`->`STATUS_COMPLETED=3` / `STATUS_CANCELLED=4`)
 
 ### 10.4 提交规范
 
@@ -566,17 +577,20 @@ java -jar target/CampusSecondHandTradingPlatform_backend-0.0.1-SNAPSHOT.jar
 
 根据代码中标注的 TODO 和实际分析：
 
-1. **商品图片上传**: `ProductServiceImpl.createProduct()` 中图片插入逻辑存在但标注"图片未能插入，前端是否上传？"
-2. **商品编辑功能**: `ProductController.updateProduct()` 标注"前端未做，无法验证是否可用"
-3. **密码安全**: 当前使用 Base64 + 硬编码盐值，建议升级为 BCrypt 或 Argon2
-4. **CORS 配置**: `CorsConfig` 和 `MyBatisPlusConfig` 当前为空类
-5. **无缓存层**: 项目未集成 Redis
-6. **公告模块**: `Announcement` 实体和 Mapper 已定义，但未暴露 API
-7. **分类 API 权限**: `/api/categories` 的增删改操作未做管理员鉴权
-8. **订单分页实现**: `OrderServiceImpl.getOrders()` 先查全部再内存过滤，数据量大时性能差
-9. **管理后台权限**: 用户/商品/订单管理 API 未做管理员鉴权
-10. **支付逻辑**: `payOrder` 直接变更状态，未对接真实支付
+1. **Product condition 值不一致**: 代码常量 `ProductConstant` 定义 0/1/2，但 `Product.java` 实体字段注释写 "1=全新 2=几乎全新 3=有使用痕迹"。代码实际使用常量值 0/1/2，前端应匹配常量而非实体注释。
+2. **Order 表名冲突**: `init.sql` 末尾 `RENAME TABLE order TO order_info`，但 `OrderInfo.java` 映射 `@TableName("`order`")`。部署时需确认实际表名。
+3. **商品编辑功能**: `ProductController.updateProduct()` 标注"前端未做，无法验证是否可用"
+4. **密码安全**: 当前使用 Base64 + 硬编码盐值（`cuzssp` + password + `2026webproject`），建议升级为 BCrypt 或 Argon2
+5. **MyBatisPlus 配置类**: `MyBatisPlusConfig` 为空壳类，为占位保留（CORS 已迁移至 `CorsConfig` 独立管理）
+6. **无缓存层**: 项目未集成 Redis
+7. **公告模块**: `Announcement` 实体和 Mapper 已定义，但未暴露 Service 和 API
+8. **分类 API 权限**: 前台 `CategoryController` GET 为公开；管理端 CRUD 通过 `/api/admin/category/**` 路由由 SecurityConfig 保护
+9. **订单分页实现**: `OrderServiceImpl.getOrders()` 先查全部再内存过滤，数据量大时性能差；`AdminServiceImpl.getUserList()` 同样先全量再内存筛选
+10. **支付逻辑**: `payOrder` 直接变更状态，未对接真实支付网关
+11. **JWT 过期时间**: `application.yml` 默认 `86400000`（秒），代码内 `*1000` 后约为 1000 天。实际通过 `.env` 覆盖为 `21600` 秒（6 小时）
+12. **环境变量解析**: `spring-dotenv` 依赖已在 pom.xml 中注释掉，当前使用 Spring Boot 原生 `spring.config.import: optional:classpath:.env[.properties]`
+13. **WebSocket 身份验证**: WebSocket 连接通过 URL 参数 `userId` 标识，未做 Token 认证，存在冒充风险
 
 ---
 
-> **文档维护**: 本 DEV.md 随项目迭代持续更新。基于 2026-07-14 代码快照编写，反映实际 `CampusSecondHandTradingPlatform_backend` 代码状态。
+> **文档维护**: 本 DEV.md 随项目迭代持续更新。基于 2026-07-17 代码快照 (v2.5.5) 编写，反映实际前后端代码状态。版本日志参见 `README.md`。
