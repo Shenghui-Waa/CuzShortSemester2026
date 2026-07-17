@@ -22,7 +22,6 @@ public class ChatMessage {
     /** 0=未读 1=已读 */
     private Integer isRead;
 
-    @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 
 }

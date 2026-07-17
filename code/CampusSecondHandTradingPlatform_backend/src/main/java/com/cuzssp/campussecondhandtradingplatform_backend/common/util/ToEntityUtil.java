@@ -1,5 +1,6 @@
 package com.cuzssp.campussecondhandtradingplatform_backend.common.util;
 
+import com.cuzssp.campussecondhandtradingplatform_backend.common.constant.ChatMessageConstant;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.constant.OrderInfoConstant;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.constant.UserConstant;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.RegisterRequest;
@@ -84,7 +85,9 @@ public class ToEntityUtil {
         return orderItem;
     }
 
-    public static Review toReviewEntity(Long reviewerId, ReviewRequest request) {
+    public static Review toReviewEntity(
+            Long reviewerId, ReviewRequest request
+    ) {
         Review review = new Review();
         review.setOrderId(request.getOrderId());
         review.setReviewerId(reviewerId);
@@ -93,5 +96,19 @@ public class ToEntityUtil {
         review.setContent(request.getContent());
         review.setCreatedAt(LocalDateTime.now());
         return review;
+    }
+
+    public static ChatMessage toChatMessageEntity(
+            Long senderId, Long receiverId, Long productId, String content
+    ) {
+        ChatMessage msg = new ChatMessage();
+        msg.setSenderId(senderId);
+        msg.setReceiverId(receiverId);
+        msg.setProductId(productId);
+        msg.setContent(content);
+        msg.setIsRead(ChatMessageConstant.READ_STATUS_NO);
+        msg.setCreatedAt(LocalDateTime.now());
+
+        return msg;
     }
 }
