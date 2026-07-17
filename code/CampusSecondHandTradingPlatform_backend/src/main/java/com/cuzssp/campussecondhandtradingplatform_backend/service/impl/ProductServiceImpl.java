@@ -9,20 +9,21 @@ import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.*;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.ProductQueryDTO;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
-    @Autowired private ProductMapper productMapper;
-    @Autowired private ProductImageMapper productImageMapper;
-    @Autowired private FavoriteMapper favoriteMapper;
-    @Autowired private UserMapper userMapper;
-    @Autowired private CategoryMapper categoryMapper;
+    private final ProductMapper productMapper;
+    private final ProductImageMapper productImageMapper;
+    private final FavoriteMapper favoriteMapper;
+    private final UserMapper userMapper;
+    private final CategoryMapper categoryMapper;
 
     /**
      * 获取商品列表 同时标记当前用户喜欢的

@@ -4,17 +4,18 @@ import com.cuzssp.campussecondhandtradingplatform_backend.service.FileService;
 
 import com.cuzssp.campussecondhandtradingplatform_backend.common.util.FileUtil;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.Result;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class FileServiceImpl implements FileService {
 
-    @Autowired private FileUtil fileUtil;
+    private final FileUtil fileUtil;
 
     /**
      * 单文件上传

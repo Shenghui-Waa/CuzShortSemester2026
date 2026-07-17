@@ -15,17 +15,19 @@ import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.ReviewReque
 import com.cuzssp.campussecondhandtradingplatform_backend.common.exception.BusinessException;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class ReviewServiceImpl implements ReviewService {
 
-    @Autowired private ReviewMapper reviewMapper;
-    @Autowired private OrderMapper orderMapper;
-    @Autowired private UserMapper userMapper;
+    private final ReviewMapper reviewMapper;
+    private final OrderMapper orderMapper;
+    private final UserMapper userMapper;
 
     /**
      * 创建评价

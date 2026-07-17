@@ -1,4 +1,5 @@
 package com.cuzssp.campussecondhandtradingplatform_backend.service.impl;
+
 import com.cuzssp.campussecondhandtradingplatform_backend.common.constant.UserConstant;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.LoginRequest;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.RegisterRequest;
@@ -12,18 +13,17 @@ import com.cuzssp.campussecondhandtradingplatform_backend.common.security.JwtTok
 import com.cuzssp.campussecondhandtradingplatform_backend.service.AuthService;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.Result;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.UserVO;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Autowired;
 import lombok.extern.slf4j.Slf4j;
-
-import java.time.LocalDateTime;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
-    @Autowired private UserMapper userMapper;
-    @Autowired private Base64Provider base64Provider;
-    @Autowired private JwtTokenProvider jwtTokenProvider;
+    private final UserMapper userMapper;
+    private final Base64Provider base64Provider;
+    private final JwtTokenProvider jwtTokenProvider;
 
     /**
      * 注册

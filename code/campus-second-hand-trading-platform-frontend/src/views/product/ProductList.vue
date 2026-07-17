@@ -3,7 +3,7 @@
     <AppHeader />
     <div class="page-container">
       <SearchBar :categories="categories" @search="onSearch" />
-      <div class="grid">
+      <div class="product-grid">
         <ProductCard v-for="p in products" :key="p.id" :product="p" />
       </div>
       <el-empty v-if="!loading && !products.length" description="没有找到商品" />
@@ -53,7 +53,5 @@ function onPageChange(p: number) { page.value = p; fetchList(); }
 </script>
 
 <style scoped>
-.grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
 .loading { text-align: center; padding: 40px; color: #909399; }
-@media (max-width: 900px) { .grid { grid-template-columns: repeat(2, 1fr); } }
 </style>

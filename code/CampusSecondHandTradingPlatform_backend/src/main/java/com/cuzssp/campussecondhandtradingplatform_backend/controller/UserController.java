@@ -6,15 +6,17 @@ import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.UpdateProfi
 import com.cuzssp.campussecondhandtradingplatform_backend.common.security.JwtTokenProvider;
 import com.cuzssp.campussecondhandtradingplatform_backend.service.UserService;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.Result;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @RestController
 @RequestMapping("/api/user")
+@RequiredArgsConstructor
 public class UserController {
 
-    @Autowired private UserService userService;
-    @Autowired private JwtTokenProvider jwtTokenProvider;
+    private final UserService userService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     /**
      * 获取用户信息

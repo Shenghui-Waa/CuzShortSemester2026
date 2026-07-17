@@ -12,20 +12,21 @@ import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.CreateOrder
 import com.cuzssp.campussecondhandtradingplatform_backend.common.exception.BusinessException;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
 
-    @Autowired private OrderMapper orderMapper;
-    @Autowired private OrderItemMapper orderItemMapper;
-    @Autowired private ProductMapper productMapper;
-    @Autowired private ProductImageMapper productImageMapper;
-    @Autowired private UserMapper userMapper;
+    private final OrderMapper orderMapper;
+    private final OrderItemMapper orderItemMapper;
+    private final ProductMapper productMapper;
+    private final ProductImageMapper productImageMapper;
+    private final UserMapper userMapper;
 
     /**
      * 创建订单

@@ -1,7 +1,6 @@
 package com.cuzssp.campussecondhandtradingplatform_backend.service.impl;
 
 import com.cuzssp.campussecondhandtradingplatform_backend.common.constant.ChatMessageConstant;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.constant.UserConstant;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.ChatMessage;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.User;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.handler.ChatWebSocketHandler;
@@ -12,15 +11,17 @@ import com.cuzssp.campussecondhandtradingplatform_backend.mapper.UserMapper;
 import com.cuzssp.campussecondhandtradingplatform_backend.service.ChatService;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.*;
 import com.github.pagehelper.PageHelper;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class ChatServiceImpl implements ChatService {
-    @Autowired private ChatMessageMapper chatMessageMapper;
-    @Autowired private UserMapper userMapper;
+    private final ChatMessageMapper chatMessageMapper;
+    private final UserMapper userMapper;
 
     @Override
     public Result<List<ChatContactVO>> getContacts(

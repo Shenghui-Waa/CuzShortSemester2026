@@ -7,17 +7,19 @@ import com.cuzssp.campussecondhandtradingplatform_backend.service.AdminService;
 import com.cuzssp.campussecondhandtradingplatform_backend.service.CategoryService;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.Result;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @RestController
 @RequestMapping("/api/admin")
+@RequiredArgsConstructor
 public class AdminDashboardController {
 
-    @Autowired private AdminService adminService;
+    private final AdminService adminService;
 
     // 分类操作
-    @Autowired private CategoryService categoryService;
+    private final CategoryService categoryService;
 
     /**
      * 获取仪表盘
