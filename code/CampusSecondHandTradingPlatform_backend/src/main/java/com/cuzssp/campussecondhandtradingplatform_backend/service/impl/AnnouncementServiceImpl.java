@@ -59,6 +59,9 @@ public class   AnnouncementServiceImpl implements AnnouncementService {
         return Result.success(announcementVO);
     }
 
+    /*
+    管理员操作
+     */
     @Override
     public Result<Announcement> createAnnouncement(
             AnnouncementRequest announcementRequest

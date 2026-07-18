@@ -14,5 +14,8 @@ public interface ProductService {
     Result<ProductVO> updateProduct(Long userId, Long productId, Product product, List<String> images);
     Result<Void> updateProductStatus(Long userId, Long productId, Integer status);
     Result<Void> deleteProduct(Long userId, Long productId);
-    Result<PageResult<ProductVO>> getMyProducts(Long userId, Integer page, Integer pageSize);
+    Result<PageResult<ProductVO>> getProductsByUser(Long userId, Integer page, Integer pageSize);
+
+    Result<PageResult<ProductVO>> getProductList(Integer page, Integer pageSize, String keyword, Integer status);
+    Result<Void> updateProductStatus(Long productId, Integer status);
 }

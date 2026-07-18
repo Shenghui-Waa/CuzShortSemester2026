@@ -3,10 +3,7 @@ package com.cuzssp.campussecondhandtradingplatform_backend.controller;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.AnnouncementRequest;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.RegisterRequest;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.*;
-import com.cuzssp.campussecondhandtradingplatform_backend.service.AdminService;
-
-import com.cuzssp.campussecondhandtradingplatform_backend.service.AnnouncementService;
-import com.cuzssp.campussecondhandtradingplatform_backend.service.CategoryService;
+import com.cuzssp.campussecondhandtradingplatform_backend.service.*;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.Result;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,12 +15,11 @@ import org.springframework.web.bind.annotation.*;
 public class AdminDashboardController {
 
     private final AdminService adminService;
-
-    // 分类操作
-    private final CategoryService categoryService;
-
-    // 公告操作
-    private final AnnouncementService announcementService;
+    private final UserService userService;  // 账户操作 用户管理
+    private final ProductService productService;    // 商品操作 商品管理
+    private final OrderService orderService;    // 订单查验 订单管理
+    private final CategoryService categoryService;  // 分类操作 分类管理
+    private final AnnouncementService announcementService;  // 公告操作 公告管理
 
     /**
      * 获取仪表盘
@@ -44,7 +40,7 @@ public class AdminDashboardController {
     public Result<?> addAdmin(
             @Valid @RequestBody RegisterRequest request
     ) {
-        return adminService.addAdmin(request);
+        return userService.addAdmin(request);
     }
 
     /**
@@ -60,7 +56,7 @@ public class AdminDashboardController {
             @RequestParam(defaultValue = "10") Integer pageSize,
             @RequestParam(required = false) String keyword
     ) {
-        return adminService.getUserList(page, pageSize, keyword);
+        return userService.getUserList(page, pageSize, keyword);
     }
 
     /**
@@ -74,7 +70,7 @@ public class AdminDashboardController {
             @PathVariable Long id,
             @RequestParam Integer status
     ) {
-        return adminService.updateUserStatus(id, status);
+        return userService.updateUserStatus(id, status);
     }
 
     // 商品管理
@@ -93,7 +89,7 @@ public class AdminDashboardController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Integer status
     ) {
-        return adminService.getProductList(page, pageSize, keyword, status);
+        return productService.getProductList(page, pageSize, keyword, status);
     }
 
     /**
@@ -107,7 +103,7 @@ public class AdminDashboardController {
             @PathVariable Long id,
             @RequestParam Integer status
     ) {
-        return adminService.updateProductStatus(id, status);
+        return productService.updateProductStatus(id, status);
     }
 
     // 订单管理 仅查看
@@ -124,7 +120,7 @@ public class AdminDashboardController {
             @RequestParam(defaultValue = "10") Integer pageSize,
             @RequestParam(required = false) Integer status
     ) {
-        return adminService.getOrders(page, pageSize, status);
+        return orderService.getOrders(page, pageSize, status);
     }
 
     // 分类管理
@@ -166,6 +162,7 @@ public class AdminDashboardController {
         return categoryService.deleteCategory(id);
     }
 
+    // 公告管理
     /**
      * 新增公告
      * @param announcementRequest

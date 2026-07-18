@@ -208,7 +208,7 @@ public class ProductServiceImpl implements ProductService {
      * @return
      */
     @Override
-    public Result<PageResult<ProductVO>> getMyProducts(
+    public Result<PageResult<ProductVO>> getProductsByUser(
             Long userId, Integer page, Integer pageSize
     ) {
         PageHelper.startPage(page, pageSize);
@@ -245,4 +245,61 @@ public class ProductServiceImpl implements ProductService {
                 .collect(Collectors.toList()));
         return productVO;
     }
+
+    /*
+    管理员操作
+     */
+    @Override
+    public Result<PageResult<ProductVO>> getProductList(
+            Integer page,
+            Integer pageSize,
+            String keyword,
+            Integer status
+    ) {
+        PageHelper.startPage(page, pageSize);
+        List<Product> all;
+        if (keyword != null && !keyword.isEmpty())
+            all = productMapper.searchByKeyword(keyword, ProductConstant.STATUS_ON_SALE);
+        else
+            all = productMapper.selectAll();
+        if (status != null)
+            all = all.stream()
+                    .filter(product -> product.getStatus().equals(status))
+                    .collect(Collectors.toList());
+        PageInfo<Product> pageInfo = new PageInfo<>(all);
+        List<ProductVO> productVOs = all.stream()
+                .map(product -> {
+                    ProductVO productVO = ToVOUtil.toProductVO(
+                            product,
+                            userMapper.selectById(product.getUserId()),
+                            categoryMapper.selectById(product.getCategoryId()));
+                    productVO.setImages(
+                            productImageMapper.selectByProductId(product.getId()).stream()
+                                    .map(ProductImage::getUrl)
+                                    .collect(Collectors.toList()));
+                    return productVO;
+                }).collect(Collectors.toList());
+        return Result.success(
+                new PageResult<>(
+                        productVOs,
+                        pageInfo.getTotal(),
+                        pageInfo.getPageNum(),
+                        pageInfo.getPageSize()
+                )
+        );
+    }
+
+    @Override
+    public Result<Void> updateProductStatus(
+            Long productId, Integer status
+    ) {
+        Product product = productMapper.selectById(productId);
+        if (product != null) {
+            product.setStatus(status);
+            product.setUpdatedAt(LocalDateTime.now());
+            productMapper.updateById(product);
+        }
+        return Result.success();
+    }
+
 }

@@ -29,12 +29,6 @@ public class ReviewServiceImpl implements ReviewService {
     private final OrderMapper orderMapper;
     private final UserMapper userMapper;
 
-    /**
-     * 创建评价
-     * @param reviewerId
-     * @param request
-     * @return
-     */
     @Override
     public Result<Void> createReview(
             Long reviewerId, ReviewRequest request
@@ -56,13 +50,6 @@ public class ReviewServiceImpl implements ReviewService {
         return Result.success();
     }
 
-    /**
-     * 获取评价记录
-     * @param userId
-     * @param page
-     * @param pageSize
-     * @return
-     */
     @Override
     public Result<PageResult<ReviewVO>> getUserReviews(
             Long userId, Integer page, Integer pageSize

@@ -19,16 +19,12 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class CartServiceImpl implements CartService {
+
     private final CartMapper cartMapper;
     private final ProductMapper productMapper;
     private final ProductImageMapper productImageMapper;
     private final UserMapper userMapper;
 
-    /**
-     * 获取购物车物品
-     * @param userId
-     * @return
-     */
     @Override
     public Result<List<CartItemVO>> getCart(Long userId) {
         List<CartItem> cartItems = cartMapper.selectByUserId(userId);
@@ -42,12 +38,6 @@ public class CartServiceImpl implements CartService {
         return Result.success(cartItemVOs);
     }
 
-    /**
-     * 添加物品到购物车
-     * @param userId
-     * @param productId
-     * @return
-     */
     @Override
     public Result<Void> addToCart(Long userId, Long productId) {
         if (cartMapper.countByUserIdAndProductId(userId, productId) > 0)
@@ -58,12 +48,6 @@ public class CartServiceImpl implements CartService {
         return Result.success();
     }
 
-    /**
-     * 从购物车移除物品
-     * @param userId
-     * @param productId
-     * @return
-     */
     @Override
     public Result<Void> removeFromCart(Long userId, Long productId) {
         cartMapper.deleteById(userId, productId);

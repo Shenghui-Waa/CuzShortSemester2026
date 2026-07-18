@@ -95,9 +95,7 @@ public class ToVOUtil {
      * @return
      */
     public static OrderVO toOrderVO(
-            OrderInfo orderInfo,
-            User buyer,
-            User seller
+            OrderInfo orderInfo, User buyer, User seller
     ) {
         OrderVO orderVO = new OrderVO();
         orderVO.setId(orderInfo.getId());
