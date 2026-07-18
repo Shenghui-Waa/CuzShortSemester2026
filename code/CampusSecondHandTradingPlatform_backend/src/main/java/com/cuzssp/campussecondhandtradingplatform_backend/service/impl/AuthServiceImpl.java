@@ -21,15 +21,11 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
+
     private final UserMapper userMapper;
     private final Base64Provider base64Provider;
     private final JwtTokenProvider jwtTokenProvider;
 
-    /**
-     * 注册
-     * @param request
-     * @return
-     */
     @Override
     public Result<UserVO> register(RegisterRequest request) {
         if (userMapper.countByUsername(request.getUsername()) > 0)
@@ -40,11 +36,6 @@ public class AuthServiceImpl implements AuthService {
         return Result.success(ToVOUtil.toUserVO(user));
     }
 
-    /**
-     * 登录
-     * @param request
-     * @return
-     */
     @Override
     public Result<String> login(LoginRequest request) {
         User user = userMapper.selectByUsername(request.getUsername());
@@ -62,21 +53,11 @@ public class AuthServiceImpl implements AuthService {
         return Result.success("Login successful", token);
     }
 
-    /**
-     * 登出
-     * @param userId
-     * @return
-     */
     @Override
     public Result<Void> logout(Long userId) {
         return Result.success();
     }
 
-    /**
-     * 是不是我？
-     * @param userId
-     * @return
-     */
     public Result<UserVO> me (Long userId) {
         User user = userMapper.selectById(userId);
         return Result.success(ToVOUtil.toUserVO(user));

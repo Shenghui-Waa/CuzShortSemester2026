@@ -16,18 +16,13 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class FavoriteServiceImpl implements FavoriteService {
+
     private final FavoriteMapper favoriteMapper;
     private final ProductMapper productMapper;
     private final ProductImageMapper productImageMapper;
     private final UserMapper userMapper;
     private final CategoryMapper categoryMapper;
 
-    /**
-     * 加喜欢
-     * @param userId
-     * @param productId
-     * @return
-     */
     @Override
     public Result<Void> addFavorite(
             Long userId, Long productId
@@ -39,12 +34,6 @@ public class FavoriteServiceImpl implements FavoriteService {
         return Result.success();
     }
 
-    /**
-     * 移除喜欢
-     * @param userId
-     * @param productId
-     * @return
-     */
     @Override
     public Result<Void> removeFavorite(
             Long userId, Long productId
@@ -53,12 +42,6 @@ public class FavoriteServiceImpl implements FavoriteService {
         return Result.success();
     }
 
-    /**
-     * 校验是否喜欢
-     * @param userId
-     * @param productId
-     * @return
-     */
     @Override
     public Result<Boolean> isFavorited(
             Long userId, Long productId
@@ -68,13 +51,6 @@ public class FavoriteServiceImpl implements FavoriteService {
         );
     }
 
-    /**
-     * 获取喜欢列表
-     * @param userId
-     * @param page
-     * @param pageSize
-     * @return
-     */
     @Override
     public Result<PageResult<ProductVO>> getFavorites(
             Long userId, Integer page, Integer pageSize

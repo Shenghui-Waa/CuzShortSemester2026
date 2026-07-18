@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class ChatServiceImpl implements ChatService {
+
     private final ChatMessageMapper chatMessageMapper;
     private final UserMapper userMapper;
 

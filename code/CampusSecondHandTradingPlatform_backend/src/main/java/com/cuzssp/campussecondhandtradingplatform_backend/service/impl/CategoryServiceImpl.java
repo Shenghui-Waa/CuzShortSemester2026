@@ -21,10 +21,6 @@ public class CategoryServiceImpl implements CategoryService {
     private final CategoryMapper categoryMapper;
     private final ProductMapper productMapper;
 
-    /**
-     * 获取所有分类
-     * @return
-     */
     @Override
     public Result<List<CategoryVO>> getAllCategories() {
         List<Category> categories = categoryMapper.selectAll();
@@ -37,11 +33,6 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     // 管理员操作
-    /**
-     * 创建分类
-     * @param category
-     * @return
-     */
     @Override
     public Result<Category> createCategory(
             Category category
@@ -53,12 +44,6 @@ public class CategoryServiceImpl implements CategoryService {
         return Result.success(category);
     }
 
-    /**
-     * 修改分类
-     * @param id
-     * @param category
-     * @return
-     */
     @Override
     public Result<Category> updateCategory(Long id, Category category) {
         Category existing = categoryMapper.selectById(id);
@@ -69,11 +54,6 @@ public class CategoryServiceImpl implements CategoryService {
         return Result.success(categoryMapper.selectById(id));
     }
 
-    /**
-     * 删除分类
-     * @param id
-     * @return
-     */
     @Override
     public Result<Void> deleteCategory(Long id) {
         if (productMapper.countByCategoryId(id) > 0)

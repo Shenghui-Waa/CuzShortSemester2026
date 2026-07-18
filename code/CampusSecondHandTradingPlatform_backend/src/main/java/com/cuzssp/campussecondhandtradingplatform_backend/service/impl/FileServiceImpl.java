@@ -17,11 +17,6 @@ public class FileServiceImpl implements FileService {
 
     private final FileUtil fileUtil;
 
-    /**
-     * 单文件上传
-     * @param file
-     * @return
-     */
     @Override
     public Result<String> uploadFile(
             MultipartFile file
@@ -30,11 +25,6 @@ public class FileServiceImpl implements FileService {
         return Result.success(url);
     }
 
-    /**
-     * 多文件上传
-     * @param files
-     * @return
-     */
     @Override
     public Result<List<String>> uploadFiles(
             List<MultipartFile> files

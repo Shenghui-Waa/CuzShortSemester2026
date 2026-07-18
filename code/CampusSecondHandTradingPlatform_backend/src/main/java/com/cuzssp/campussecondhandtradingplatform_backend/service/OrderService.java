@@ -13,4 +13,6 @@ public interface OrderService {
     Result<Void> shipOrder(Long sellerId, Long orderId);
     Result<Void> confirmOrder(Long buyerId, Long orderId);
     Result<Void> cancelOrder(Long userId, Long orderId);
+
+    Result<PageResult<OrderVO>> getOrders(Integer page, Integer pageSize, Integer status);
 }

@@ -8,7 +8,7 @@ import com.cuzssp.campussecondhandtradingplatform_backend.service.ProductService
 import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.Result;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import java.util.List;
 
 @RestController
@@ -131,7 +131,7 @@ public class ProductController {
             @RequestParam(defaultValue = "10") Integer pageSize
     ) {
         Long currentUserId = getCurrentUserId(token);
-        return productService.getMyProducts(currentUserId, page, pageSize);
+        return productService.getProductsByUser(currentUserId, page, pageSize);
     }
 
     private Long getCurrentUserId(String token) {

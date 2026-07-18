@@ -12,7 +12,9 @@ import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.CreateOrder
 import com.cuzssp.campussecondhandtradingplatform_backend.common.exception.BusinessException;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -72,22 +74,7 @@ public class OrderServiceImpl implements OrderService {
                         order -> order.getBuyerId().equals(userId)
                                 || order.getSellerId().equals(userId)
                 ).collect(Collectors.toList());
-        if (status != null)
-            all = all.stream()
-                    .filter(order -> order.getStatus().equals(status))
-                    .collect(Collectors.toList());
-        PageInfo<OrderInfo> orderPageInfo = new PageInfo<>(all);
-        List<OrderVO> orderVOs = all.stream()
-                .map(this::toVO)
-                .collect(Collectors.toList());
-        return Result.success(
-                new PageResult<>(
-                        orderVOs,
-                        orderPageInfo.getTotal(),
-                        orderPageInfo.getPageNum(),
-                        orderPageInfo.getPageSize()
-                )
-        );
+        return getPageResultResultWithStatus(status, all);
     }
 
     /**
@@ -103,6 +90,7 @@ public class OrderServiceImpl implements OrderService {
         OrderInfo orderInfo = orderMapper.selectById(orderId);
         if (orderInfo == null)
             throw new BusinessException("Order not found");
+
         return Result.success(toVO(orderInfo));
     }
 
@@ -174,6 +162,46 @@ public class OrderServiceImpl implements OrderService {
         }
         orderMapper.updateById(order);
         return Result.success();
+    }
+
+    /*
+    管理员操作
+     */
+    @Override
+    public Result<PageResult<OrderVO>> getOrders(
+            Integer page,
+            Integer pageSize,
+            @Nullable Integer status
+    ) {
+        PageHelper.startPage(page, pageSize);
+        List<OrderInfo> all = orderMapper.selectAll();
+        return getPageResultResultWithStatus(status, all);
+    }
+
+    /*
+    内部私有方法
+     */
+    @NonNull
+    private Result<PageResult<OrderVO>> getPageResultResultWithStatus(
+            @Nullable Integer status, List<OrderInfo> all
+    ) {
+        if (status != null)
+            all = all.stream()
+                    .filter(order -> order.getStatus().equals(status))
+                    .collect(Collectors.toList());
+        PageInfo<OrderInfo> orderPageInfo = new PageInfo<>(all);
+        List<OrderVO> orderVOs = all.stream()
+                .map(this::toVO)
+                .collect(Collectors.toList());
+
+        return Result.success(
+                new PageResult<>(
+                        orderVOs,
+                        orderPageInfo.getTotal(),
+                        orderPageInfo.getPageNum(),
+                        orderPageInfo.getPageSize()
+                )
+        );
     }
 
     private OrderVO toVO(OrderInfo orderInfo) {
