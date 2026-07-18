@@ -15,7 +15,6 @@ public class CartItem {
 
     private Long productId;
 
-    @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 
 }

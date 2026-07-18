@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="admin-layout" :class="{ collapsed }">
     <el-container class="admin-container">
       <el-aside :width="collapsed ? '64px' : '220px'" class="sidebar">
@@ -50,6 +50,11 @@
               <el-icon><Menu /></el-icon>
               <span>分类管理</span>
             </el-menu-item>
+            <el-menu-item index="/admin/announcements">
+              <el-icon><Bell /></el-icon>
+              <span>公告管理</span>
+            </el-menu-item>
+
           </el-menu>
           <div class="menu-indicator" :style="menuIndicatorStyle"></div>
         </div>
@@ -70,7 +75,7 @@
 <script setup lang="ts">
 import { ref, onMounted, nextTick, watch } from "vue";
 import { useRoute } from "vue-router";
-import { DataLine, User, Goods, List, Menu, Expand, Fold, Back, Moon, Sunny } from "@element-plus/icons-vue";
+import { DataLine, User, Goods, List, Menu, Bell, Expand, Fold, Back, Moon, Sunny } from "@element-plus/icons-vue";
 import { useThemeStore } from "@/stores/theme";
 const route = useRoute();
 const theme = useThemeStore();

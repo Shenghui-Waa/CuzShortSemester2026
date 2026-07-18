@@ -25,7 +25,6 @@ public class OrderInfo {
 
     private String remark;
 
-    @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 
     private LocalDateTime paidAt;

@@ -3,6 +3,7 @@ package com.cuzssp.campussecondhandtradingplatform_backend.common.util;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.constant.ChatMessageConstant;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.constant.OrderInfoConstant;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.constant.UserConstant;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.AnnouncementRequest;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.RegisterRequest;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.ReviewRequest;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.*;
@@ -110,5 +111,14 @@ public class ToEntityUtil {
         msg.setCreatedAt(LocalDateTime.now());
 
         return msg;
+    }
+
+    public static Announcement toAnnouncementEntity(AnnouncementRequest announcementRequest) {
+        Announcement announcement = new Announcement();
+        announcement.setTitle(announcementRequest.getTitle());
+        announcement.setContent(announcementRequest.getContent());
+        announcement.setCreatedAt(LocalDateTime.now());
+        announcement.setUpdatedAt(LocalDateTime.now());
+        return announcement;
     }
 }

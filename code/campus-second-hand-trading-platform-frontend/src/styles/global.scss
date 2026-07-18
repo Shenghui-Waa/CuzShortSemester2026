@@ -1,4 +1,4 @@
-﻿* { margin: 0; padding: 0; box-sizing: border-box; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
 html, body, #app { height: 100%; }
 body {
   font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
@@ -63,3 +63,12 @@ html.dark .el-select-dropdown__item.selected {
   color: #cd2846;
   font-weight: 600;
 }
+
+/* 全局滚动条 */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: #bf7683 transparent;
+}
+::-webkit-scrollbar { width: 3px; height: 3px; }
+::-webkit-scrollbar-thumb { background: #bf7683; border-radius: 2px; }
+::-webkit-scrollbar-track { background: transparent; }

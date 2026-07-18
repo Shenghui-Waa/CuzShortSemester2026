@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <el-header class="app-header">
     <div class="inner">
       <router-link to="/" class="logo">校园二手交易</router-link>
@@ -9,6 +9,7 @@
       </nav>
       <div class="right">
         <template v-if="user.isLogin()">
+          <router-link to="/announcements" class="nav-btn">公告</router-link>
           <router-link to="/chat" class="nav-btn">消息</router-link>
           <router-link to="/favorites" class="nav-btn">收藏</router-link>
           <router-link to="/orders" class="nav-btn">订单</router-link>

@@ -17,7 +17,6 @@ public class Category {
 
     private Integer sortOrder;
 
-    @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 
 }

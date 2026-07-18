@@ -36,10 +36,8 @@ public class User {
     /** 信誉分，默认100 */
     private Integer creditScore;
 
-    @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 
-    @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updatedAt;
 
 }

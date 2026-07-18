@@ -1,15 +1,16 @@
 package com.cuzssp.campussecondhandtradingplatform_backend.controller;
 
+import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.AnnouncementRequest;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.RegisterRequest;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.*;
 import com.cuzssp.campussecondhandtradingplatform_backend.service.AdminService;
 
+import com.cuzssp.campussecondhandtradingplatform_backend.service.AnnouncementService;
 import com.cuzssp.campussecondhandtradingplatform_backend.service.CategoryService;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.Result;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.beans.factory.annotation.Autowired;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -20,6 +21,9 @@ public class AdminDashboardController {
 
     // 分类操作
     private final CategoryService categoryService;
+
+    // 公告操作
+    private final AnnouncementService announcementService;
 
     /**
      * 获取仪表盘
@@ -161,5 +165,45 @@ public class AdminDashboardController {
     ) {
         return categoryService.deleteCategory(id);
     }
+
+    /**
+     * 新增公告
+     * @param announcementRequest
+     * @return
+     */
+    @PostMapping("/announcement/add")
+    public Result<?> createAnnouncement(
+            @Valid @RequestBody AnnouncementRequest announcementRequest
+    ) {
+        return announcementService.createAnnouncement(announcementRequest);
+    }
+
+    /**
+     * 修改公告
+     * @param id
+     * @param announcementRequest
+     * @return
+     */
+    @PutMapping("/announcement/upd/{id}")
+    public Result<?> updateAnnouncement(
+            @PathVariable Long id,
+            @Valid @RequestBody AnnouncementRequest announcementRequest
+    ) {
+        return announcementService.updateAnnouncement(id, announcementRequest);
+    }
+
+    /**
+     * 删除公告
+     * @param id
+     * @return
+     */
+    @DeleteMapping("/announcement/del/{id}")
+    public Result<?> deleteAnnouncement(
+            @PathVariable Long id
+    ) {
+        return announcementService.removeAnnouncement(id);
+    }
+
+
 
 }

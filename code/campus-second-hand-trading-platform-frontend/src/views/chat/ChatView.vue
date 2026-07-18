@@ -254,7 +254,7 @@ function showTimeSep(idx: number) {
 .chat-container {
   display: flex;
   height: calc(100vh - 120px);
-  width: 800px;
+  width: 85vw;
   margin: 0 auto;
   border: 1px solid var(--border-color, #e4e7ed);
   border-radius: 8px;
@@ -272,7 +272,7 @@ function showTimeSep(idx: number) {
 .search-box { padding: 8px 12px; }
 .panel-title {
   padding: 16px 16px 8px 16px;
-  line-height: 20px;
+  line-height: 24px;
   font-size: 18px;
   font-weight: 700;
   border-bottom: 1px solid var(--border-color, #e4e7ed);
@@ -400,7 +400,7 @@ function showTimeSep(idx: number) {
   font-size: 15px;
 }
 
-.profile-content { text-align: center; }
+.profile-content {  text-align: center; }
 .profile-avatar { margin-bottom: 16px; }
 .profile-info { text-align: left; }
 .profile-row {
@@ -419,9 +419,9 @@ function showTimeSep(idx: number) {
   scrollbar-color: #bf7683 transparent;
 }
 .contact-list::-webkit-scrollbar,
-.messages::-webkit-scrollbar { width: 6px; }
+.messages::-webkit-scrollbar { width: 3px; }
 .contact-list::-webkit-scrollbar-thumb,
-.messages::-webkit-scrollbar-thumb { background: #bf7683; border-radius: 3px; }
+.messages::-webkit-scrollbar-thumb { background: #bf7683; border-radius: 2px; }
 .contact-list::-webkit-scrollbar-track,
 .messages::-webkit-scrollbar-track { background: transparent; }
 

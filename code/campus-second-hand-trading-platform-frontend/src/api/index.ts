@@ -1,4 +1,4 @@
-﻿import request from "./request";
+import request from "./request";
 
 export const cartApi = {
   list: () => request.get("/cart"),
@@ -40,6 +40,14 @@ export const categoryApi = {
   delete: (id: number) => request.delete(`/categories/${id}`),
 };
 
+
+export const announcementApi = {
+  list: (page: number, pageSize: number) => request.get("/announcement", { params: { page, pageSize } }),
+  detail: (id: number) => request.get(`/announcement/${id}`),
+  create: (data: any) => request.post("/admin/announcement/add", data),
+  update: (id: number, data: any) => request.put(`/admin/announcement/upd/${id}`, data),
+  delete: (id: number) => request.delete(`/admin/announcement/del/${id}`),
+};
 export const adminApi = {
   dashboard: () => request.get("/admin/dashboard"),
   userList: (params: any) => request.get("/admin/users", { params }),
@@ -52,5 +60,3 @@ export const adminApi = {
   categoryUpdate: (id: number, data: any) => request.put(`/admin/category/upd/${id}`, data),
   categoryDelete: (id: number) => request.delete(`/admin/category/del/${id}`),
 };
-
-

@@ -35,10 +35,8 @@ public class Product {
     /** 浏览量，默认0 */
     private Integer viewCount;
 
-    @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 
-    @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updatedAt;
 
 }
