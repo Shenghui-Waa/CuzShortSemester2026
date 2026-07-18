@@ -1,4 +1,4 @@
-﻿import { createRouter, createWebHistory } from "vue-router";
+import { createRouter, createWebHistory } from "vue-router";
 
 const router = createRouter({
   history: createWebHistory(),
@@ -16,6 +16,8 @@ const router = createRouter({
     { path: "/my-products", name: "my-products", component: () => import("@/views/user/MyProducts.vue"), meta: { auth: true } },
     { path: "/favorites", name: "favorites", component: () => import("@/views/favorite/FavoriteList.vue"), meta: { auth: true } },
     { path: "/chat", name: "chat", component: () => import("@/views/chat/ChatView.vue"), meta: { auth: true } },
+    { path: "/announcements", name: "announcements", component: () => import("@/views/announcement/AnnouncementList.vue") },
+    { path: "/announcements/:id", name: "announcement-detail", component: () => import("@/views/announcement/AnnouncementDetail.vue") },
     { path: "/admin", name: "admin", component: () => import("@/views/admin/AdminLayout.vue"), meta: { auth: true, admin: true },
       children: [
         { path: "", name: "dashboard", component: () => import("@/views/admin/DashboardView.vue") },
@@ -23,6 +25,7 @@ const router = createRouter({
         { path: "products", name: "admin-products", component: () => import("@/views/admin/ProductManage.vue") },
         { path: "orders", name: "admin-orders", component: () => import("@/views/admin/OrderManage.vue") },
         { path: "categories", name: "admin-categories", component: () => import("@/views/admin/CategoryManage.vue") },
+        { path: "announcements", name: "admin-announcements", component: () => import("@/views/admin/AnnouncementManage.vue") },
       ],
     },
   ],

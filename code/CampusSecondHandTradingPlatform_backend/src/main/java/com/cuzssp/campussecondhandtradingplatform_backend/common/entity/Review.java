@@ -22,7 +22,6 @@ public class Review {
 
     private String content;
 
-    @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 
 }

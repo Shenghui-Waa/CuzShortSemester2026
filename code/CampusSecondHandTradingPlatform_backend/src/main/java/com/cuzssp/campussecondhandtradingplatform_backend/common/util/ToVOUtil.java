@@ -235,4 +235,15 @@ public class ToVOUtil {
 
         return chatMessageVO;
     }
+
+    public static AnnouncementVO toAnnouncementVO(Announcement announcement) {
+        AnnouncementVO announcementVO = new AnnouncementVO();
+        announcementVO.setId(announcement.getId());
+        announcementVO.setTitle(announcement.getTitle());
+        announcementVO.setContent(announcement.getContent());
+        announcementVO.setCreatedAt(announcement.getCreatedAt());
+        announcementVO.setUpdatedAt(announcement.getUpdatedAt());
+        return announcementVO;
+
+    }
 }

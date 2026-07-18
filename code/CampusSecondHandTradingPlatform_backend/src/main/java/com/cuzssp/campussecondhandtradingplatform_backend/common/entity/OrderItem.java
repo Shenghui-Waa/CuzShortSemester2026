@@ -18,7 +18,6 @@ public class OrderItem {
 
     private BigDecimal price;
 
-    @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 
 }
