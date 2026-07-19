@@ -80,7 +80,7 @@ CREATE TABLE IF NOT EXISTS `product_image` (
 -- ---------------------------------------------------
 -- 订单表
 -- ---------------------------------------------------
-CREATE TABLE IF NOT EXISTS `order` (
+CREATE TABLE IF NOT EXISTS `order_info` (
     `id`             BIGINT          NOT NULL COMMENT '主键',
     `order_no`       VARCHAR(32)     NOT NULL COMMENT '订单编号',
     `buyer_id`       BIGINT          NOT NULL COMMENT '买家ID',
@@ -198,6 +198,5 @@ INSERT INTO `category` (`id`, `name`, `icon`, `sort_order`) VALUES
 -- 首次部署后请立即修改密码！
 -- ---------------------------------------------------
 INSERT INTO user (id, username, password, nickname, role, status) VALUES
-(1, 'admin', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iAt6Z5Eh', 'ADMINISTRATOR', 1, 0);
+(1, 'admin', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iAt6Z5Eh', '管理员', 1, 0);
 
-rename table `order` to order_info;
