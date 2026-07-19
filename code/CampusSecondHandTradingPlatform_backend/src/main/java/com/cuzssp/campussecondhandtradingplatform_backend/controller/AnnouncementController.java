@@ -14,9 +14,9 @@ public class AnnouncementController {
 
     /**
      * 获取公告列表
-     * @param page
-     * @param pageSize
-     * @return
+     * @param page 页码
+     * @param pageSize 页大小
+     * @return 公告列表
      */
     @GetMapping
     public Result<?> getAnnouncement(
@@ -28,8 +28,8 @@ public class AnnouncementController {
 
     /**
      * 查看公告详情
-     * @param id
-     * @return
+     * @param id 公告 ID
+     * @return 公告详情
      */
     @GetMapping("/{id}")
     public Result<?> getAnnouncementInfo(

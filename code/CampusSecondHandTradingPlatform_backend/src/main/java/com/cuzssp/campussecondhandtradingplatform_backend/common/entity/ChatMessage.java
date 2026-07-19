@@ -1,4 +1,4 @@
-package com.cuzssp.campussecondhandtradingplatform_backend.common.entity;
+﻿package com.cuzssp.campussecondhandtradingplatform_backend.common.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;

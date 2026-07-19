@@ -1,4 +1,4 @@
-# ===================================================
+﻿# ===================================================
 # 校园二手交易平台 - 应用配置
 # 所有敏感值通过环境变量注入，未设置时使用默认值
 # ===================================================
@@ -7,7 +7,7 @@ spring:
   application:
     name: CampusSecondHandTradingPlatform_backend
   config:
-    import: optional:classpath:.env[.properties]
+    import: optional:file:.env[.properties]
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -32,8 +32,12 @@ mybatis-plus:
       id-type: assign_id
 
 jwt:
-  secret: ${JWT_SECRET:cuzssp-jwt-secret-key-2026-256-bits-default}
-  expiration: ${JWT_EXPIRATION:86400}
+  secret: ${JWT_SECRET:cuzssp-jwt-secret-key-2026-32-byte-default}
+  expiration: ${JWT_EXPIRATION:86400000}
+
+chat:
+  encryption:
+    key: ${CHAT_ENCRYPTION_KEY:cuzssp-chat-encryption-key-2026-32-byte-default}
 
 r2:
   s3:

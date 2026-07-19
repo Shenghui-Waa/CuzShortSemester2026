@@ -19,8 +19,8 @@ public class AuthController {
 
     /**
      * 注册
-     * @param request 请求
-     * @return
+     * @param request 注册请求
+     * @return 用户信息
      */
     @PostMapping("/register")
     public Result<?> register(
@@ -31,8 +31,8 @@ public class AuthController {
 
     /**
      * 登录
-     * @param request
-     * @return
+     * @param request 登录请求
+     * @return JWT Token
      */
     @PostMapping("/login")
     public Result<?> login(
@@ -43,8 +43,8 @@ public class AuthController {
 
     /**
      * 登出
-     * @param token
-     * @return
+     * @param token token
+     * @return 成功则空数据返回
      */
     @PostMapping("/logout")
     public Result<?> logout(
@@ -56,8 +56,8 @@ public class AuthController {
 
     /**
      * 是不是我？
-     * @param token
-     * @return
+     * @param token token
+     * @return 用户信息
      */
     @GetMapping("/me")
     public Result<?> me(

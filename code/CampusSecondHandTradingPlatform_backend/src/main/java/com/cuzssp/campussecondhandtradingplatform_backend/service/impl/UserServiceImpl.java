@@ -5,7 +5,7 @@ import com.cuzssp.campussecondhandtradingplatform_backend.common.constant.UserCo
 import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.RegisterRequest;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.Product;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.User;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.security.Base64Provider;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.security.PasswordProvider;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.util.ToEntityUtil;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.util.ToVOUtil;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.PageResult;
@@ -21,6 +21,7 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -31,7 +32,7 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
 
     private final UserMapper userMapper;
-    private final Base64Provider base64Provider;
+    private final PasswordProvider passwordProvider;
     private final ProductMapper productMapper;
 
     @Override
@@ -68,9 +69,9 @@ public class UserServiceImpl implements UserService {
         User user = userMapper.selectById(userId);
         if (user == null)
             throw new BusinessException("User not found");
-        if (!base64Provider.matches(request.getOldPassword(), user.getPassword()))
+        if (!passwordProvider.matches(request.getOldPassword(), user.getPassword()))
             throw new BusinessException("Old password is incorrect");
-        user.setPassword(base64Provider.encode(request.getNewPassword()));
+        user.setPassword(passwordProvider.encode(request.getNewPassword()));
         userMapper.updateById(user);
         return Result.success();
     }
@@ -93,7 +94,7 @@ public class UserServiceImpl implements UserService {
     public Result<UserVO> addAdmin(RegisterRequest request) {
         if (userMapper.countByUsername(request.getUsername()) > 0)
             throw new BusinessException("Admin name already exists");
-        User user = ToEntityUtil.toUserEntity(request, base64Provider);
+        User user = ToEntityUtil.toUserEntity(request, passwordProvider);
         user.setRole(UserConstant.ROLE_ADMIN);
         userMapper.insert(user);
         return Result.success(ToVOUtil.toUserVO(user));
@@ -127,6 +128,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Result<Void> updateUserStatus(
             Long userId,
             Integer status

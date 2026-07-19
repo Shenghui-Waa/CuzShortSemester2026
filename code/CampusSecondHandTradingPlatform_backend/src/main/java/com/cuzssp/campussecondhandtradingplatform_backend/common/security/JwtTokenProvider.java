@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 
 @Component
@@ -20,15 +21,17 @@ public class JwtTokenProvider {
     public JwtTokenProvider(
             @Value("${jwt.secret}") String secret,
             @Value("${jwt.expiration}") long expiration
-    ) {
-        this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-        this.expiration = expiration * 1000; // 转毫秒值
+    ) throws NoSuchAlgorithmException {
+        byte[] keyBytes = java.security.MessageDigest.getInstance("SHA-256")
+                .digest(secret.getBytes(StandardCharsets.UTF_8));
+        this.key = Keys.hmacShaKeyFor(keyBytes);
+        this.expiration = expiration;
     }
 
     /**
      * 生成 Token
-     * @param user
-     * @return
+     * @param user 用户信息
+     * @return token
      */
     public String generateToken(User user) {
         Date now = new Date();
@@ -45,8 +48,8 @@ public class JwtTokenProvider {
 
     /**
      * 解析 Token 获取用户 ID
-     * @param token
-     * @return
+     * @param token token
+     * @return 用户 ID
      */
     public Long getUserIdFromToken(String token) {
         if (validateToken(token)) {
@@ -58,8 +61,8 @@ public class JwtTokenProvider {
 
     /**
      * 解析 Token 获取用户名
-     * @param token
-     * @return
+     * @param token token
+     * @return 用户名
      */
     public String getUsernameFromToken(String token) {
         if (validateToken(token)) {
@@ -71,8 +74,8 @@ public class JwtTokenProvider {
 
     /**
      * 验证 Token 有效性
-     * @param token
-     * @return
+     * @param token token
+     * @return 布尔值 是否有效
      */
     public boolean validateToken(String token) {
         try {

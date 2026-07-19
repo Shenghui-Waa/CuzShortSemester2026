@@ -1,4 +1,4 @@
-﻿import { createApp } from "vue";
+import { createApp } from "vue";
 import { createPinia } from "pinia";
 import ElementPlus from "element-plus";
 import "element-plus/dist/index.css";
@@ -20,6 +20,8 @@ app.use(ElementPlus);
 useThemeStore();
 
 app.mount("#app");
+
+(window as any).__ROUTER__ = router;
 
 // 启动后校验已有 token 是否有效，无效则清除
 async function validateToken() {

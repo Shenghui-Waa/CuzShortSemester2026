@@ -16,12 +16,14 @@ import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class OrderServiceImpl implements OrderService {
 
     private final OrderMapper orderMapper;
@@ -37,6 +39,7 @@ public class OrderServiceImpl implements OrderService {
      * @return
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Result<OrderVO> createOrder(
             Long buyerId, CreateOrderRequest request
     ) {
@@ -147,6 +150,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Result<Void> cancelOrder(Long userId, Long orderId) {
         OrderInfo order = orderMapper.selectById(orderId);
         if (order == null)

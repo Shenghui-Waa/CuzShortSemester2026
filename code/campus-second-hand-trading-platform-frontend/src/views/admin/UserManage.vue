@@ -33,8 +33,8 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref, reactive, onMounted } from "vue";
-import { ElMessage } from "element-plus";
+import { h, ref, reactive, onMounted } from "vue";
+import { ElMessage, ElButton } from "element-plus";
 import Pagination from "@/components/Pagination.vue";
 import { adminApi } from "@/api/index";
 const users = ref<any[]>([]); const total = ref(0); const keyword = ref(""); const page = ref(1);
@@ -65,8 +65,26 @@ async function submit() {
   if (!ok) return;
   submitting.value = true;
   try {
-    await adminApi.addAdmin({ username: form.username, password: "123456", school: form.school, campus: form.campus });
-    ElMessage.success("管理员添加成功");
+    const generatedPassword = Math.random().toString(36).slice(-10);
+    await adminApi.addAdmin({ username: form.username, password: generatedPassword, school: form.school, campus: form.campus });
+    ElMessage.success({
+      message: h("div", { style: "display:flex;align-items:center;gap:12px" }, [
+        h("span", `管理员添加成功，初始密码为: ${generatedPassword}`),
+        h(ElButton, {
+          size: "small",
+          type: "warning",
+          plain: true,
+          onClick: () => {
+            navigator.clipboard.writeText(generatedPassword).then(() => {
+              ElMessage.success("密码已复制到剪贴板");
+            }).catch(() => {
+              ElMessage.error("复制失败，请手动复制");
+            });
+          }
+        }, () => "复制密码")
+      ]),
+      duration: 5000
+    });
     dialogVisible.value = false;
     fetch();
   } catch {} finally {

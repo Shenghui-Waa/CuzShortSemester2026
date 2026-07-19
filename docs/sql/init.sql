@@ -1,4 +1,4 @@
--- ===================================================
+﻿-- ===================================================
 -- 校园二手交易平台 - 数据库初始化脚本
 -- 数据库: cuzssp
 -- 字符集: utf8mb4
@@ -10,8 +10,7 @@ USE cuzssp;
 -- ---------------------------------------------------
 -- 用户表
 -- ---------------------------------------------------
-DROP TABLE IF EXISTS `user`;
-CREATE TABLE `user` (
+CREATE TABLE IF NOT EXISTS `user` (
     `id`            BIGINT          NOT NULL COMMENT '主键，雪花ID',
     `username`      VARCHAR(32)     NOT NULL COMMENT '用户名，唯一',
     `password`      VARCHAR(128)    NOT NULL COMMENT 'BCrypt加密密文',
@@ -34,8 +33,7 @@ CREATE TABLE `user` (
 -- ---------------------------------------------------
 -- 商品分类表
 -- ---------------------------------------------------
-DROP TABLE IF EXISTS `category`;
-CREATE TABLE `category` (
+CREATE TABLE IF NOT EXISTS `category` (
     `id`            BIGINT          NOT NULL COMMENT '主键',
     `name`          VARCHAR(32)     NOT NULL COMMENT '分类名',
     `icon`          VARCHAR(255)    DEFAULT NULL COMMENT '分类图标URL',
@@ -47,8 +45,7 @@ CREATE TABLE `category` (
 -- ---------------------------------------------------
 -- 商品表
 -- ---------------------------------------------------
-DROP TABLE IF EXISTS `product`;
-CREATE TABLE `product` (
+CREATE TABLE IF NOT EXISTS `product` (
     `id`             BIGINT          NOT NULL COMMENT '主键',
     `user_id`        BIGINT          NOT NULL COMMENT '发布者ID',
     `category_id`    BIGINT          NOT NULL COMMENT '分类ID',
@@ -71,8 +68,7 @@ CREATE TABLE `product` (
 -- ---------------------------------------------------
 -- 商品图片表
 -- ---------------------------------------------------
-DROP TABLE IF EXISTS `product_image`;
-CREATE TABLE `product_image` (
+CREATE TABLE IF NOT EXISTS `product_image` (
     `id`            BIGINT          NOT NULL COMMENT '主键',
     `product_id`    BIGINT          NOT NULL COMMENT '商品ID',
     `url`           VARCHAR(255)    NOT NULL COMMENT '图片URL',
@@ -84,8 +80,7 @@ CREATE TABLE `product_image` (
 -- ---------------------------------------------------
 -- 订单表
 -- ---------------------------------------------------
-DROP TABLE IF EXISTS `order`;
-CREATE TABLE `order` (
+CREATE TABLE IF NOT EXISTS `order` (
     `id`             BIGINT          NOT NULL COMMENT '主键',
     `order_no`       VARCHAR(32)     NOT NULL COMMENT '订单编号',
     `buyer_id`       BIGINT          NOT NULL COMMENT '买家ID',
@@ -93,25 +88,22 @@ CREATE TABLE `order` (
     `total_amount`   DECIMAL(10,2)   NOT NULL COMMENT '总金额',
     `status`         TINYINT         NOT NULL DEFAULT 0 COMMENT '0=待付款 1=待发货 2=待收货 3=已完成 4=已取消',
     `remark`         VARCHAR(255)    DEFAULT NULL COMMENT '备注',
-    `created_at`     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '下单时间',
-    `paid_at`        DATETIME        DEFAULT NULL COMMENT '付款时间',
-    `shipped_at`     DATETIME        DEFAULT NULL COMMENT '发货时间',
-    `completed_at`   DATETIME        DEFAULT NULL COMMENT '完成时间',
+    `created_at`     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at`     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_order_no` (`order_no`),
-    KEY `idx_buyer_status` (`buyer_id`, `status`),
-    KEY `idx_seller_status` (`seller_id`, `status`)
+    KEY `idx_buyer_id` (`buyer_id`),
+    KEY `idx_seller_id` (`seller_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='订单表';
 
 -- ---------------------------------------------------
 -- 订单明细表
 -- ---------------------------------------------------
-DROP TABLE IF EXISTS `order_item`;
-CREATE TABLE `order_item` (
+CREATE TABLE IF NOT EXISTS `order_item` (
     `id`            BIGINT          NOT NULL COMMENT '主键',
     `order_id`      BIGINT          NOT NULL COMMENT '订单ID',
     `product_id`    BIGINT          NOT NULL COMMENT '商品ID',
-    `price`         DECIMAL(10,2)   NOT NULL COMMENT '成交单价',
+    `price`         DECIMAL(10,2)   NOT NULL COMMENT '购买时价格',
     `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     PRIMARY KEY (`id`),
     KEY `idx_order_id` (`order_id`)
@@ -120,8 +112,7 @@ CREATE TABLE `order_item` (
 -- ---------------------------------------------------
 -- 购物车表
 -- ---------------------------------------------------
-DROP TABLE IF EXISTS `cart`;
-CREATE TABLE `cart` (
+CREATE TABLE IF NOT EXISTS `cart` (
     `id`            BIGINT          NOT NULL COMMENT '主键',
     `user_id`       BIGINT          NOT NULL COMMENT '用户ID',
     `product_id`    BIGINT          NOT NULL COMMENT '商品ID',
@@ -134,8 +125,7 @@ CREATE TABLE `cart` (
 -- ---------------------------------------------------
 -- 收藏表
 -- ---------------------------------------------------
-DROP TABLE IF EXISTS `favorite`;
-CREATE TABLE `favorite` (
+CREATE TABLE IF NOT EXISTS `favorite` (
     `id`            BIGINT          NOT NULL COMMENT '主键',
     `user_id`       BIGINT          NOT NULL COMMENT '用户ID',
     `product_id`    BIGINT          NOT NULL COMMENT '商品ID',
@@ -148,13 +138,12 @@ CREATE TABLE `favorite` (
 -- ---------------------------------------------------
 -- 聊天消息表
 -- ---------------------------------------------------
-DROP TABLE IF EXISTS `chat_message`;
-CREATE TABLE `chat_message` (
+CREATE TABLE IF NOT EXISTS `chat_message` (
     `id`            BIGINT          NOT NULL COMMENT '主键',
     `sender_id`     BIGINT          NOT NULL COMMENT '发送者ID',
     `receiver_id`   BIGINT          NOT NULL COMMENT '接收者ID',
     `product_id`    BIGINT          DEFAULT NULL COMMENT '关联商品ID',
-    `content`       TEXT            NOT NULL COMMENT '消息内容',
+    `content`       TEXT            NOT NULL COMMENT '消息内容（用户密钥加密）',
     `is_read`       TINYINT         NOT NULL DEFAULT 0 COMMENT '0=未读 1=已读',
     `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '发送时间',
     PRIMARY KEY (`id`),
@@ -165,8 +154,7 @@ CREATE TABLE `chat_message` (
 -- ---------------------------------------------------
 -- 评价表
 -- ---------------------------------------------------
-DROP TABLE IF EXISTS `review`;
-CREATE TABLE `review` (
+CREATE TABLE IF NOT EXISTS `review` (
     `id`            BIGINT          NOT NULL COMMENT '主键',
     `order_id`      BIGINT          NOT NULL COMMENT '订单ID',
     `reviewer_id`   BIGINT          NOT NULL COMMENT '评价者ID',
@@ -182,8 +170,7 @@ CREATE TABLE `review` (
 -- ---------------------------------------------------
 -- 系统公告表
 -- ---------------------------------------------------
-DROP TABLE IF EXISTS `announcement`;
-CREATE TABLE `announcement` (
+CREATE TABLE IF NOT EXISTS `announcement` (
     `id`            BIGINT          NOT NULL COMMENT '主键',
     `title`         VARCHAR(128)    NOT NULL COMMENT '标题',
     `content`       TEXT            NOT NULL COMMENT '内容',
@@ -207,10 +194,10 @@ INSERT INTO `category` (`id`, `name`, `icon`, `sort_order`) VALUES
 
 -- ---------------------------------------------------
 -- 初始数据：管理员账号
--- 默认密码: password（Base64加密）
+-- 默认密码: admin123（BCrypt加密）
 -- 首次部署后请立即修改密码！
 -- ---------------------------------------------------
 INSERT INTO user (id, username, password, nickname, role, status) VALUES
-(1, 'admin', 'Y3V6c3NwcGFzc3dvcmQyMDI2d2VicHJvamVjdA==', 'ADMINISTRATOR', 1, 0);
+(1, 'admin', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iAt6Z5Eh', 'ADMINISTRATOR', 1, 0);
 
 rename table `order` to order_info;

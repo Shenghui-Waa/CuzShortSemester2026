@@ -75,18 +75,8 @@
             <div class="profile-row"><span class="profile-label">昵称</span><span>{{ profileUser.nickname }}</span></div>
             <div class="profile-row"><span class="profile-label">学校</span><span>{{ profileUser.school || "-" }}</span></div>
             <div class="profile-row"><span class="profile-label">校区</span><span>{{ profileUser.campus || "-" }}</span></div>
-            <div class="profile-row">
-              <span class="profile-label">手机</span><span>{{ profileUser.phone || "-" }}</span>
-              <el-button v-if="profileUser.phone" size="small" text @click="copyText(profileUser.phone)">
-                <el-icon><CopyDocument /></el-icon>
-              </el-button>
-            </div>
-            <div class="profile-row">
-              <span class="profile-label">邮箱</span><span>{{ profileUser.email || "-" }}</span>
-              <el-button v-if="profileUser.email" size="small" text @click="copyText(profileUser.email)">
-                <el-icon><CopyDocument /></el-icon>
-              </el-button>
-            </div>
+            <div class="profile-row"><span class="profile-label">手机</span><span>{{ maskPhone(profileUser.phone) }}</span></div>
+            <div class="profile-row"><span class="profile-label">邮箱</span><span>{{ maskEmail(profileUser.email) }}</span></div>
           </div>
         </div>
       </el-dialog>
@@ -99,7 +89,7 @@
 import { ref, computed, nextTick, onMounted, onUnmounted } from "vue";
 import { useRoute } from "vue-router";
 import { ElMessage } from "element-plus";
-import { ChatDotRound, CopyDocument } from "@element-plus/icons-vue";
+import { ChatDotRound } from "@element-plus/icons-vue";
 import AppHeader from "@/components/layout/AppHeader.vue";
 import AppFooter from "@/components/layout/AppFooter.vue";
 import { chatApi } from "@/api/index";
@@ -219,11 +209,21 @@ async function showProfile() {
   } catch { /* ignore */ }
 }
 
-function copyText(text: string) {
-  if (text) {
-    navigator.clipboard.writeText(text);
-    ElMessage.success("已复制");
+
+
+function maskPhone(phone: string) {
+  if (!phone) return "-";
+  if (phone.length >= 7) {
+    return phone.slice(0, 3) + "****" + phone.slice(-4);
   }
+  return phone.slice(0, 3) + "****";
+}
+
+function maskEmail(email: string) {
+  if (!email) return "-";
+  const atIndex = email.indexOf("@");
+  if (atIndex <= 0) return email[0] + "***";
+  return email[0] + "***" + email.slice(atIndex);
 }
 
 function scrollBottom() {

@@ -13,7 +13,7 @@
           <span v-if="detail.updatedAt !== detail.createdAt">更新于 {{ formatTime(detail.updatedAt) }}</span>
         </div>
         <div class="detail-divider"></div>
-        <div class="detail-content" v-html="renderedContent"></div>
+        <div class="detail-content" style="white-space: pre-wrap">{{ detail.content }}</div>
       </template>
       <div v-else-if="!loading" class="empty">公告不存在</div>
     </div>
@@ -21,7 +21,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import { ArrowLeft } from "@element-plus/icons-vue";
 import AppHeader from "@/components/layout/AppHeader.vue";
@@ -31,11 +31,6 @@ import { announcementApi } from "@/api";
 const route = useRoute();
 const detail = ref<any>(null);
 const loading = ref(false);
-
-const renderedContent = computed(() => {
-  if (!detail.value?.content) return "";
-  return detail.value.content.replace(/\n/g, "<br>");
-});
 
 function formatTime(t: string) {
   if (!t) return "";

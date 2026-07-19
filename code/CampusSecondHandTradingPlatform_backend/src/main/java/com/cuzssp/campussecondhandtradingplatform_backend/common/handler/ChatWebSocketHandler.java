@@ -1,5 +1,8 @@
 package com.cuzssp.campussecondhandtradingplatform_backend.common.handler;
 
+import com.cuzssp.campussecondhandtradingplatform_backend.common.security.JwtTokenProvider;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -8,15 +11,21 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Component
 public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     private static final Map<Long, WebSocketSession> sessions = new ConcurrentHashMap<>();
+
+    @Autowired
+    private JwtTokenProvider jwtTokenProvider;
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         Long userId = getUserId(session);
         if (userId != null) {
             sessions.put(userId, session);
+        } else {
+            session.close(CloseStatus.POLICY_VIOLATION);
         }
     }
 
@@ -33,11 +42,12 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         }
     }
 
-    public static void sendMessageToUser(Long userId, String message) {
+    public static void sendMessageToUser(Long userId, Long senderId) {
         WebSocketSession session = sessions.get(userId);
         if (session != null && session.isOpen()) {
             try {
-                session.sendMessage(new TextMessage(message));
+                String notification = String.format("{\"type\":\"new_message\",\"from\":%d}", senderId);
+                session.sendMessage(new TextMessage(notification));
             } catch (Exception e) {
                 // ignore
             }
@@ -46,9 +56,12 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     private Long getUserId(WebSocketSession session) {
         String query = session.getUri() != null ? session.getUri().getQuery() : null;
-        if (query != null && query.contains("userId=")) {
+        if (query != null && query.contains("token=")) {
             try {
-                return Long.parseLong(query.split("userId=")[1].split("&")[0]);
+                String token = query.split("token=")[1].split("&")[0];
+                if (jwtTokenProvider.validateToken(token)) {
+                    return jwtTokenProvider.getUserIdFromToken(token);
+                }
             } catch (Exception e) {
                 return null;
             }

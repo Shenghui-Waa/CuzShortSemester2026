@@ -1,5 +1,8 @@
 package com.cuzssp.campussecondhandtradingplatform_backend.common.constant;
 
+/**
+ * 用户相关常量
+ */
 public class UserConstant {
     public static final int ROLE_USER = 0;
     public static final int ROLE_ADMIN = 1;
