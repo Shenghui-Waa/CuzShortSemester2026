@@ -1,9 +1,10 @@
-package com.cuzssp.campussecondhandtradingplatform_backend.service.impl;
+﻿package com.cuzssp.campussecondhandtradingplatform_backend.service.impl;
 
 import com.cuzssp.campussecondhandtradingplatform_backend.common.constant.ChatMessageConstant;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.ChatMessage;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.User;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.handler.ChatWebSocketHandler;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.util.AesEncryptionUtil;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.util.ToEntityUtil;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.util.ToVOUtil;
 import com.cuzssp.campussecondhandtradingplatform_backend.mapper.ChatMessageMapper;
@@ -23,6 +24,7 @@ public class ChatServiceImpl implements ChatService {
 
     private final ChatMessageMapper chatMessageMapper;
     private final UserMapper userMapper;
+    private final AesEncryptionUtil aesEncryptionUtil;
 
     @Override
     public Result<List<ChatContactVO>> getContacts(
@@ -35,13 +37,14 @@ public class ChatServiceImpl implements ChatService {
         for (ChatMessage msg : sent) {
             contactMap.putIfAbsent(msg.getReceiverId(), new ChatContactVO());
             contactMap.get(msg.getReceiverId()).setContactId(msg.getReceiverId());
-            contactMap.get(msg.getReceiverId()).setLastMessage(msg.getContent());
+            contactMap.get(msg.getReceiverId()).setLastMessage(aesEncryptionUtil.decrypt(msg.getContent()));
             contactMap.get(msg.getReceiverId()).setLastTime(msg.getCreatedAt().toString());
         }
         for (ChatMessage msg : received) {
             contactMap.putIfAbsent(msg.getSenderId(), new ChatContactVO());
             ChatContactVO vo = contactMap.get(msg.getSenderId());
-            vo.setContactId(msg.getSenderId()); vo.setLastMessage(msg.getContent());
+            vo.setContactId(msg.getSenderId());
+            vo.setLastMessage(aesEncryptionUtil.decrypt(msg.getContent()));
             if (msg.getIsRead() == ChatMessageConstant.READ_STATUS_NO)
                 vo.setUnreadCount((vo.getUnreadCount() == null ? 0 : vo.getUnreadCount()) + 1);
             vo.setLastTime(msg.getCreatedAt().toString());
@@ -69,6 +72,9 @@ public class ChatServiceImpl implements ChatService {
         List<ChatMessageVO> chatMessageVOs = chatMessageList.stream()
                 .map(ToVOUtil::toChatMessageVO)
                 .collect(Collectors.toList());
+        for (ChatMessageVO vo : chatMessageVOs) {
+            vo.setContent(aesEncryptionUtil.decrypt(vo.getContent()));
+        }
         Collections.reverse(chatMessageVOs);
         return Result.success(chatMessageVOs);
     }
@@ -77,13 +83,16 @@ public class ChatServiceImpl implements ChatService {
     public Result<ChatMessageVO> sendMessage(
             Long senderId, Long receiverId, Long productId, String content
     ) {
+        String encryptedContent = aesEncryptionUtil.encrypt(content);
 
         ChatMessage message = ToEntityUtil.toChatMessageEntity(
-                senderId, receiverId, productId, content
+                senderId, receiverId, productId, encryptedContent
         );
         chatMessageMapper.insert(message);
         ChatMessageVO chatMessageVO = ToVOUtil.toChatMessageVO(message);
-        ChatWebSocketHandler.sendMessageToUser(receiverId, content);
+        chatMessageVO.setContent(content);
+
+        ChatWebSocketHandler.sendMessageToUser(receiverId, senderId);
 
         return Result.success(chatMessageVO);
     }

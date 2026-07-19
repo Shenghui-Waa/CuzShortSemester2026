@@ -1,4 +1,4 @@
-﻿import axios from "axios";
+import axios from "axios";
 import { ElMessage } from "element-plus";
 
 const request = axios.create({ baseURL: "/api", timeout: 15000 });
@@ -17,7 +17,7 @@ request.interceptors.response.use(
     if (err.response?.status === 401) {
       localStorage.removeItem("token");
       localStorage.removeItem("role");
-      window.location.href = "/login";
+      (window as any).__ROUTER__.push("/login");
     }
     return Promise.reject(err);
   }

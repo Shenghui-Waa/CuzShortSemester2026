@@ -7,7 +7,7 @@ import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.Announcemen
 import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.RegisterRequest;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.ReviewRequest;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.*;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.security.Base64Provider;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.security.PasswordProvider;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -17,12 +17,12 @@ import java.util.UUID;
 public class ToEntityUtil {
 
     public static User toUserEntity(
-            RegisterRequest request, Base64Provider base64Provider
+            RegisterRequest request, PasswordProvider passwordProvider
     ){
         User user = new User();
 
         user.setUsername(request.getUsername());
-        user.setPassword(base64Provider.encode(request.getPassword()));
+        user.setPassword(passwordProvider.encode(request.getPassword()));
         user.setNickname(
                 request.getNickname() != null ?
                 request.getNickname()

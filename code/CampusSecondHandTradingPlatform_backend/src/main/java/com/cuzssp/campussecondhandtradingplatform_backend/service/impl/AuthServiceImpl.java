@@ -5,7 +5,7 @@ import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.LoginReques
 import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.RegisterRequest;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.User;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.exception.BusinessException;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.security.Base64Provider;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.security.PasswordProvider;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.util.ToEntityUtil;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.util.ToVOUtil;
 import com.cuzssp.campussecondhandtradingplatform_backend.mapper.UserMapper;
@@ -23,14 +23,14 @@ import lombok.extern.slf4j.Slf4j;
 public class AuthServiceImpl implements AuthService {
 
     private final UserMapper userMapper;
-    private final Base64Provider base64Provider;
+    private final PasswordProvider passwordProvider;
     private final JwtTokenProvider jwtTokenProvider;
 
     @Override
     public Result<UserVO> register(RegisterRequest request) {
         if (userMapper.countByUsername(request.getUsername()) > 0)
             throw new BusinessException("Username already exists");
-        User user = ToEntityUtil.toUserEntity(request, base64Provider);
+        User user = ToEntityUtil.toUserEntity(request, passwordProvider);
         userMapper.insert(user);
         log.info("User registered: {}", user.getUsername());
         return Result.success(ToVOUtil.toUserVO(user));
@@ -44,7 +44,7 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException("Invalid username or password");
         if (user.getStatus() == UserConstant.STATUS_DISABLE)
             throw new BusinessException("Account has been disabled");
-        if (!base64Provider.matches(request.getPassword(), user.getPassword()))
+        if (!passwordProvider.matches(request.getPassword(), user.getPassword()))
             throw new BusinessException("Invalid username or password");
 
         String token = jwtTokenProvider.generateToken(user);
