@@ -44,9 +44,9 @@ export const categoryApi = {
 export const announcementApi = {
   list: (page: number, pageSize: number) => request.get("/announcement", { params: { page, pageSize } }),
   detail: (id: number) => request.get(`/announcement/${id}`),
-  create: (data: any) => request.post("/admin/announcement/add", data),
-  update: (id: number, data: any) => request.put(`/admin/announcement/upd/${id}`, data),
-  delete: (id: number) => request.delete(`/admin/announcement/del/${id}`),
+  create: (data: any) => request.post("/admin/announcements", data),
+  update: (id: number, data: any) => request.put(`/admin/announcements/${id}`, data),
+  delete: (id: number) => request.delete(`/admin/announcements/${id}`),
 };
 export const adminApi = {
   dashboard: () => request.get("/admin/dashboard"),
@@ -56,7 +56,7 @@ export const adminApi = {
   productList: (params: any) => request.get("/admin/products", { params }),
   updateProductStatus: (id: number, status: number) => request.put(`/admin/products/${id}/status`, null, { params: { status } }),
   orderList: (params: any) => request.get("/admin/orders", { params }),
-  categoryCreate: (data: any) => request.post("/admin/category/add", data),
-  categoryUpdate: (id: number, data: any) => request.put(`/admin/category/upd/${id}`, data),
-  categoryDelete: (id: number) => request.delete(`/admin/category/del/${id}`),
+  categoryCreate: (data: any) => request.post("/admin/categories", data),
+  categoryUpdate: (id: number, data: any) => request.put(`/admin/categories/${id}`, data),
+  categoryDelete: (id: number) => request.delete(`/admin/categories/${id}`),
 };

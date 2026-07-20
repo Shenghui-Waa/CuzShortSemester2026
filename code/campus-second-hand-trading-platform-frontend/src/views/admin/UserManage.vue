@@ -4,7 +4,7 @@
       <h2>用户管理</h2>
       <el-button type="primary" @click="openDialog">添加管理员</el-button>
     </div>
-    <el-input v-model="keyword" placeholder="搜索用户名/昵称" style="width:240px;margin-bottom:16px" clearable @change="fetch" />
+    <el-input v-model="keyword" placeholder="搜索用户名/昵称/学校" style="width:240px;margin-bottom:16px" clearable @change="fetch" />
     <el-table :data="users" stripe>
       <el-table-column prop="id" label="ID" width="80" /><el-table-column prop="username" label="用户名" />
       <el-table-column prop="nickname" label="昵称" /><el-table-column prop="school" label="学校" />

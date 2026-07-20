@@ -2,12 +2,11 @@ package com.cuzssp.campussecondhandtradingplatform_backend.controller;
 
 import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.CreateOrderRequest;
 
-import com.cuzssp.campussecondhandtradingplatform_backend.common.security.JwtTokenProvider;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.security.SecurityUtil;
 import com.cuzssp.campussecondhandtradingplatform_backend.service.OrderService;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.Result;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.beans.factory.annotation.Autowired;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -15,7 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class OrderController {
 
     private final OrderService orderService;
-    private final JwtTokenProvider jwtTokenProvider;
+    private final SecurityUtil securityUtil;
 
     /**
      * 创建订单
@@ -28,7 +27,7 @@ public class OrderController {
             @RequestHeader("Authorization") String token,
             @RequestBody CreateOrderRequest request
     ) {
-        Long currentUserId = getCurrentUserId(token);
+        Long currentUserId = securityUtil.getCurrentUserId(token);
         return orderService.createOrder(currentUserId, request);
     }
 
@@ -47,7 +46,7 @@ public class OrderController {
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer pageSize
     ) {
-        Long currentUserId = getCurrentUserId(token);
+        Long currentUserId = securityUtil.getCurrentUserId(token);
         return orderService.getOrders(currentUserId, status, page, pageSize);
     }
 
@@ -62,7 +61,7 @@ public class OrderController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long id
     ) {
-        Long currentUserId = getCurrentUserId(token);
+        Long currentUserId = securityUtil.getCurrentUserId(token);
         return orderService.getOrderDetail(currentUserId, id);
     }
 
@@ -77,7 +76,7 @@ public class OrderController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long id
     ) {
-        Long currentUserId = getCurrentUserId(token);
+        Long currentUserId = securityUtil.getCurrentUserId(token);
         return orderService.payOrder(currentUserId, id);
     }
 
@@ -92,7 +91,7 @@ public class OrderController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long id
     ) {
-        Long currentUserId = getCurrentUserId(token);
+        Long currentUserId = securityUtil.getCurrentUserId(token);
         return orderService.shipOrder(currentUserId, id);
     }
 
@@ -107,7 +106,7 @@ public class OrderController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long id
     ) {
-        Long currentUserId = getCurrentUserId(token);
+        Long currentUserId = securityUtil.getCurrentUserId(token);
         return orderService.confirmOrder(currentUserId, id);
     }
 
@@ -122,17 +121,7 @@ public class OrderController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long id
     ) {
-        Long currentUserId = getCurrentUserId(token);
+        Long currentUserId = securityUtil.getCurrentUserId(token);
         return orderService.cancelOrder(currentUserId, id);
-    }
-
-    private Long getCurrentUserId(String token) {
-        if (token == null || token.isEmpty())
-            return null;
-        try {
-            return jwtTokenProvider.getUserIdFromToken(token.replace("Bearer ", ""));
-        } catch (Exception e) {
-            return null;
-        }
     }
 }

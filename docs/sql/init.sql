@@ -198,5 +198,5 @@ INSERT INTO `category` (`id`, `name`, `icon`, `sort_order`) VALUES
 -- 首次部署后请立即修改密码！
 -- ---------------------------------------------------
 INSERT INTO user (id, username, password, nickname, role, status) VALUES
-(1, 'admin', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iAt6Z5Eh', '管理员', 1, 0);
+(1, 'admin', '$2a$10$qEY58vWEvc0IJ2v3GIIH/OeH4VzqzadIbWUXFSaDxfikIQqifSw62', '管理员', 1, 0);
 

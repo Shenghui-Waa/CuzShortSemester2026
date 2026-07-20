@@ -1,6 +1,6 @@
 package com.cuzssp.campussecondhandtradingplatform_backend.controller;
 
-import com.cuzssp.campussecondhandtradingplatform_backend.common.security.JwtTokenProvider;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.security.SecurityUtil;
 
 import com.cuzssp.campussecondhandtradingplatform_backend.service.CartService;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.Result;
@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 public class CartController {
 
     private final CartService cartService;
-    private final JwtTokenProvider jwtTokenProvider;
+    private final SecurityUtil securityUtil;
 
     /**
      * 获取购物车
@@ -24,7 +24,7 @@ public class CartController {
     public Result<?> getCart(
             @RequestHeader("Authorization") String token
     ) {
-        Long currentUserId = getCurrentUserId(token);
+        Long currentUserId = securityUtil.getCurrentUserId(token);
         return cartService.getCart(currentUserId);
     }
 
@@ -39,7 +39,7 @@ public class CartController {
             @RequestHeader("Authorization") String token,
             @RequestParam Long productId
     ) {
-        Long currentUserId = getCurrentUserId(token);
+        Long currentUserId = securityUtil.getCurrentUserId(token);
         return cartService.addToCart(currentUserId, productId);
     }
 
@@ -54,13 +54,7 @@ public class CartController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long productId
     ) {
-        Long currentUserId = getCurrentUserId(token);
+        Long currentUserId = securityUtil.getCurrentUserId(token);
         return cartService.removeFromCart(currentUserId, productId);
-    }
-
-    private Long getCurrentUserId(String token) {
-        if (token == null || token.isEmpty())
-            return null;
-        return jwtTokenProvider.getUserIdFromToken(token.replace("Bearer ", ""));
     }
 }

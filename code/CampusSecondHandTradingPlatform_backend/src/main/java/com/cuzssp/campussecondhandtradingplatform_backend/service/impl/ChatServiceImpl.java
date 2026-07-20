@@ -1,8 +1,9 @@
-﻿package com.cuzssp.campussecondhandtradingplatform_backend.service.impl;
+package com.cuzssp.campussecondhandtradingplatform_backend.service.impl;
 
 import com.cuzssp.campussecondhandtradingplatform_backend.common.constant.ChatMessageConstant;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.ChatMessage;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.User;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.handler.ChatWebSocketHandler;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.handler.ChatWebSocketHandler;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.util.AesEncryptionUtil;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.util.ToEntityUtil;
@@ -25,6 +26,7 @@ public class ChatServiceImpl implements ChatService {
     private final ChatMessageMapper chatMessageMapper;
     private final UserMapper userMapper;
     private final AesEncryptionUtil aesEncryptionUtil;
+    private final ChatWebSocketHandler chatWebSocketHandler;
 
     @Override
     public Result<List<ChatContactVO>> getContacts(
@@ -66,9 +68,8 @@ public class ChatServiceImpl implements ChatService {
     public Result<List<ChatMessageVO>> getMessages(
             Long userId, Long contactId, Integer page, Integer pageSize
     ) {
-        List<ChatMessage> chatMessageList = chatMessageMapper.selectByConversation(userId, contactId);
-
         PageHelper.startPage(page, pageSize);
+        List<ChatMessage> chatMessageList = chatMessageMapper.selectByConversation(userId, contactId);
         List<ChatMessageVO> chatMessageVOs = chatMessageList.stream()
                 .map(ToVOUtil::toChatMessageVO)
                 .collect(Collectors.toList());
@@ -92,7 +93,7 @@ public class ChatServiceImpl implements ChatService {
         ChatMessageVO chatMessageVO = ToVOUtil.toChatMessageVO(message);
         chatMessageVO.setContent(content);
 
-        ChatWebSocketHandler.sendMessageToUser(receiverId, senderId);
+        chatWebSocketHandler.sendMessageToUser(receiverId, senderId);
 
         return Result.success(chatMessageVO);
     }

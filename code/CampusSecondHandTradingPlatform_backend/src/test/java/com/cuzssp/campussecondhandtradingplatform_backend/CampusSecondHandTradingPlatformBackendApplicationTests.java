@@ -45,6 +45,6 @@ class CampusSecondHandTradingPlatformBackendApplicationTests {
     void BCryptPasswordEncoderTest() {
         BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
 
-        System.out.println(bCryptPasswordEncoder.encode("123456"));
+        System.out.println(bCryptPasswordEncoder.encode("admin123"));
     }
 }

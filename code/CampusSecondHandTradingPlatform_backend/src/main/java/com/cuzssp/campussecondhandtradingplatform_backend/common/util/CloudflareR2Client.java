@@ -9,7 +9,6 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.*;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.net.URI;
 import java.util.List;
@@ -20,7 +19,11 @@ import java.util.List;
 @Component
 public class CloudflareR2Client {
 
-    @Autowired private S3Config s3Config;
+    private final S3Config s3Config;
+
+    public CloudflareR2Client(S3Config s3Config) {
+        this.s3Config = s3Config;
+    }
 
     public S3Client getS3Client() {
         return buildS3Client();

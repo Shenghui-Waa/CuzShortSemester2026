@@ -14,7 +14,6 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -22,8 +21,13 @@ import java.util.Collections;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    @Autowired private JwtTokenProvider jwtTokenProvider;
-    @Autowired private UserMapper userMapper;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final UserMapper userMapper;
+
+    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider, UserMapper userMapper) {
+        this.jwtTokenProvider = jwtTokenProvider;
+        this.userMapper = userMapper;
+    }
 
     @Override
     protected void doFilterInternal(

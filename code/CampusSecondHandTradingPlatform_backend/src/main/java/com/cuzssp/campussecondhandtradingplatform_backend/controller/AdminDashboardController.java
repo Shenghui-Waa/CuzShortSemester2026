@@ -129,7 +129,7 @@ public class AdminDashboardController {
      * @param category 类别信息实体
      * @return 类别信息
      */
-    @PostMapping("/category/add")
+    @PostMapping("/categories")
     public Result<?> createCategory(
             @RequestBody Category category
     ) {
@@ -142,7 +142,7 @@ public class AdminDashboardController {
      * @param category 类别信息实体
      * @return 类别信息
      */
-    @PutMapping("/category/upd/{id}")
+    @PutMapping("/categories/{id}")
     public Result<?> updateCategory(
             @PathVariable Long id,
             @RequestBody Category category
@@ -155,7 +155,7 @@ public class AdminDashboardController {
      * @param id 类别 ID
      * @return 成功则空数据返回
      */
-    @DeleteMapping("/category/del/{id}")
+    @DeleteMapping("/categories/{id}")
     public Result<?> deleteCategory(
             @PathVariable Long id
     ) {
@@ -168,7 +168,7 @@ public class AdminDashboardController {
      * @param announcementRequest 公告信息请求体
      * @return 公告信息
      */
-    @PostMapping("/announcement/add")
+    @PostMapping("/announcements")
     public Result<?> createAnnouncement(
             @Valid @RequestBody AnnouncementRequest announcementRequest
     ) {
@@ -181,7 +181,7 @@ public class AdminDashboardController {
      * @param announcementRequest 公告信息请求体
      * @return 公告信息
      */
-    @PutMapping("/announcement/upd/{id}")
+    @PutMapping("/announcements/{id}")
     public Result<?> updateAnnouncement(
             @PathVariable Long id,
             @Valid @RequestBody AnnouncementRequest announcementRequest
@@ -194,7 +194,7 @@ public class AdminDashboardController {
      * @param id 公告 ID
      * @return 成功则空数据返回
      */
-    @DeleteMapping("/announcement/del/{id}")
+    @DeleteMapping("/announcements/{id}")
     public Result<?> deleteAnnouncement(
             @PathVariable Long id
     ) {
