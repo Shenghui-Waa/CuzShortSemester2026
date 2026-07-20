@@ -2,7 +2,7 @@ package com.cuzssp.campussecondhandtradingplatform_backend.controller;
 
 import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.LoginRequest;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.RegisterRequest;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.security.JwtTokenProvider;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.security.SecurityUtil;
 import com.cuzssp.campussecondhandtradingplatform_backend.service.AuthService;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.Result;
 import jakarta.validation.Valid;
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
-    private final JwtTokenProvider jwtTokenProvider;
+    private final SecurityUtil securityUtil;
 
     /**
      * 注册
@@ -50,7 +50,7 @@ public class AuthController {
     public Result<?> logout(
             @RequestHeader("Authorization") String token
     ) {
-        Long currentUserId = getCurrentUserId(token);
+        Long currentUserId = securityUtil.getCurrentUserId(token);
         return authService.logout(currentUserId);
     }
 
@@ -63,13 +63,7 @@ public class AuthController {
     public Result<?> me(
             @RequestHeader("Authorization") String token
     ) {
-        Long currentUserId = getCurrentUserId(token);
+        Long currentUserId = securityUtil.getCurrentUserId(token);
         return authService.me(currentUserId);
-    }
-
-    private Long getCurrentUserId(String token) {
-        if (token == null || token.isEmpty())
-            return null;
-        return jwtTokenProvider.getUserIdFromToken(token.replace("Bearer ", ""));
     }
 }

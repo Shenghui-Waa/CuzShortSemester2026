@@ -108,10 +108,7 @@ public class UserServiceImpl implements UserService {
     ) {
         PageHelper.startPage(page, pageSize);
         List<User> users = (keyword != null && !keyword.isEmpty())
-                ? userMapper.selectAll().stream()
-                .filter(user -> user.getUsername().contains(keyword)
-                        || user.getNickname().contains(keyword))
-                .collect(Collectors.toList())
+                ? userMapper.selectByKeyword(keyword)
                 : userMapper.selectAll();
         PageInfo<User> pageInfo = new PageInfo<>(users);
         List<UserVO> userVOs = users.stream()

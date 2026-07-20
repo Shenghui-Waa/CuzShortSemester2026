@@ -23,7 +23,6 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class OrderServiceImpl implements OrderService {
 
     private final OrderMapper orderMapper;
@@ -43,7 +42,7 @@ public class OrderServiceImpl implements OrderService {
     public Result<OrderVO> createOrder(
             Long buyerId, CreateOrderRequest request
     ) {
-        Product product = productMapper.selectById(request.getProductId());
+        Product product = productMapper.selectByIdForUpdate(request.getProductId());
         if (product == null)
             throw new BusinessException("Product not found");
         if (product.getStatus() != ProductConstant.STATUS_ON_SALE)
@@ -72,11 +71,7 @@ public class OrderServiceImpl implements OrderService {
             Long userId, Integer status, Integer page, Integer pageSize
     ) {
         PageHelper.startPage(page, pageSize);
-        List<OrderInfo> all = orderMapper.selectAll().stream()
-                .filter(
-                        order -> order.getBuyerId().equals(userId)
-                                || order.getSellerId().equals(userId)
-                ).collect(Collectors.toList());
+        List<OrderInfo> all = orderMapper.selectByUserId(userId);
         return getPageResultResultWithStatus(status, all);
     }
 
@@ -104,6 +99,7 @@ public class OrderServiceImpl implements OrderService {
      * @return
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Result<Void> payOrder(
             Long userId, Long orderId
     ) {
@@ -122,6 +118,7 @@ public class OrderServiceImpl implements OrderService {
      * @return
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Result<Void> shipOrder(
             Long sellerId, Long orderId
     ) {
@@ -140,6 +137,7 @@ public class OrderServiceImpl implements OrderService {
      * @return
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Result<Void> confirmOrder(Long buyerId, Long orderId) {
         OrderInfo order = orderMapper.selectById(orderId);
         if (order == null)

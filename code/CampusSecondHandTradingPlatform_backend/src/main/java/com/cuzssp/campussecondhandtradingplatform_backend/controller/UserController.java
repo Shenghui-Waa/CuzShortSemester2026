@@ -3,12 +3,11 @@ package com.cuzssp.campussecondhandtradingplatform_backend.controller;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.ChangePasswordRequest;
 
 import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.UpdateProfileRequest;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.security.JwtTokenProvider;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.security.SecurityUtil;
 import com.cuzssp.campussecondhandtradingplatform_backend.service.UserService;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.Result;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.beans.factory.annotation.Autowired;
 
 @RestController
 @RequestMapping("/api/user")
@@ -16,7 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class UserController {
 
     private final UserService userService;
-    private final JwtTokenProvider jwtTokenProvider;
+    private final SecurityUtil securityUtil;
 
     /**
      * 获取用户信息
@@ -41,7 +40,7 @@ public class UserController {
             @RequestHeader("Authorization") String token,
             @RequestBody UpdateProfileRequest request
     ) {
-        Long currentUserId = getCurrentUserId(token);
+        Long currentUserId = securityUtil.getCurrentUserId(token);
         return userService.updateProfile(currentUserId, request);
     }
 
@@ -56,7 +55,7 @@ public class UserController {
             @RequestHeader("Authorization") String token,
             @RequestBody ChangePasswordRequest request
     ) {
-        Long currentUserId = getCurrentUserId(token);
+        Long currentUserId = securityUtil.getCurrentUserId(token);
         return userService.changePassword(currentUserId, request);
     }
 
@@ -71,13 +70,7 @@ public class UserController {
             @RequestHeader("Authorization") String token,
             @RequestParam(required = false) String image
     ) {
-        Long currentUserId = getCurrentUserId(token);
+        Long currentUserId = securityUtil.getCurrentUserId(token);
         return userService.updateAvatar(currentUserId, image);
-    }
-
-    private Long getCurrentUserId(String token) {
-        if (token == null || token.isEmpty())
-            return null;
-        return jwtTokenProvider.getUserIdFromToken(token.replace("Bearer ", ""));
     }
 }

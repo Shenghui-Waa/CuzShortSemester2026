@@ -1,7 +1,6 @@
 package com.cuzssp.campussecondhandtradingplatform_backend.common.handler;
 
 import com.cuzssp.campussecondhandtradingplatform_backend.common.security.JwtTokenProvider;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -14,10 +13,12 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class ChatWebSocketHandler extends TextWebSocketHandler {
 
-    private static final Map<Long, WebSocketSession> sessions = new ConcurrentHashMap<>();
+    private final Map<Long, WebSocketSession> sessions = new ConcurrentHashMap<>();
+    private final JwtTokenProvider jwtTokenProvider;
 
-    @Autowired
-    private JwtTokenProvider jwtTokenProvider;
+    public ChatWebSocketHandler(JwtTokenProvider jwtTokenProvider) {
+        this.jwtTokenProvider = jwtTokenProvider;
+    }
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
@@ -42,7 +43,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         }
     }
 
-    public static void sendMessageToUser(Long userId, Long senderId) {
+    public void sendMessageToUser(Long userId, Long senderId) {
         WebSocketSession session = sessions.get(userId);
         if (session != null && session.isOpen()) {
             try {

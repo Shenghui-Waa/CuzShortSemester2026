@@ -27,9 +27,6 @@ public class ProductServiceImpl implements ProductService {
 
     /**
      * 获取商品列表 同时标记当前用户喜欢的
-     * @param query
-     * @param currentUserId
-     * @return
      */
     @Override
     public Result<PageResult<ProductVO>> getProductList(
@@ -63,11 +60,18 @@ public class ProductServiceImpl implements ProductService {
         else
             page = productMapper.selectAllActive();
         PageInfo<Product> pageInfo = new PageInfo<>(page);
+
         Set<Long> favoriteUserIds = (currentUserId != null)
                 ? new HashSet<>(favoriteMapper.selectFavoritedProductIdsByUserId(currentUserId))
                 : Collections.emptySet();
+
+        // 批量预加载关联数据，避免N+1查询
+        Map<Long, User> userMap = buildUserMap(page);
+        Map<Long, Category> categoryMap = buildCategoryMap(page);
+        Map<Long, List<String>> imageMap = buildImageMap(page);
+
         List<ProductVO> productVOs = page.stream()
-                .map(product -> toVO(product, favoriteUserIds))
+                .map(product -> toVO(product, favoriteUserIds, userMap, categoryMap, imageMap))
                 .collect(Collectors.toList());
         return Result.success(
                 new PageResult<>(
@@ -81,9 +85,6 @@ public class ProductServiceImpl implements ProductService {
 
     /**
      * 获取商品详情，同时标记当前用户的喜欢状态
-     * @param id
-     * @param currentUserId
-     * @return
      */
     @Override
     public Result<ProductVO> getProductDetail(
@@ -92,22 +93,19 @@ public class ProductServiceImpl implements ProductService {
         Product product = productMapper.selectById(id);
         if (product == null)
             return Result.error(404, "Product not found");
+        // 原子更新浏览量
+        productMapper.incrementViewCount(id);
         product.setViewCount(product.getViewCount() != null ? product.getViewCount() + 1 : 1);
-        productMapper.updateById(product);
         Set<Long> favoritedProductsIds = Collections.emptySet();
         if (currentUserId != null)
             favoritedProductsIds = new HashSet<>(
                     favoriteMapper.selectFavoritedProductIdsByUserId(currentUserId)
             );
-        return Result.success(toVO(productMapper.selectById(id), favoritedProductsIds));
+        return Result.success(toVO(product, favoritedProductsIds));
     }
 
     /**
      * 发布商品
-     * @param userId
-     * @param product
-     * @param images
-     * @return
      */
     @Override
     public Result<ProductVO> createProduct(
@@ -135,11 +133,6 @@ public class ProductServiceImpl implements ProductService {
 
     /**
      * 修改商品
-     * @param userId
-     * @param productId
-     * @param product
-     * @param images
-     * @return
      */
     @Override
     public Result<ProductVO> updateProduct(
@@ -148,9 +141,11 @@ public class ProductServiceImpl implements ProductService {
         Product existing = productMapper.selectById(productId);
         if (existing == null)
             return Result.error(404, "Product not found");
+        if (!Objects.equals(existing.getUserId(), userId))
+            return Result.error(403, "Permission denied");
         product.setId(productId);
         product.setUserId(existing.getUserId());
-        product.setStatus(ProductConstant.STATUS_NEED_CHECK); // 修改后须审核
+        product.setStatus(ProductConstant.STATUS_NEED_CHECK);
         product.setViewCount(existing.getViewCount());
         product.setUpdatedAt(LocalDateTime.now());
         productMapper.updateById(product);
@@ -171,10 +166,6 @@ public class ProductServiceImpl implements ProductService {
 
     /**
      * 修改商品状态
-     * @param userId
-     * @param productId
-     * @param status
-     * @return
      */
     @Override
     public Result<Void> updateProductStatus(
@@ -196,16 +187,14 @@ public class ProductServiceImpl implements ProductService {
         Product product = productMapper.selectById(productId);
         if (product == null)
             return Result.error(404, "Product not found");
+        if (!Objects.equals(product.getUserId(), userId))
+            return Result.error(403, "Permission denied");
         productMapper.deleteById(product.getId());
         return Result.success();
     }
 
     /**
      * 获取我发布的商品列表
-     * @param userId
-     * @param page
-     * @param pageSize
-     * @return
      */
     @Override
     public Result<PageResult<ProductVO>> getProductsByUser(
@@ -217,8 +206,14 @@ public class ProductServiceImpl implements ProductService {
         Set<Long> favoritedIds = new HashSet<>(
                 favoriteMapper.selectFavoritedProductIdsByUserId(userId)
         );
+
+        // 批量预加载关联数据
+        Map<Long, User> userMap = buildUserMap(productList);
+        Map<Long, Category> categoryMap = buildCategoryMap(productList);
+        Map<Long, List<String>> imageMap = buildImageMap(productList);
+
         List<ProductVO> productVOs = productList.stream()
-                .map(product -> toVO(product, favoritedIds))
+                .map(product -> toVO(product, favoritedIds, userMap, categoryMap, imageMap))
                 .collect(Collectors.toList());
         return Result.success(
                 new PageResult<>(
@@ -230,9 +225,10 @@ public class ProductServiceImpl implements ProductService {
         );
     }
 
-    private ProductVO toVO(
-            Product product, Set<Long> favIds
-    ) {
+    /**
+     * 单商品转VO（逐条查询，用于单商品场景）
+     */
+    private ProductVO toVO(Product product, Set<Long> favIds) {
         ProductVO productVO = ToVOUtil.toProductVO(
                 product,
                 userMapper.selectById(product.getUserId()),
@@ -244,6 +240,48 @@ public class ProductServiceImpl implements ProductService {
                 .map(ProductImage::getUrl)
                 .collect(Collectors.toList()));
         return productVO;
+    }
+
+    /**
+     * 批量商品转VO（使用预加载数据，避免N+1查询）
+     */
+    private ProductVO toVO(
+            Product product, Set<Long> favIds,
+            Map<Long, User> userMap,
+            Map<Long, Category> categoryMap,
+            Map<Long, List<String>> imageMap
+    ) {
+        ProductVO productVO = ToVOUtil.toProductVO(
+                product,
+                userMap.get(product.getUserId()),
+                categoryMap.get(product.getCategoryId())
+        );
+        productVO.setIsFavorited(favIds.contains(product.getId()));
+        productVO.setImages(imageMap.getOrDefault(product.getId(), Collections.emptyList()));
+        return productVO;
+    }
+
+    private Map<Long, User> buildUserMap(List<Product> products) {
+        List<Long> userIds = products.stream().map(Product::getUserId).distinct().collect(Collectors.toList());
+        if (userIds.isEmpty()) return Collections.emptyMap();
+        return userMapper.selectByIds(userIds).stream()
+                .collect(Collectors.toMap(User::getId, u -> u));
+    }
+
+    private Map<Long, Category> buildCategoryMap(List<Product> products) {
+        List<Long> categoryIds = products.stream().map(Product::getCategoryId).distinct().collect(Collectors.toList());
+        if (categoryIds.isEmpty()) return Collections.emptyMap();
+        return categoryMapper.selectByIds(categoryIds).stream()
+                .collect(Collectors.toMap(Category::getId, c -> c));
+    }
+
+    private Map<Long, List<String>> buildImageMap(List<Product> products) {
+        List<Long> productIds = products.stream().map(Product::getId).collect(Collectors.toList());
+        if (productIds.isEmpty()) return Collections.emptyMap();
+        return productImageMapper.selectByProductIds(productIds).stream()
+                .collect(Collectors.groupingBy(
+                        ProductImage::getProductId,
+                        Collectors.mapping(ProductImage::getUrl, Collectors.toList())));
     }
 
     /*
@@ -267,16 +305,20 @@ public class ProductServiceImpl implements ProductService {
                     .filter(product -> product.getStatus().equals(status))
                     .collect(Collectors.toList());
         PageInfo<Product> pageInfo = new PageInfo<>(all);
+
+        // 批量预加载关联数据
+        Map<Long, User> userMap = buildUserMap(all);
+        Map<Long, Category> categoryMap = buildCategoryMap(all);
+        Map<Long, List<String>> imageMap = buildImageMap(all);
+
         List<ProductVO> productVOs = all.stream()
                 .map(product -> {
                     ProductVO productVO = ToVOUtil.toProductVO(
                             product,
-                            userMapper.selectById(product.getUserId()),
-                            categoryMapper.selectById(product.getCategoryId()));
+                            userMap.get(product.getUserId()),
+                            categoryMap.get(product.getCategoryId()));
                     productVO.setImages(
-                            productImageMapper.selectByProductId(product.getId()).stream()
-                                    .map(ProductImage::getUrl)
-                                    .collect(Collectors.toList()));
+                            imageMap.getOrDefault(product.getId(), Collections.emptyList()));
                     return productVO;
                 }).collect(Collectors.toList());
         return Result.success(

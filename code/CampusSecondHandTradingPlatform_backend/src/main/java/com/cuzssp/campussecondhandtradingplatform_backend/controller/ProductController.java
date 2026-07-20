@@ -3,7 +3,7 @@ package com.cuzssp.campussecondhandtradingplatform_backend.controller;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.ProductQueryDTO;
 
 import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.Product;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.security.JwtTokenProvider;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.security.SecurityUtil;
 import com.cuzssp.campussecondhandtradingplatform_backend.service.ProductService;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.Result;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +17,7 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService productService;
-    private final JwtTokenProvider jwtTokenProvider;
+    private final SecurityUtil securityUtil;
 
     /**
      * 获取商品列表
@@ -30,7 +30,7 @@ public class ProductController {
             ProductQueryDTO query,
             @RequestHeader(value = "Authorization", required = false) String token
     ) {
-        Long currentUserId = getCurrentUserId(token);
+        Long currentUserId = securityUtil.getCurrentUserId(token);
         return productService.getProductList(query, currentUserId);
     }
 
@@ -45,7 +45,7 @@ public class ProductController {
             @PathVariable Long id,
             @RequestHeader(value = "Authorization", required = false) String token
     ) {
-        Long currentUserId = getCurrentUserId(token);
+        Long currentUserId = securityUtil.getCurrentUserId(token);
         return productService.getProductDetail(id, currentUserId);
     }
 
@@ -62,7 +62,7 @@ public class ProductController {
             @RequestBody Product product,
             @RequestParam(required = false) List<String> images
     ) {
-        Long currentUserId = getCurrentUserId(token);
+        Long currentUserId = securityUtil.getCurrentUserId(token);
         return productService.createProduct(currentUserId, product, images);
     }
 
@@ -81,7 +81,7 @@ public class ProductController {
             @RequestBody Product product,
             @RequestParam(required = false) List<String> images
     ) {
-        Long currentUserId = getCurrentUserId(token);
+        Long currentUserId = securityUtil.getCurrentUserId(token);
         return productService.updateProduct(currentUserId, id, product, images);
     }
 
@@ -98,7 +98,7 @@ public class ProductController {
             @PathVariable Long id,
             @RequestParam Integer status
     ) {
-        Long currentUserId = getCurrentUserId(token);
+        Long currentUserId = securityUtil.getCurrentUserId(token);
         return productService.updateProductStatus(currentUserId, id, status);
     }
 
@@ -113,7 +113,7 @@ public class ProductController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long id
     ) {
-        Long currentUserId = getCurrentUserId(token);
+        Long currentUserId = securityUtil.getCurrentUserId(token);
         return productService.deleteProduct(currentUserId, id);
     }
 
@@ -130,17 +130,7 @@ public class ProductController {
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer pageSize
     ) {
-        Long currentUserId = getCurrentUserId(token);
+        Long currentUserId = securityUtil.getCurrentUserId(token);
         return productService.getProductsByUser(currentUserId, page, pageSize);
-    }
-
-    private Long getCurrentUserId(String token) {
-        if (token == null || token.isEmpty())
-            return null;
-        try {
-            return jwtTokenProvider.getUserIdFromToken(token.replace("Bearer ", ""));
-        } catch (Exception e) {
-            return null;
-        }
     }
 }

@@ -1,6 +1,6 @@
 package com.cuzssp.campussecondhandtradingplatform_backend.controller;
 
-import com.cuzssp.campussecondhandtradingplatform_backend.common.security.JwtTokenProvider;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.security.SecurityUtil;
 
 import com.cuzssp.campussecondhandtradingplatform_backend.service.FavoriteService;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.Result;
@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 public class FavoriteController {
 
     private final FavoriteService favoriteService;
-    private final JwtTokenProvider jwtTokenProvider;
+    private final SecurityUtil securityUtil;
 
     /**
      * 获取喜欢列表
@@ -28,7 +28,7 @@ public class FavoriteController {
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "12") Integer pageSize
     ) {
-        Long currentUserId = getCurrentUserId(token);
+        Long currentUserId = securityUtil.getCurrentUserId(token);
         return favoriteService.getFavorites(currentUserId, page, pageSize);
     }
 
@@ -43,7 +43,7 @@ public class FavoriteController {
             @RequestHeader("Authorization") String token,
             @RequestParam Long productId
     ) {
-        Long currentUserId = getCurrentUserId(token);
+        Long currentUserId = securityUtil.getCurrentUserId(token);
         return favoriteService.addFavorite(currentUserId, productId);
     }
 
@@ -58,7 +58,7 @@ public class FavoriteController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long productId
     ) {
-        Long currentUserId = getCurrentUserId(token);
+        Long currentUserId = securityUtil.getCurrentUserId(token);
         return favoriteService.removeFavorite(currentUserId, productId);
     }
 
@@ -73,14 +73,7 @@ public class FavoriteController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long productId
     ) {
-        Long currentUserId = getCurrentUserId(token);
+        Long currentUserId = securityUtil.getCurrentUserId(token);
         return favoriteService.isFavorited(currentUserId, productId);
-    }
-
-    private Long getCurrentUserId(String token) {
-        if (token == null || token.isEmpty())
-            return null;
-        return jwtTokenProvider.getUserIdFromToken(token.replace("Bearer ", ""));
-
     }
 }

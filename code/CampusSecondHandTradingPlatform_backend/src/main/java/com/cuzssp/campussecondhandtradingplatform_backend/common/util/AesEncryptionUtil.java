@@ -1,4 +1,4 @@
-﻿package com.cuzssp.campussecondhandtradingplatform_backend.common.util;
+package com.cuzssp.campussecondhandtradingplatform_backend.common.util;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
