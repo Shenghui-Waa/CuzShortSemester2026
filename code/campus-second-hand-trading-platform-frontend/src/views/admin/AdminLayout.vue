@@ -1,6 +1,8 @@
 <template>
-  <div class="admin-layout" :class="{ collapsed }">
+  <div class="admin-layout" :class="{ collapsed, 'mobile-open': mobileSidebarVisible }">
     <el-container class="admin-container">
+      <!-- 移动端遮罩 -->
+      <div class="sidebar-overlay" :class="{ show: mobileSidebarVisible }" @click="mobileSidebarVisible = false"></div>
       <el-aside :width="collapsed ? '64px' : '220px'" class="sidebar">
         <div class="logo-area">
           <el-button class="collapse-btn" @click="collapsed = !collapsed" text>
@@ -66,6 +68,10 @@
         </div>
       </el-aside>
       <el-main class="admin-main">
+        <!-- 移动端侧边栏切换按钮 -->
+        <el-button class="mobile-sidebar-toggle" @click="mobileSidebarVisible = !mobileSidebarVisible" text>
+          <el-icon :size="20"><Menu /></el-icon>
+        </el-button>
         <router-view />
       </el-main>
     </el-container>
@@ -80,6 +86,10 @@ import { useThemeStore } from "@/stores/theme";
 const route = useRoute();
 const theme = useThemeStore();
 const collapsed = ref(false);
+const mobileSidebarVisible = ref(false);
+
+// 移动端点击菜单项后自动关闭侧边栏
+watch(() => route.path, () => { mobileSidebarVisible.value = false; });
 
 const menuWrapper = ref();
 const menuIndicatorStyle = ref({ top: "0px", height: "0px", opacity: "0" });
@@ -281,4 +291,36 @@ html.dark .back-btn:hover { background: rgba(205,40,70,.2) !important; color: #c
 
 .el-menu--collapse { width: 64px; }
 .el-menu--collapse .el-menu-item { padding: 0 !important; justify-content: center; }
+
+/* ======== 移动端响应式 ======== */
+.mobile-sidebar-toggle { display: none; }
+.sidebar-overlay { display: none; }
+
+@media (max-width: 768px) {
+  .mobile-sidebar-toggle {
+    display: inline-flex; position: fixed; top: 8px; left: 8px; z-index: 200;
+    color: var(--text-secondary); background: var(--bg-card);
+    border-radius: 8px; box-shadow: var(--shadow); width: 40px; height: 40px;
+    justify-content: center; align-items: center;
+  }
+
+  .sidebar {
+    position: fixed; top: 0; left: -220px; height: 100vh; z-index: 300;
+    width: 220px !important; transition: left .3s ease;
+    overflow-y: auto;
+  }
+
+  .sidebar-overlay {
+    display: block; position: fixed; inset: 0; z-index: 250;
+    background: rgba(0,0,0,.4); opacity: 0; pointer-events: none;
+    transition: opacity .3s ease;
+  }
+  .sidebar-overlay.show { opacity: 1; pointer-events: auto; }
+
+  .admin-layout.mobile-open .sidebar { left: 0; }
+
+  .admin-main { padding: 16px; padding-top: 56px; }
+  .admin-container { position: relative; }
+  .collapse-btn, .logo-text, .theme-label, .back-btn span { /* 保持可见 */ }
+}
 </style>

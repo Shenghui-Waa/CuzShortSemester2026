@@ -8,13 +8,25 @@ body {
   cursor: default;
 }
 a { text-decoration: none; color: #fb1e47; }
+h2 { margin-bottom: 24px; }
 
 .page { display: flex; flex-direction: column; min-height: 100vh; }
 .page > :nth-child(2) { flex: 1; }
 .product-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
 @media (max-width: 900px) { .product-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px) { .product-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; } }
 
 .page-container { max-width: 1200px; margin: 0 auto; padding: 20px; width: 100%; }
+
+
+/* ======== 移动端全局适配 ======== */
+@media (max-width: 768px) {
+  .page-container { padding: 12px; }
+
+  /* 全局弹窗移动端适配 */
+  .el-dialog { width: 90% !important; margin: 0 auto; }
+  .el-dialog__body { padding: 16px !important; max-height: 60vh; overflow-y: auto; }
+}
 
 html.dark a { color: #cd2846; }
 

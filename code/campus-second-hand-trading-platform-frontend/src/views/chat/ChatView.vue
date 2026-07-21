@@ -1,8 +1,8 @@
-﻿<template>
+<template>
   <div class="page">
     <AppHeader />
     <div class="chat-container">
-      <div class="contacts-panel">
+      <div class="contacts-panel" :class="{ 'mobile-hide': mobileView === 'chat' }">
         <div class="panel-title">消息</div>
         <div class="search-box">
           <el-input v-model="searchText"
@@ -32,8 +32,11 @@
         <div v-else class="empty-contacts">{{ searchText ? "无匹配联系人" : "暂无联系人" }}</div>
       </div>
 
-      <div class="chat-area" v-if="selectedId != null">
+      <div class="chat-area" v-if="selectedId != null" :class="{ 'mobile-show': mobileView === 'chat' }">
         <div class="chat-header">
+          <el-button class="chat-back-btn" @click="goBackToList" text>
+            <el-icon :size="20"><ArrowLeft /></el-icon>
+          </el-button>
           <span>{{ selectedName }}</span>
           <el-button size="small" text @click="showProfile">•••</el-button>
         </div>
@@ -89,7 +92,7 @@
 import { ref, computed, nextTick, onMounted, onUnmounted } from "vue";
 import { useRoute } from "vue-router";
 import { ElMessage } from "element-plus";
-import { ChatDotRound } from "@element-plus/icons-vue";
+import { ChatDotRound, ArrowLeft } from "@element-plus/icons-vue";
 import AppHeader from "@/components/layout/AppHeader.vue";
 import AppFooter from "@/components/layout/AppFooter.vue";
 import { chatApi } from "@/api/index";
@@ -113,6 +116,7 @@ const inputText = ref("");
 const msgRef = ref<HTMLElement | null>(null);
 const route = useRoute();
 const searchText = ref("");
+const mobileView = ref<'list' | 'chat'>('list');
 let ws: WebSocket | null = null;
 
 onMounted(async () => {
@@ -159,6 +163,7 @@ function connectWS() {
 async function selectContact(c: any) {
   selectedId.value = c.contactId;
   selectedName.value = c.contactName || "";
+  mobileView.value = 'chat';
   messages.value = [];
   try {
     const res: any = await chatApi.messages(c.contactId, 1, 100);
@@ -169,6 +174,10 @@ async function selectContact(c: any) {
     await nextTick();
     scrollBottom();
   }
+}
+
+function goBackToList() {
+  mobileView.value = 'list';
 }
 
 async function send() {
@@ -208,8 +217,6 @@ async function showProfile() {
     }
   } catch { /* ignore */ }
 }
-
-
 
 function maskPhone(phone: string) {
   if (!phone) return "-";
@@ -341,6 +348,7 @@ function showTimeSep(idx: number) {
   justify-content: space-between;
   align-items: center;
 }
+.chat-back-btn { display: none; }
 .messages {
   max-height: 75vh;
   flex: 1;
@@ -426,6 +434,17 @@ function showTimeSep(idx: number) {
 .messages::-webkit-scrollbar-track { background: transparent; }
 
 .page { height: 100vh; overflow: hidden; }
+
+/* ======== 移动端响应式 ======== */
+@media (max-width: 768px) {
+  .chat-container { width: 100vw; border-radius: 0; border: none; }
+  .contacts-panel { width: 100%; flex: 1; }
+  .contacts-panel.mobile-hide { display: none; }
+  .chat-area { flex: 1; }
+  .chat-area:not(.mobile-show) { display: none; }
+  .chat-back-btn { display: inline-flex; flex-shrink: 0; color: var(--text-secondary); }
+  .chat-placeholder { display: none; }
+}
 
 html.dark .contacts-panel { border-color: #333; }
 html.dark .chat-area { border-color: #333; }
