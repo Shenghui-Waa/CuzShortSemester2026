@@ -1,6 +1,7 @@
 package com.cuzssp.campussecondhandtradingplatform_backend.common.util;
 
 import com.cuzssp.campussecondhandtradingplatform_backend.common.config.S3Config;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
@@ -12,19 +13,15 @@ import java.util.UUID;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class FileUtil {
 
     private final S3Config s3Config;
-    private final CloudflareR2Client cloudflareR2Client;
-
-    public FileUtil(S3Config s3Config, CloudflareR2Client cloudflareR2Client) {
-        this.s3Config = s3Config;
-        this.cloudflareR2Client = cloudflareR2Client;
-    }
+    private final S3ClientUtil s3ClientUtil;
 
     public String uploadImage(MultipartFile file) {
         try {
-            S3Client s3Client = cloudflareR2Client.getS3Client();
+            S3Client s3Client = s3ClientUtil.getS3Client();
             String originalFilename = file.getOriginalFilename();
             String extension = "";
             if (originalFilename != null && originalFilename.contains(".")) {
