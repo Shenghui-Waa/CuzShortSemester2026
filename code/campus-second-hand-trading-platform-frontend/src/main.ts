@@ -21,7 +21,6 @@ useThemeStore();
 
 app.mount("#app");
 
-(window as any).__ROUTER__ = router;
 
 // 启动后校验已有 token 是否有效，无效则清除
 async function validateToken() {

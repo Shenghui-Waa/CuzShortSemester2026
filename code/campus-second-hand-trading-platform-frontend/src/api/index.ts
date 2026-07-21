@@ -42,8 +42,8 @@ export const categoryApi = {
 
 
 export const announcementApi = {
-  list: (page: number, pageSize: number) => request.get("/announcement", { params: { page, pageSize } }),
-  detail: (id: number) => request.get(`/announcement/${id}`),
+  list: (page: number, pageSize: number) => request.get("/announcements", { params: { page, pageSize } }),
+  detail: (id: number) => request.get(`/announcements/${id}`),
   create: (data: any) => request.post("/admin/announcements", data),
   update: (id: number, data: any) => request.put(`/admin/announcements/${id}`, data),
   delete: (id: number) => request.delete(`/admin/announcements/${id}`),

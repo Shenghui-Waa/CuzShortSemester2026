@@ -2,6 +2,7 @@ package com.cuzssp.campussecondhandtradingplatform_backend.service.impl;
 
 import com.cuzssp.campussecondhandtradingplatform_backend.common.constant.ProductConstant;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.*;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.exception.BusinessException;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.util.ToVOUtil;
 import com.cuzssp.campussecondhandtradingplatform_backend.mapper.*;
 import com.cuzssp.campussecondhandtradingplatform_backend.service.ProductService;
@@ -25,6 +26,11 @@ public class ProductServiceImpl implements ProductService {
     private final UserMapper userMapper;
     private final CategoryMapper categoryMapper;
 
+    private static final Set<String> ALLOWED_TRANSITIONS = Set.of(
+            ProductConstant.STATUS_ON_SALE + "->" + ProductConstant.STATUS_DISABLE,
+            ProductConstant.STATUS_DISABLE + "->" + ProductConstant.STATUS_NEED_CHECK
+    );
+
     /**
      * 获取商品列表 同时标记当前用户喜欢的
      */
@@ -35,14 +41,11 @@ public class ProductServiceImpl implements ProductService {
         PageHelper.startPage(query.getPage(), query.getPageSize());
         List<Product> page;
         if (query.getKeyword() != null && !query.getKeyword().isEmpty())
-            page = productMapper.searchByKeyword(
+            page = productMapper.searchByKeywordOrStatus(
                     query.getKeyword(),
-                    ProductConstant.STATUS_ON_SALE
-            );
-        else if (
-                query.getCategoryId() != null && query.getCampus() != null
-                && !query.getCampus().isEmpty()
-        )
+                    ProductConstant.STATUS_ON_SALE);
+        else if (query.getCategoryId() != null && query.getCampus() != null
+                && !query.getCampus().isEmpty())
             page = productMapper.selectByCategoryAndCampus(
                     query.getCategoryId(),
                     query.getCampus(),
@@ -50,15 +53,14 @@ public class ProductServiceImpl implements ProductService {
         else if (query.getCategoryId() != null)
             page = productMapper.selectByCategoryId(
                     query.getCategoryId(),
-                    ProductConstant.STATUS_ON_SALE
-            );
+                    ProductConstant.STATUS_ON_SALE);
         else if (query.getCampus() != null && !query.getCampus().isEmpty())
             page = productMapper.selectByCampus(
                     query.getCampus(),
-                    ProductConstant.STATUS_ON_SALE
-            );
+                    ProductConstant.STATUS_ON_SALE);
         else
             page = productMapper.selectAllActive();
+
         PageInfo<Product> pageInfo = new PageInfo<>(page);
 
         Set<Long> favoriteUserIds = (currentUserId != null)
@@ -71,7 +73,9 @@ public class ProductServiceImpl implements ProductService {
         Map<Long, List<String>> imageMap = buildImageMap(page);
 
         List<ProductVO> productVOs = page.stream()
-                .map(product -> toVO(product, favoriteUserIds, userMap, categoryMap, imageMap))
+                .map(product -> toVO(
+                        product, favoriteUserIds, userMap, categoryMap, imageMap
+                ))
                 .collect(Collectors.toList());
         return Result.success(
                 new PageResult<>(
@@ -92,15 +96,14 @@ public class ProductServiceImpl implements ProductService {
     ) {
         Product product = productMapper.selectById(id);
         if (product == null)
-            return Result.error(404, "Product not found");
-        // 原子更新浏览量
+             throw new BusinessException(404, "Product not found");
         productMapper.incrementViewCount(id);
-        product.setViewCount(product.getViewCount() != null ? product.getViewCount() + 1 : 1);
         Set<Long> favoritedProductsIds = Collections.emptySet();
         if (currentUserId != null)
             favoritedProductsIds = new HashSet<>(
                     favoriteMapper.selectFavoritedProductIdsByUserId(currentUserId)
             );
+        product = productMapper.selectById(product.getId());
         return Result.success(toVO(product, favoritedProductsIds));
     }
 
@@ -140,9 +143,9 @@ public class ProductServiceImpl implements ProductService {
     ) {
         Product existing = productMapper.selectById(productId);
         if (existing == null)
-            return Result.error(404, "Product not found");
+            throw new BusinessException(404, "Product not found");
         if (!Objects.equals(existing.getUserId(), userId))
-            return Result.error(403, "Permission denied");
+            throw new BusinessException(403, "Permission denied");
         product.setId(productId);
         product.setUserId(existing.getUserId());
         product.setStatus(ProductConstant.STATUS_NEED_CHECK);
@@ -173,7 +176,12 @@ public class ProductServiceImpl implements ProductService {
     ) {
         Product product = productMapper.selectById(productId);
         if (product == null)
-            return Result.error(404, "Product not found");
+            throw new BusinessException(404, "Product not found");
+        if (!Objects.equals(product.getUserId(), userId))
+            throw new BusinessException(403, "Permission denied");
+        String transition = product.getStatus() + "->" + status;
+        if (!ALLOWED_TRANSITIONS.contains(transition))
+            throw new BusinessException(400, "Invalid status transition");
         product.setStatus(status);
         product.setUpdatedAt(LocalDateTime.now());
         productMapper.updateById(product);
@@ -186,9 +194,9 @@ public class ProductServiceImpl implements ProductService {
     ) {
         Product product = productMapper.selectById(productId);
         if (product == null)
-            return Result.error(404, "Product not found");
+            throw new BusinessException(404, "Product not found");
         if (!Objects.equals(product.getUserId(), userId))
-            return Result.error(403, "Permission denied");
+            throw new BusinessException(403, "Permission denied");
         productMapper.deleteById(product.getId());
         return Result.success();
     }
@@ -228,7 +236,9 @@ public class ProductServiceImpl implements ProductService {
     /**
      * 单商品转VO（逐条查询，用于单商品场景）
      */
-    private ProductVO toVO(Product product, Set<Long> favIds) {
+    private ProductVO toVO(
+            Product product, Set<Long> favIds
+    ) {
         ProductVO productVO = ToVOUtil.toProductVO(
                 product,
                 userMapper.selectById(product.getUserId()),
@@ -265,14 +275,14 @@ public class ProductServiceImpl implements ProductService {
         List<Long> userIds = products.stream().map(Product::getUserId).distinct().collect(Collectors.toList());
         if (userIds.isEmpty()) return Collections.emptyMap();
         return userMapper.selectByIds(userIds).stream()
-                .collect(Collectors.toMap(User::getId, u -> u));
+                .collect(Collectors.toMap(User::getId, user -> user));
     }
 
     private Map<Long, Category> buildCategoryMap(List<Product> products) {
         List<Long> categoryIds = products.stream().map(Product::getCategoryId).distinct().collect(Collectors.toList());
         if (categoryIds.isEmpty()) return Collections.emptyMap();
         return categoryMapper.selectByIds(categoryIds).stream()
-                .collect(Collectors.toMap(Category::getId, c -> c));
+                .collect(Collectors.toMap(Category::getId, category -> category));
     }
 
     private Map<Long, List<String>> buildImageMap(List<Product> products) {
@@ -289,21 +299,12 @@ public class ProductServiceImpl implements ProductService {
      */
     @Override
     public Result<PageResult<ProductVO>> getProductList(
-            Integer page,
-            Integer pageSize,
-            String keyword,
-            Integer status
+            Integer page, Integer pageSize, String keyword, Integer status
     ) {
         PageHelper.startPage(page, pageSize);
         List<Product> all;
-        if (keyword != null && !keyword.isEmpty())
-            all = productMapper.searchByKeyword(keyword, ProductConstant.STATUS_ON_SALE);
-        else
-            all = productMapper.selectAll();
-        if (status != null)
-            all = all.stream()
-                    .filter(product -> product.getStatus().equals(status))
-                    .collect(Collectors.toList());
+        all = productMapper.searchByKeywordOrStatus(keyword, status);
+
         PageInfo<Product> pageInfo = new PageInfo<>(all);
 
         // 批量预加载关联数据
