@@ -32,20 +32,21 @@ mybatis-plus:
       id-type: assign_id
 
 jwt:
-  secret: ${JWT_SECRET:cuzssp-jwt-secret-key-2026-32-byte-default}
+  secret: ${JWT_SECRET:cuzssp-jwt-secret-key-default}
   expiration: ${JWT_EXPIRATION:86400000}
 
 chat:
   encryption:
-    key: ${CHAT_ENCRYPTION_KEY:cuzssp-chat-encryption-key-2026-32-byte-default}
+    key: ${CHAT_ENCRYPTION_KEY:cuzssp-chat-encryption-key-default}
 
-r2:
-  s3:
-    account-id: ${R2_ACCOUNT_ID:placeholder-account-id}
-    access-key: ${R2_ACCESS_KEY_ID:placeholder-access-key}
-    secret-key: ${R2_SECRET_ACCESS_KEY:placeholder-secret-key}
-    endpoint: ${R2_ENDPOINT:https://placeholder.r2.cloudflarestorage.com}
-    bucket-name: ${R2_BUCKET_NAME:demo}
-    child-folder: ${R2_CHILD_FOLDER:demo/2026/}
-    cdn-domain: ${R2_PUBLIC_URL:https://placeholder.example.com}
-    region: ${R2_REGION:auto}
+s3:
+  config:
+    storage-support: ${STORAGE_SUPPORT:r2}
+    account-id: ${ACCOUNT_ID}
+    access-key: ${ACCESS_KEY_ID}
+    secret-key: ${SECRET_ACCESS_KEY}
+    endpoint: ${ENDPOINT}
+    bucket-name: ${BUCKET_NAME:demo}
+    child-folder: ${CHILD_FOLDER:demo/2026/}
+    cdn-domain: ${PUBLIC_URL}
+    region: ${REGION:auto}

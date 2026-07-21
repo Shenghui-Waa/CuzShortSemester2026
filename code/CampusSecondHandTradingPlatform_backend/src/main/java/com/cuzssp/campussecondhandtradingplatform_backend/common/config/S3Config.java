@@ -6,9 +6,10 @@ import org.springframework.stereotype.Component;
 
 @Data
 @Component
-@ConfigurationProperties(prefix = "r2.s3")
+@ConfigurationProperties(prefix = "s3.config")
 public class S3Config {
 
+    private String storageSupport;
     private String accountId;
     private String accessKey;
     private String secretKey;
