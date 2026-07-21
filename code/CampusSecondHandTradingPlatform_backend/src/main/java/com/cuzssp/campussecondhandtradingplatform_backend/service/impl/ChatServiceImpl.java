@@ -4,7 +4,6 @@ import com.cuzssp.campussecondhandtradingplatform_backend.common.constant.ChatMe
 import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.ChatMessage;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.User;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.handler.ChatWebSocketHandler;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.handler.ChatWebSocketHandler;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.util.AesEncryptionUtil;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.util.ToEntityUtil;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.util.ToVOUtil;

@@ -1,6 +1,7 @@
 package com.cuzssp.campussecondhandtradingplatform_backend.common.handler;
 
 import com.cuzssp.campussecondhandtradingplatform_backend.common.security.JwtTokenProvider;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -10,6 +11,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 @Component
 public class ChatWebSocketHandler extends TextWebSocketHandler {
 
@@ -50,7 +52,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
                 String notification = String.format("{\"type\":\"new_message\",\"from\":%d}", senderId);
                 session.sendMessage(new TextMessage(notification));
             } catch (Exception e) {
-                // ignore
+                log.warn("Failed to send message to user {}: {}", userId, e.getMessage());
             }
         }
     }

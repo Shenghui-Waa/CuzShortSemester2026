@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cuzssp.campussecondhandtradingplatform_backend.mapper.ProductMapper">
+
+    <select id="searchByKeywordOrStatus"
+            resultType="com.cuzssp.campussecondhandtradingplatform_backend.common.entity.Product">
+        SELECT * FROM product
+        WHERE 1 = 1
+            <if test='keyword != null and keyword != ""'>
+                AND (title LIKE CONCAT('%',#{keyword},'%') OR description LIKE CONCAT('%',#{keyword},'%'))
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        ORDER BY created_at DESC, price
+    </select>
+
+    <select id="selectByUserIdWithLimit"
+            resultType="com.cuzssp.campussecondhandtradingplatform_backend.common.entity.Product">
+        SELECT * FROM product
+        WHERE user_id = #{userId}
+        LIMIT #{offset}, #{batchSize}
+    </select>
+
+</mapper>

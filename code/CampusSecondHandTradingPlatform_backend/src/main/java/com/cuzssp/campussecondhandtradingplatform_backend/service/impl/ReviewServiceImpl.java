@@ -18,7 +18,9 @@ import com.github.pagehelper.PageInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,7 +37,10 @@ public class ReviewServiceImpl implements ReviewService {
     ) {
         OrderInfo order = orderMapper.selectById(request.getOrderId());
         if (order == null)
-            throw new BusinessException("Order not found");
+            throw new BusinessException(404, "Order not found");
+        if (!Objects.equals(order.getBuyerId(), reviewerId)
+                && !Objects.equals(order.getSellerId(), reviewerId))
+            throw new BusinessException(403, "Not a participant of this order");
         if (reviewMapper.countByOrderIdAndReviewerId(request.getOrderId(), reviewerId) > 0)
             throw new BusinessException("Already reviewed");
         Review review = ToEntityUtil.toReviewEntity(reviewerId, request);
@@ -45,6 +50,7 @@ public class ReviewServiceImpl implements ReviewService {
             target.setCreditScore(
                     target.getCreditScore() + (request.getRating() >= 3 ? 1 : -1)
             );
+            target.setUpdatedAt(LocalDateTime.now());
             userMapper.updateById(target);
         }
         return Result.success();
@@ -61,13 +67,9 @@ public class ReviewServiceImpl implements ReviewService {
                 .map(review -> ToVOUtil.toReviewVO(
                         review, userMapper.selectById(review.getReviewerId())
                 )).collect(Collectors.toList());
-        return Result.success(
-                new PageResult<>(
-                        reviewVOs,
-                        reviewPageInfo.getTotal(),
-                        reviewPageInfo.getPageNum(),
-                        reviewPageInfo.getPageSize()
-                )
-        );
+        return Result.success(new PageResult<>(
+                reviewVOs, reviewPageInfo.getTotal(),
+                reviewPageInfo.getPageNum(), reviewPageInfo.getPageSize()
+        ));
     }
 }

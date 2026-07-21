@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,8 +36,12 @@ public class UserServiceImpl implements UserService {
     private final PasswordProvider passwordProvider;
     private final ProductMapper productMapper;
 
+    private static final int BATCH_SIZE = 50;
+
     @Override
-    public Result<UserVO> getUserById(Long id) {
+    public Result<UserVO> getUserById(
+            Long id
+    ) {
         User user = userMapper.selectById(id);
         if (user == null)
             throw new BusinessException("User not found");
@@ -60,12 +65,15 @@ public class UserServiceImpl implements UserService {
             user.setSchool(request.getSchool());
         if (request.getCampus() != null)
             user.setCampus(request.getCampus());
+        user.setUpdatedAt(LocalDateTime.now());
         userMapper.updateById(user);
         return Result.success(ToVOUtil.toUserVO(userMapper.selectById(userId)));
     }
 
     @Override
-    public Result<Void> changePassword(Long userId, ChangePasswordRequest request) {
+    public Result<Void> changePassword(
+            Long userId, ChangePasswordRequest request
+    ) {
         User user = userMapper.selectById(userId);
         if (user == null)
             throw new BusinessException("User not found");
@@ -77,7 +85,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Result<Void> updateAvatar(Long userId, String imageURL) {
+    public Result<Void> updateAvatar(
+            Long userId, String imageURL
+    ) {
         User user = userMapper.selectById(userId);
         if (user == null)
             throw new BusinessException("User not found");
@@ -91,7 +101,9 @@ public class UserServiceImpl implements UserService {
     管理员操作
      */
     @Override
-    public Result<UserVO> addAdmin(RegisterRequest request) {
+    public Result<UserVO> addAdmin(
+            RegisterRequest request
+    ) {
         if (userMapper.countByUsername(request.getUsername()) > 0)
             throw new BusinessException("Admin name already exists");
         User user = ToEntityUtil.toUserEntity(request, passwordProvider);
@@ -102,9 +114,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Result<PageResult<UserVO>> getUserList(
-            Integer page,
-            Integer pageSize,
-            String keyword
+            Integer page, Integer pageSize, String keyword
     ) {
         PageHelper.startPage(page, pageSize);
         List<User> users = (keyword != null && !keyword.isEmpty())
@@ -127,34 +137,37 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Result<Void> updateUserStatus(
-            Long userId,
-            Integer status
+            Long userId, Integer targetStatus
     ) {
         User user = userMapper.selectById(userId);
         if (user == null)
-            throw new BusinessException("User not found");
-        user.setStatus(status);
+            throw new BusinessException(404, "User not found");
+        user.setStatus(targetStatus);
         user.setUpdatedAt(LocalDateTime.now());
         userMapper.updateById(user);
 
-        List<Product> products = productMapper.getProductsByUser(userId);
-        if (status == UserConstant.STATUS_DISABLE) {
-            products.forEach(product -> {
-                if (product.getStatus() != ProductConstant.STATUS_SOLD_OUT)
-                    product.setStatus(ProductConstant.STATUS_DISABLE);
-                product.setUpdatedAt(LocalDateTime.now());
-                productMapper.updateById(product);
-            });
-        } else {
-            products.forEach(product -> {
-                if (product.getStatus() != ProductConstant.STATUS_SOLD_OUT)
-                    product.setStatus(ProductConstant.STATUS_NEED_CHECK);
-                product.setUpdatedAt(LocalDateTime.now());
-                productMapper.updateById(product);
-            });
-        }
+        if (targetStatus == UserConstant.STATUS_DISABLE)
+            updateUserProductsStatus(userId, ProductConstant.STATUS_DISABLE);
+        else
+            updateUserProductsStatus(userId, ProductConstant.STATUS_NEED_CHECK);
 
         return Result.success();
+    }
+
+    private void updateUserProductsStatus(Long userId, Integer targetStatus) {
+        int offset = 0;
+        List<Product> batch;
+        do {
+            batch = productMapper.selectByUserIdWithLimit(userId, offset, BATCH_SIZE);
+            for (Product product : batch) {
+                if (!Objects.equals(product.getStatus(), ProductConstant.STATUS_SOLD_OUT)) {
+                    product.setStatus(targetStatus);
+                    product.setUpdatedAt(LocalDateTime.now());
+                    productMapper.updateById(product);
+                }
+            }
+            offset += BATCH_SIZE;
+        } while (batch.size() == BATCH_SIZE);
     }
 
 }

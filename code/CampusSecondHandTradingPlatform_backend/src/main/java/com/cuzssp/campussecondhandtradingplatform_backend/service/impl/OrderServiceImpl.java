@@ -71,8 +71,8 @@ public class OrderServiceImpl implements OrderService {
             Long userId, Integer status, Integer page, Integer pageSize
     ) {
         PageHelper.startPage(page, pageSize);
-        List<OrderInfo> all = orderMapper.selectByUserId(userId);
-        return getPageResultResultWithStatus(status, all);
+        List<OrderInfo> all = orderMapper.selectAllWithUserIdOrStatus(userId, status);
+        return getPageResultResult(all);
     }
 
     /**
@@ -87,7 +87,7 @@ public class OrderServiceImpl implements OrderService {
     ) {
         OrderInfo orderInfo = orderMapper.selectById(orderId);
         if (orderInfo == null)
-            throw new BusinessException("Order not found");
+            throw new BusinessException(404, "Order not found");
 
         return Result.success(toVO(orderInfo));
     }
@@ -105,7 +105,11 @@ public class OrderServiceImpl implements OrderService {
     ) {
         OrderInfo order = orderMapper.selectById(orderId);
         if (order == null)
-            throw new BusinessException("Order not found");
+            throw new BusinessException(404, "Order not found");
+        if (!Objects.equals(order.getBuyerId(), userId))
+            throw new BusinessException(403, "Permission denied");
+        if (order.getStatus() != OrderInfoConstant.STATUS_WAIT_PAY)
+            throw new BusinessException(400, "Invalid order status");
         order.setStatus(OrderInfoConstant.STATUS_WAIT_DELIVER);
         orderMapper.updateById(order);
         return Result.success();
@@ -124,7 +128,11 @@ public class OrderServiceImpl implements OrderService {
     ) {
         OrderInfo order = orderMapper.selectById(orderId);
         if (order == null)
-            throw new BusinessException("Order not found");
+            throw new BusinessException(404, "Order not found");
+        if (!Objects.equals(order.getSellerId(), sellerId))
+            throw new BusinessException(403, "Permission denied");
+        if (order.getStatus() != OrderInfoConstant.STATUS_WAIT_DELIVER)
+            throw new BusinessException(400, "Invalid order status");
         order.setStatus(OrderInfoConstant.STATUS_WAIT_RECEIVE);
         orderMapper.updateById(order);
         return Result.success();
@@ -138,10 +146,16 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Result<Void> confirmOrder(Long buyerId, Long orderId) {
+    public Result<Void> confirmOrder(
+            Long buyerId, Long orderId
+    ) {
         OrderInfo order = orderMapper.selectById(orderId);
         if (order == null)
-            throw new BusinessException("Order not found");
+            throw new BusinessException(404, "Order not found");
+        if (!Objects.equals(order.getBuyerId(), buyerId))
+            throw new BusinessException(403, "Permission denied");
+        if (order.getStatus() != OrderInfoConstant.STATUS_WAIT_RECEIVE)
+            throw new BusinessException(400, "Invalid order status");
         order.setStatus(OrderInfoConstant.STATUS_COMPLETED);
         orderMapper.updateById(order);
         return Result.success();
@@ -149,10 +163,18 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Result<Void> cancelOrder(Long userId, Long orderId) {
+    public Result<Void> cancelOrder(
+            Long userId, Long orderId
+    ) {
         OrderInfo order = orderMapper.selectById(orderId);
         if (order == null)
-            throw new BusinessException("Order not found");
+            throw new BusinessException(404, "Order not found");
+        if (!Objects.equals(order.getBuyerId(), userId))
+            throw new BusinessException(403, "Permission denied");
+        if (order.getStatus() == OrderInfoConstant.STATUS_COMPLETED
+                || order.getStatus() == OrderInfoConstant.STATUS_CANCELLED)
+            throw new BusinessException(400, "Order cannot be cancelled in current status");
+
         order.setStatus(OrderInfoConstant.STATUS_CANCELLED);
         List<OrderItem> orderItems = orderItemMapper.selectByOrderId(orderId);
         for (OrderItem orderItem : orderItems) {
@@ -171,42 +193,33 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     public Result<PageResult<OrderVO>> getOrders(
-            Integer page,
-            Integer pageSize,
-            @Nullable Integer status
+            Integer page, Integer pageSize, @Nullable Integer status
     ) {
         PageHelper.startPage(page, pageSize);
-        List<OrderInfo> all = orderMapper.selectAll();
-        return getPageResultResultWithStatus(status, all);
+        List<OrderInfo> all = orderMapper.selectAllWithUserIdOrStatus(null, status);
+        return getPageResultResult(all);
     }
 
     /*
     内部私有方法
      */
     @NonNull
-    private Result<PageResult<OrderVO>> getPageResultResultWithStatus(
-            @Nullable Integer status, List<OrderInfo> all
+    private Result<PageResult<OrderVO>> getPageResultResult(
+            List<OrderInfo> all
     ) {
-        if (status != null)
-            all = all.stream()
-                    .filter(order -> order.getStatus().equals(status))
-                    .collect(Collectors.toList());
         PageInfo<OrderInfo> orderPageInfo = new PageInfo<>(all);
         List<OrderVO> orderVOs = all.stream()
                 .map(this::toVO)
                 .collect(Collectors.toList());
-
-        return Result.success(
-                new PageResult<>(
-                        orderVOs,
-                        orderPageInfo.getTotal(),
-                        orderPageInfo.getPageNum(),
-                        orderPageInfo.getPageSize()
-                )
+        return Result.success(new PageResult<>(
+                orderVOs, orderPageInfo.getTotal(),
+                orderPageInfo.getPageNum(), orderPageInfo.getPageSize())
         );
     }
 
-    private OrderVO toVO(OrderInfo orderInfo) {
+    private OrderVO toVO(
+            OrderInfo orderInfo
+    ) {
         OrderVO orderVO = ToVOUtil.toOrderVO(
                 orderInfo,
                 userMapper.selectById(orderInfo.getBuyerId()),
@@ -223,4 +236,5 @@ public class OrderServiceImpl implements OrderService {
         );
         return orderVO;
     }
+
 }
