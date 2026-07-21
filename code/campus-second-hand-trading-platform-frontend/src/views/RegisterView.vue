@@ -137,7 +137,7 @@ async function reg() {
 }
 .card {
   background: var(--bg-card); padding: 36px 40px;
-  border-radius: 10px; box-shadow: var(--shadow); width: 460px;
+  border-radius: 10px; box-shadow: var(--shadow); width: 100%; max-width: 460px; margin: 0 16px;
 }
 .card h2 { text-align: center; margin-bottom: 24px; font-size: 24px; color: var(--text-primary); }
 .tip { text-align: center; font-size: 14px; color: var(--text-muted); }
@@ -210,3 +210,4 @@ html.dark :deep(.el-input.is-disabled .el-input__wrapper) {
 html.dark :deep(.el-input.is-disabled .el-input__inner) { color: var(--text-muted); }
 html.dark :deep(.el-select .el-input__wrapper) { background: #262626; }
 </style>
+

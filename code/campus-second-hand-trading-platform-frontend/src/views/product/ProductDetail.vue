@@ -5,7 +5,7 @@
       <div class="back-row"><el-button class="back-btn" @click="$router.back()" text>< 返回</el-button></div>
       <div class="detail-grid">
         <div class="gallery">
-          <img v-if="product.images?.length" :src="product.images[activeImg]" class="main-img" />
+          <el-image v-if="product.images?.length" :src="product.images[activeImg]" :preview-src-list="product.images" class="main-img" fit="cover" :initial-index="activeImg" />
           <div v-else class="main-img img-placeholder">
             <el-icon :size="64"><component :is="catIcon" /></el-icon>
           </div>
@@ -265,7 +265,7 @@ async function submitEdit() {
 
 <style scoped>
 .detail-grid { display: flex; gap: 32px; flex-wrap: wrap; }
-.gallery { flex: 0 0 450px; }
+.gallery { flex: 0 1 450px; min-width: 0; max-width: 100%; }
 .main-img { width: 100%; border-radius: 8px; max-height: 400px; object-fit: cover; }
 .img-placeholder { width: 100%; height: 300px; display: flex; align-items: center; justify-content: center; background: var(--border-light); color: var(--text-muted); }
 .thumbs { display: flex; gap: 8px; margin-top: 8px; }
@@ -285,7 +285,7 @@ async function submitEdit() {
 .r-item p { font-size: 14px; margin: 4px 0; }
 .r-date { font-size: 12px; color: #c0c4cc; }
 .nr, .loading-state { color: var(--text-muted); text-align: center; padding: 60px; }
-@media (max-width: 768px) { .gallery { flex: 0 0 100%; } }
+@media (max-width: 768px) { .detail-grid { flex-direction: column; } .gallery { flex: none; width: 100%; max-width: 100%; } .info h1 { font-size: 18px; } .price { font-size: 22px; } .actions { gap: 8px; } .actions .el-button { flex: 1; min-width: 0; } }
 .back-row { margin-bottom: 12px; }
 .back-btn { cursor: pointer; color: var(--text-secondary); font-size: 14px; transition: color .2s; }
 .back-btn:hover { color: var(--el-color-primary); }
