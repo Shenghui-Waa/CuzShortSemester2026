@@ -80,6 +80,7 @@ public class UserServiceImpl implements UserService {
         if (!passwordProvider.matches(request.getOldPassword(), user.getPassword()))
             throw new BusinessException("Old password is incorrect");
         user.setPassword(passwordProvider.encode(request.getNewPassword()));
+        user.setUpdatedAt(LocalDateTime.now());
         userMapper.updateById(user);
         return Result.success();
     }
@@ -92,6 +93,7 @@ public class UserServiceImpl implements UserService {
         if (user == null)
             throw new BusinessException("User not found");
         user.setAvatar(imageURL);
+        user.setUpdatedAt(LocalDateTime.now());
         userMapper.updateById(user);
         return Result.success();
     }

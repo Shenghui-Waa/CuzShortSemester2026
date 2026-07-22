@@ -40,29 +40,11 @@ public class ProductServiceImpl implements ProductService {
     ) {
         PageHelper.startPage(query.getPage(), query.getPageSize());
         List<Product> page;
-        if (query.getKeyword() != null && !query.getKeyword().isEmpty())
-            page = productMapper.searchByKeywordOrStatus(
-                    query.getKeyword(),
-                    ProductConstant.STATUS_ON_SALE);
-        else if (query.getCategoryId() != null && query.getCampus() != null
-                && !query.getCampus().isEmpty())
-            page = productMapper.selectByCategoryAndCampus(
-                    query.getCategoryId(),
-                    query.getCampus(),
-                    ProductConstant.STATUS_ON_SALE);
-        else if (query.getCategoryId() != null)
-            page = productMapper.selectByCategoryId(
-                    query.getCategoryId(),
-                    ProductConstant.STATUS_ON_SALE);
-        else if (query.getCampus() != null && !query.getCampus().isEmpty())
-            page = productMapper.selectByCampus(
-                    query.getCampus(),
-                    ProductConstant.STATUS_ON_SALE);
-        else
-            page = productMapper.selectAllActive();
+        page = productMapper.selectByKeywordOrCategoryOrCampusOrStatus(
+                query.getKeyword(), query.getCategoryId(), query.getCampus(),
+                ProductConstant.STATUS_ON_SALE);
 
         PageInfo<Product> pageInfo = new PageInfo<>(page);
-
         Set<Long> favoriteUserIds = (currentUserId != null)
                 ? new HashSet<>(favoriteMapper.selectFavoritedProductIdsByUserId(currentUserId))
                 : Collections.emptySet();
@@ -303,10 +285,8 @@ public class ProductServiceImpl implements ProductService {
     ) {
         PageHelper.startPage(page, pageSize);
         List<Product> all;
-        all = productMapper.searchByKeywordOrStatus(keyword, status);
-
+        all = productMapper.selectByKeywordOrCategoryOrCampusOrStatus(keyword, null, null, status);
         PageInfo<Product> pageInfo = new PageInfo<>(all);
-
         // 批量预加载关联数据
         Map<Long, User> userMap = buildUserMap(all);
         Map<Long, Category> categoryMap = buildCategoryMap(all);
