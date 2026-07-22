@@ -12,7 +12,7 @@ public class AiAssistantServiceImpl implements AiAssistantService {
     public Result<ChatReply> chat(String message) {
         String reply;
         if (message == null || message.trim().isEmpty()) {
-            reply = "你好！我是校园二手交易平台的只能助手，可以帮你解答关于平台的使用问题。你可以问我：如何发布商品、如何购买、订单状态等。";
+            reply = "你好！我是校园二手交易平台的智能助手，可以帮你解答关于平台的使用问题。你可以问我：如何发布商品、如何购买、订单状态等。";
         } else {
             String msg = message.trim();
             if ((msg.contains("发布") || msg.contains("商品")) && msg.contains("怎么")) {
