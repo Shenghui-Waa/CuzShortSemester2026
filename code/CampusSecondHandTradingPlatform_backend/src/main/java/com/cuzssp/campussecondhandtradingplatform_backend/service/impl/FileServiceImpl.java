@@ -3,7 +3,7 @@ package com.cuzssp.campussecondhandtradingplatform_backend.service.impl;
 import com.cuzssp.campussecondhandtradingplatform_backend.service.FileService;
 
 import com.cuzssp.campussecondhandtradingplatform_backend.common.util.FileUtil;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.Result;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.Result;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,6 +17,7 @@ public class FileServiceImpl implements FileService {
 
     private final FileUtil fileUtil;
 
+    // 上传单个文件
     @Override
     public Result<String> uploadFile(
             MultipartFile file
@@ -25,6 +26,7 @@ public class FileServiceImpl implements FileService {
         return Result.success(url);
     }
 
+    // 上传多个文件
     @Override
     public Result<List<String>> uploadFiles(
             List<MultipartFile> files

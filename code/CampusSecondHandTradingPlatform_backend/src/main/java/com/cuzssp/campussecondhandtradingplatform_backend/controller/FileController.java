@@ -3,12 +3,10 @@ package com.cuzssp.campussecondhandtradingplatform_backend.controller;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.security.JwtTokenProvider;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.exception.BusinessException;
 import com.cuzssp.campussecondhandtradingplatform_backend.service.FileService;
-
-import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.Result;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.Result;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -17,8 +15,8 @@ import java.util.Set;
 @RestController
 @RequestMapping("/api/files")
 @RequiredArgsConstructor
-/**
- * 不提供文件删除 api
+/*
+  不提供文件删除 API
  */
 public class FileController {
 
@@ -33,8 +31,6 @@ public class FileController {
 
     /**
      * 单文件上传
-     * @param file
-     * @return
      */
     @PostMapping("/upload")
     public Result<?> uploadFile(
@@ -48,8 +44,6 @@ public class FileController {
 
     /**
      * 多文件上传
-     * @param files
-     * @return
      */
     @PostMapping("/uploads")
     public Result<?> uploadFiles(
@@ -57,36 +51,32 @@ public class FileController {
             @RequestParam("files") List<MultipartFile> files
     ) {
         validateToken(token);
-        for (MultipartFile file : files) {
+        for (MultipartFile file : files)
             validateFile(file);
-        }
         return fileService.uploadFiles(files);
     }
 
     private void validateToken(String token) {
-        if (token == null || !token.startsWith("Bearer ")) {
-            throw new BusinessException("Unauthorized");
-        }
+        if (token == null || !token.startsWith("Bearer "))
+            throw new BusinessException(401, "Unauthorized");
         String jwt = token.substring(7);
-        if (!jwtTokenProvider.validateToken(jwt)) {
-            throw new BusinessException("Invalid token");
-        }
+        if (!jwtTokenProvider.validateToken(jwt))
+            throw new BusinessException(406, "Invalid token");
     }
 
     private void validateFile(MultipartFile file) {
-        if (file.isEmpty()) {
-            throw new BusinessException("File is empty");
-        }
-        if (file.getSize() > MAX_FILE_SIZE) {
-            throw new BusinessException("File size exceeds 10MB limit");
-        }
+        if (file.isEmpty())
+            throw new BusinessException(403, "File is empty");
+        if (file.getSize() > MAX_FILE_SIZE)
+            throw new BusinessException(413, "File size exceeds 10MB limit");
         String originalFilename = file.getOriginalFilename();
-        if (originalFilename == null || !originalFilename.contains(".")) {
-            throw new BusinessException("Invalid file type");
-        }
-        String extension = originalFilename.substring(originalFilename.lastIndexOf(".") + 1).toLowerCase();
-        if (!ALLOWED_EXTENSIONS.contains(extension)) {
-            throw new BusinessException("File type not allowed: " + extension);
-        }
+        if (originalFilename == null || !originalFilename.contains("."))
+            throw new BusinessException(405, "Invalid file type");
+        String extension = originalFilename
+                .substring(originalFilename.lastIndexOf(".") + 1)
+                .toLowerCase();
+        if (!ALLOWED_EXTENSIONS.contains(extension))
+            throw new BusinessException(405, "File type not allowed: " + extension);
     }
+
 }

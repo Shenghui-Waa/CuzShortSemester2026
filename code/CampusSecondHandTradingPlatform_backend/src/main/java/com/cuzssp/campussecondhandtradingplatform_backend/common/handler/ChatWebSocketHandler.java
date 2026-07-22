@@ -1,26 +1,23 @@
 package com.cuzssp.campussecondhandtradingplatform_backend.common.handler;
 
 import com.cuzssp.campussecondhandtradingplatform_backend.common.security.JwtTokenProvider;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     private final Map<Long, WebSocketSession> sessions = new ConcurrentHashMap<>();
     private final JwtTokenProvider jwtTokenProvider;
-
-    public ChatWebSocketHandler(JwtTokenProvider jwtTokenProvider) {
-        this.jwtTokenProvider = jwtTokenProvider;
-    }
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {

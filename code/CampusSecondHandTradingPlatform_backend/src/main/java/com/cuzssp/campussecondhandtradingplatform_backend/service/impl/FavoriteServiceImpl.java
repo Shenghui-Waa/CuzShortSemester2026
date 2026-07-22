@@ -1,4 +1,5 @@
 package com.cuzssp.campussecondhandtradingplatform_backend.service.impl;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.Result;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.*;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.util.ToEntityUtil;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.util.ToVOUtil;
@@ -23,34 +24,7 @@ public class FavoriteServiceImpl implements FavoriteService {
     private final UserMapper userMapper;
     private final CategoryMapper categoryMapper;
 
-    @Override
-    public Result<Void> addFavorite(
-            Long userId, Long productId
-    ) {
-        if (favoriteMapper.countByUserIdAndProductId(userId, productId) > 0)
-            return Result.success();
-        Favorite favorite = ToEntityUtil.toFavoriteEntity(userId, productId);
-        favoriteMapper.insertFavorite(favorite);
-        return Result.success();
-    }
-
-    @Override
-    public Result<Void> removeFavorite(
-            Long userId, Long productId
-    ) {
-        favoriteMapper.deleteByUserIdAndProductId(userId, productId);
-        return Result.success();
-    }
-
-    @Override
-    public Result<Boolean> isFavorited(
-            Long userId, Long productId
-    ) {
-        return Result.success(
-                favoriteMapper.countByUserIdAndProductId(userId, productId) > 0
-        );
-    }
-
+    // 获取收藏
     @Override
     public Result<PageResult<ProductVO>> getFavorites(
             Long userId, Integer page, Integer pageSize
@@ -64,26 +38,51 @@ public class FavoriteServiceImpl implements FavoriteService {
                     if (product == null)
                         return null;
                     ProductVO productVO = ToVOUtil.toProductVO(
-                            product,
-                            userMapper.selectById(product.getUserId()),
+                            product, userMapper.selectById(product.getUserId()),
                             categoryMapper.selectById(product.getCategoryId())
                     );
                     productVO.setImages(
-                            productImageMapper.selectByProductId(product.getId())
-                                    .stream()
-                                    .map(ProductImage::getUrl)
-                                    .collect(Collectors.toList())
+                            productImageMapper.selectByProductId(product.getId()).stream()
+                                    .map(ProductImage::getUrl).collect(Collectors.toList())
                     );
                     return productVO;
                 }).filter(Objects::nonNull)
                 .collect(Collectors.toList());
+        return Result.success(new PageResult<>(
+                productVOs, pageInfo.getTotal(), pageInfo.getPageNum(), pageInfo.getPageSize()
+        ));
+    }
+
+    // 添加收藏
+    @Override
+    public Result<Void> addFavorite(
+            Long userId, Long productId
+    ) {
+        if (favoriteMapper.countByUserIdAndProductId(userId, productId) > 0)
+            return Result.success();
+        Favorite favorite = ToEntityUtil.toFavoriteEntity(userId, productId);
+        favoriteMapper.insertFavorite(favorite);
+        return Result.success();
+    }
+
+    // 移出收藏
+    @Override
+    public Result<Void> removeFavorite(
+            Long userId, Long productId
+    ) {
+        favoriteMapper.deleteByUserIdAndProductId(userId, productId);
+        return Result.success();
+    }
+
+    // 是否收藏
+    @Override
+    public Result<Boolean> isFavorited(
+            Long userId, Long productId
+    ) {
         return Result.success(
-                new PageResult<>(
-                        productVOs,
-                        pageInfo.getTotal(),
-                        pageInfo.getPageNum(),
-                        pageInfo.getPageSize()
-                )
+                favoriteMapper.countByUserIdAndProductId(userId, productId) > 0
         );
     }
+
+
 }

@@ -10,23 +10,15 @@ public class PasswordProvider {
 
     private final PasswordEncoder passwordEncoder;
 
-    /**
-     * 加密
-     * @param password 原文
-     * @return 密文
-     */
+    // 密码加密
     public String encode(String password) {
         return passwordEncoder.encode(password);
     }
 
-    /**
-     * 校验
-     * @param rawPassword 原文
-     * @param encodedPassword 密文
-     * @return 布尔值 是否相同
-     */
+    // 密码校验
     public boolean matches(String rawPassword, String encodedPassword) {
         return rawPassword != null && encodedPassword != null
                 && passwordEncoder.matches(rawPassword, encodedPassword);
     }
+
 }

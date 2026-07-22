@@ -8,7 +8,12 @@
             resultType="com.cuzssp.campussecondhandtradingplatform_backend.common.entity.Product">
         SELECT * FROM product
         WHERE user_id = #{userId}
-        LIMIT #{offset}, #{batchSize}
+        <if test="offset != null and batchSize != null">
+            LIMIT #{offset}, #{batchSize}
+        </if>
+        <if test="offset == null and batchSize == null">
+            ORDER BY created_at DESC
+        </if>
     </select>
 
     <select id="selectByKeywordOrCategoryOrCampusOrStatus"

@@ -1,9 +1,8 @@
 package com.cuzssp.campussecondhandtradingplatform_backend.controller;
 
 import com.cuzssp.campussecondhandtradingplatform_backend.common.security.SecurityUtil;
-
 import com.cuzssp.campussecondhandtradingplatform_backend.service.FavoriteService;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.Result;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.Result;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,11 +15,7 @@ public class FavoriteController {
     private final SecurityUtil securityUtil;
 
     /**
-     * 获取喜欢列表
-     * @param token
-     * @param page
-     * @param pageSize
-     * @return
+     * 获取收藏列表
      */
     @GetMapping
     public Result<?> getFavorites(
@@ -33,10 +28,7 @@ public class FavoriteController {
     }
 
     /**
-     * 加喜欢
-     * @param token
-     * @param productId
-     * @return
+     * 收藏
      */
     @PostMapping
     public Result<?> addFavorite(
@@ -48,10 +40,7 @@ public class FavoriteController {
     }
 
     /**
-     * 移除喜欢
-     * @param token
-     * @param productId
-     * @return
+     * 取消收藏
      */
     @DeleteMapping("/{productId}")
     public Result<?> removeFavorite(
@@ -63,10 +52,7 @@ public class FavoriteController {
     }
 
     /**
-     * 校验是否喜欢
-     * @param token
-     * @param productId
-     * @return
+     * 校验是否收藏
      */
     @GetMapping("/check/{productId}")
     public Result<?> checkFavorited(
@@ -76,4 +62,5 @@ public class FavoriteController {
         Long currentUserId = securityUtil.getCurrentUserId(token);
         return favoriteService.isFavorited(currentUserId, productId);
     }
+
 }

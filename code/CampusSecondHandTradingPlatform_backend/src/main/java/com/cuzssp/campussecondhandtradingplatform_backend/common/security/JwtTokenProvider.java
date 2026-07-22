@@ -6,7 +6,6 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
@@ -22,17 +21,14 @@ public class JwtTokenProvider {
             @Value("${jwt.secret}") String secret,
             @Value("${jwt.expiration}") long expiration
     ) throws NoSuchAlgorithmException {
-        byte[] keyBytes = java.security.MessageDigest.getInstance("SHA-256")
+        byte[] keyBytes = java.security
+                .MessageDigest.getInstance("SHA-256")
                 .digest(secret.getBytes(StandardCharsets.UTF_8));
         this.key = Keys.hmacShaKeyFor(keyBytes);
         this.expiration = expiration;
     }
 
-    /**
-     * 生成 Token
-     * @param user 用户信息
-     * @return token
-     */
+    // 生成 Token
     public String generateToken(User user) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + expiration);
@@ -46,11 +42,7 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    /**
-     * 解析 Token 获取用户 ID
-     * @param token token
-     * @return 用户 ID
-     */
+    // 解析 Token 获取用户 ID
     public Long getUserIdFromToken(String token) {
         if (validateToken(token)) {
             Claims claims = parseToken(token);
@@ -59,11 +51,7 @@ public class JwtTokenProvider {
         throw new BusinessException("Invalid token");
     }
 
-    /**
-     * 解析 Token 获取用户名
-     * @param token token
-     * @return 用户名
-     */
+    // 解析 Token 获取用户名
     public String getUsernameFromToken(String token) {
         if (validateToken(token)) {
             Claims claims = parseToken(token);
@@ -72,11 +60,7 @@ public class JwtTokenProvider {
         throw new BusinessException("Invalid token");
     }
 
-    /**
-     * 验证 Token 有效性
-     * @param token token
-     * @return 布尔值 是否有效
-     */
+    // 验证 Token 有效性
     public boolean validateToken(String token) {
         try {
             parseToken(token);

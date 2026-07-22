@@ -2,6 +2,7 @@ package com.cuzssp.campussecondhandtradingplatform_backend.service.impl;
 
 import com.cuzssp.campussecondhandtradingplatform_backend.common.constant.OrderInfoConstant;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.constant.ProductConstant;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.Result;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.*;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.util.ToEntityUtil;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.util.ToVOUtil;
@@ -32,12 +33,29 @@ public class OrderServiceImpl implements OrderService {
     private final ProductImageMapper productImageMapper;
     private final UserMapper userMapper;
 
-    /**
-     * 创建订单
-     * @param buyerId
-     * @param request
-     * @return
-     */
+    // 获取订单列表
+    @Override
+    public Result<PageResult<OrderVO>> getOrders(
+            Long userId, Integer status, Integer page, Integer pageSize
+    ) {
+        PageHelper.startPage(page, pageSize);
+        List<OrderInfo> all = orderMapper.selectByUserIdOrStatus(userId, status);
+        return getPageResultResult(all);
+    }
+
+    // 获取订单详情
+    @Override
+    public Result<OrderVO> getOrderDetail(
+            Long userId, Long orderId
+    ) {
+        OrderInfo orderInfo = orderMapper.selectById(orderId);
+        if (orderInfo == null)
+            throw new BusinessException(404, "Order not found");
+
+        return Result.success(toVO(orderInfo));
+    }
+
+    // 创建订单
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Result<OrderVO> createOrder(
@@ -60,46 +78,9 @@ public class OrderServiceImpl implements OrderService {
         return Result.success(toVO(orderMapper.selectById(order.getId())));
     }
 
-    /**
-     * 获取订单列表
-     * @param userId
-     * @param status
-     * @param page
-     * @param pageSize
-     * @return
-     */
-    @Override
-    public Result<PageResult<OrderVO>> getOrders(
-            Long userId, Integer status, Integer page, Integer pageSize
-    ) {
-        PageHelper.startPage(page, pageSize);
-        List<OrderInfo> all = orderMapper.selectAllWithUserIdOrStatus(userId, status);
-        return getPageResultResult(all);
-    }
 
-    /**
-     * 获取订单详情
-     * @param userId
-     * @param orderId
-     * @return
-     */
-    @Override
-    public Result<OrderVO> getOrderDetail(
-            Long userId, Long orderId
-    ) {
-        OrderInfo orderInfo = orderMapper.selectById(orderId);
-        if (orderInfo == null)
-            throw new BusinessException(404, "Order not found");
 
-        return Result.success(toVO(orderInfo));
-    }
-
-    /**
-     * 支付订单，为合规，不做支付逻辑
-     * @param userId
-     * @param orderId
-     * @return
-     */
+    // 支付订单，暂不做支付逻辑
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Result<Void> payOrder(
@@ -118,12 +99,7 @@ public class OrderServiceImpl implements OrderService {
         return Result.success();
     }
 
-    /**
-     * 发货
-     * @param sellerId
-     * @param orderId
-     * @return
-     */
+    // 发货
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Result<Void> shipOrder(
@@ -142,12 +118,7 @@ public class OrderServiceImpl implements OrderService {
         return Result.success();
     }
 
-    /**
-     * 收货
-     * @param buyerId
-     * @param orderId
-     * @return
-     */
+    // 收货
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Result<Void> confirmOrder(
@@ -166,6 +137,7 @@ public class OrderServiceImpl implements OrderService {
         return Result.success();
     }
 
+    // 取消订单
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Result<Void> cancelOrder(
@@ -194,21 +166,23 @@ public class OrderServiceImpl implements OrderService {
         return Result.success();
     }
 
-    /*
-    管理员操作
-     */
+
+    // =====================================================================================
+    // ===========================>>>>> 管 理 员 操 作 <<<<<==================================
+    // =====================================================================================
+
+    // 获取订单
     @Override
     public Result<PageResult<OrderVO>> getOrders(
             Integer page, Integer pageSize, @Nullable Integer status
     ) {
         PageHelper.startPage(page, pageSize);
-        List<OrderInfo> all = orderMapper.selectAllWithUserIdOrStatus(null, status);
+        List<OrderInfo> all = orderMapper.selectByUserIdOrStatus(null, status);
         return getPageResultResult(all);
     }
 
-    /*
-    内部私有方法
-     */
+    // #===========>>>>> 内 部 私 有 工 具 方 法 <<<<<===========#
+
     @NonNull
     private Result<PageResult<OrderVO>> getPageResultResult(
             List<OrderInfo> all
@@ -227,15 +201,13 @@ public class OrderServiceImpl implements OrderService {
             OrderInfo orderInfo
     ) {
         OrderVO orderVO = ToVOUtil.toOrderVO(
-                orderInfo,
-                userMapper.selectById(orderInfo.getBuyerId()),
+                orderInfo, userMapper.selectById(orderInfo.getBuyerId()),
                 userMapper.selectById(orderInfo.getSellerId())
         );
         List<OrderItem> orderItems = orderItemMapper.selectByOrderId(orderInfo.getId());
         orderVO.setItems(orderItems.stream()
                 .map(orderItem -> ToVOUtil.toOrderItemVO(
-                        orderItem,
-                        productMapper.selectById(orderItem.getProductId()),
+                        orderItem, productMapper.selectById(orderItem.getProductId()),
                         productImageMapper
                 ))
                 .collect(Collectors.toList())

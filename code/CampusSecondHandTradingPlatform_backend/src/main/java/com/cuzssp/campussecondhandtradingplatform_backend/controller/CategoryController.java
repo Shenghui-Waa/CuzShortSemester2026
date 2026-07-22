@@ -1,7 +1,7 @@
 package com.cuzssp.campussecondhandtradingplatform_backend.controller;
 
 import com.cuzssp.campussecondhandtradingplatform_backend.service.CategoryService;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.Result;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.Result;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,12 +14,10 @@ public class CategoryController {
 
     /**
      * 获取所有分类
-     * @return
      */
     @GetMapping
     public Result<?> getAllCategories() {
         return categoryService.getAllCategories();
     }
-
 
 }

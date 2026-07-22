@@ -1,7 +1,6 @@
 package com.cuzssp.campussecondhandtradingplatform_backend.common.vo;
 
 import lombok.Data;
-
 import java.time.LocalDateTime;
 
 @Data

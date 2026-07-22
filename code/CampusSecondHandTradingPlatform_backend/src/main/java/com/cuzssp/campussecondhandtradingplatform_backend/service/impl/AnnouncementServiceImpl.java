@@ -7,7 +7,7 @@ import com.cuzssp.campussecondhandtradingplatform_backend.common.util.ToEntityUt
 import com.cuzssp.campussecondhandtradingplatform_backend.common.util.ToVOUtil;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.AnnouncementVO;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.PageResult;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.Result;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.Result;
 import com.cuzssp.campussecondhandtradingplatform_backend.mapper.AnnouncementMapper;
 import com.cuzssp.campussecondhandtradingplatform_backend.service.AnnouncementService;
 import com.github.pagehelper.PageHelper;
@@ -27,6 +27,7 @@ public class   AnnouncementServiceImpl implements AnnouncementService {
 
     private final AnnouncementMapper announcementMapper;
 
+    // 获取全部公告
     @Override
     public Result<PageResult<AnnouncementVO>> getAllAnnouncement(
             Integer page, Integer pageSize
@@ -47,21 +48,25 @@ public class   AnnouncementServiceImpl implements AnnouncementService {
         );
     }
 
+    // 获取公告详情
     @Override
     public Result<AnnouncementVO> getAnnouncementInfo(
             Long id
     ) {
         Announcement announcement = announcementMapper.selectById(id);
         if (announcement == null) {
-            throw new BusinessException("Announcement not found");
+            throw new BusinessException(404, "Announcement not found");
         }
         AnnouncementVO announcementVO = ToVOUtil.toAnnouncementVO(announcement);
         return Result.success(announcementVO);
     }
 
-    /*
-    管理员操作
-     */
+
+    // =====================================================================================
+    // ===========================>>>>> 管 理 员 操 作 <<<<<==================================
+    // =====================================================================================
+
+    // 创建公告
     @Override
     public Result<Announcement> createAnnouncement(
             AnnouncementRequest announcementRequest
@@ -71,13 +76,14 @@ public class   AnnouncementServiceImpl implements AnnouncementService {
         return Result.success(announcement);
     }
 
+    // 修改公告
     @Override
     public Result<Announcement> updateAnnouncement(
             Long id, AnnouncementRequest announcementRequest
     ) {
         Announcement announcement = announcementMapper.selectById(id);
         if (announcement == null) {
-            throw new BusinessException("Announcement not found");
+            throw new BusinessException(404, "Announcement not found");
         }
         announcement.setTitle(announcementRequest.getTitle());
         announcement.setContent(announcementRequest.getContent());
@@ -87,13 +93,14 @@ public class   AnnouncementServiceImpl implements AnnouncementService {
         return Result.success(announcement);
     }
 
+    // 删除公告
     @Override
     public Result<Void> removeAnnouncement(
             Long id
     ) {
         Announcement announcement = announcementMapper.selectById(id);
         if (announcement == null) {
-            throw new BusinessException("Announcement not found");
+            throw new BusinessException(404, "Announcement not found");
         }
         announcementMapper.deleteById(id);
         return Result.success();

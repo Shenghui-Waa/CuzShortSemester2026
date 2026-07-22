@@ -4,7 +4,7 @@ import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.LoginReques
 import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.RegisterRequest;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.security.SecurityUtil;
 import com.cuzssp.campussecondhandtradingplatform_backend.service.AuthService;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.Result;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.Result;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -19,8 +19,6 @@ public class AuthController {
 
     /**
      * 注册
-     * @param request 注册请求
-     * @return 用户信息
      */
     @PostMapping("/register")
     public Result<?> register(
@@ -31,8 +29,6 @@ public class AuthController {
 
     /**
      * 登录
-     * @param request 登录请求
-     * @return JWT Token
      */
     @PostMapping("/login")
     public Result<?> login(
@@ -43,8 +39,6 @@ public class AuthController {
 
     /**
      * 登出
-     * @param token token
-     * @return 成功则空数据返回
      */
     @PostMapping("/logout")
     public Result<?> logout(
@@ -55,9 +49,7 @@ public class AuthController {
     }
 
     /**
-     * 是不是我？
-     * @param token token
-     * @return 用户信息
+     * 获取账户信息
      */
     @GetMapping("/me")
     public Result<?> me(
@@ -66,4 +58,5 @@ public class AuthController {
         Long currentUserId = securityUtil.getCurrentUserId(token);
         return authService.me(currentUserId);
     }
+
 }

@@ -1,14 +1,12 @@
 package com.cuzssp.campussecondhandtradingplatform_backend.controller;
 
 import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.ProductQueryDTO;
-
 import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.Product;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.security.SecurityUtil;
 import com.cuzssp.campussecondhandtradingplatform_backend.service.ProductService;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.Result;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.Result;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
@@ -21,9 +19,6 @@ public class ProductController {
 
     /**
      * 获取商品列表
-     * @param query
-     * @param token
-     * @return
      */
     @GetMapping
     public Result<?> getProductList(
@@ -36,9 +31,6 @@ public class ProductController {
 
     /**
      * 获取某一商品详情 基于 id
-     * @param id
-     * @param token
-     * @return
      */
     @GetMapping("/{id}")
     public Result<?> getProductDetail(
@@ -51,10 +43,6 @@ public class ProductController {
 
     /**
      * 发布商品
-     * @param token
-     * @param product
-     * @param images
-     * @return
      */
     @PostMapping
     public Result<?> createProduct(
@@ -67,12 +55,7 @@ public class ProductController {
     }
 
     /**
-     * 修改商品
-     * @param token
-     * @param id
-     * @param product
-     * @param images
-     * @return
+     * 修改商品信息
      */
     @PutMapping("/{id}")
     public Result<?> updateProduct(
@@ -87,10 +70,6 @@ public class ProductController {
 
     /**
      * 修改商品状态
-     * @param token
-     * @param id
-     * @param status
-     * @return
      */
     @PutMapping("/{id}/status")
     public Result<?> updateStatus(
@@ -99,14 +78,11 @@ public class ProductController {
             @RequestParam Integer status
     ) {
         Long currentUserId = securityUtil.getCurrentUserId(token);
-        return productService.updateProductStatus(currentUserId, id, status);
+        return productService.updateProduct(currentUserId, id, status);
     }
 
     /**
      * 删除商品
-     * @param token
-     * @param id
-     * @return
      */
     @DeleteMapping("/{id}/del")
     public Result<?> removeProduct(
@@ -114,15 +90,11 @@ public class ProductController {
             @PathVariable Long id
     ) {
         Long currentUserId = securityUtil.getCurrentUserId(token);
-        return productService.deleteProduct(currentUserId, id);
+        return productService.removeProduct(currentUserId, id);
     }
 
     /**
      * 获取我发布的商品列表
-     * @param token
-     * @param page
-     * @param pageSize
-     * @return
      */
     @GetMapping("/my")
     public Result<?> getMyProducts(
@@ -131,6 +103,7 @@ public class ProductController {
             @RequestParam(defaultValue = "10") Integer pageSize
     ) {
         Long currentUserId = securityUtil.getCurrentUserId(token);
-        return productService.getProductsByUser(currentUserId, page, pageSize);
+        return productService.getProductList(currentUserId, page, pageSize);
     }
+
 }

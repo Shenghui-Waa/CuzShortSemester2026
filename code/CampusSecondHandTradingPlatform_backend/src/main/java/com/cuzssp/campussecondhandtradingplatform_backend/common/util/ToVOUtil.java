@@ -7,19 +7,15 @@ import com.cuzssp.campussecondhandtradingplatform_backend.mapper.OrderMapper;
 import com.cuzssp.campussecondhandtradingplatform_backend.mapper.ProductImageMapper;
 import com.cuzssp.campussecondhandtradingplatform_backend.mapper.ProductMapper;
 import com.cuzssp.campussecondhandtradingplatform_backend.mapper.UserMapper;
-import org.springframework.stereotype.Component;
-
 import java.math.BigDecimal;
 import java.util.List;
 
-@Component
 public class ToVOUtil {
-    /**
-     * 用户视图
-     * @param user
-     * @return
-     */
-    public static UserVO toUserVO(User user) {
+
+    // 用户 VO
+    public static UserVO toUserVO(
+            User user
+    ) {
         UserVO userVO = new UserVO();
         userVO.setId(user.getId());
         userVO.setUsername(user.getUsername());
@@ -36,40 +32,27 @@ public class ToVOUtil {
         return userVO;
     }
 
-    /**
-     * 后台视图
-     * @param userMapper
-     * @param productMapper
-     * @param orderMapper
-     * @return
-     */
+    // 仪表盘 VO
     public static DashboardVO toDashboardVO(
             UserMapper userMapper, ProductMapper productMapper, OrderMapper orderMapper
     ) {
-        return new DashboardVO(
-                (long) userMapper.countAll(),
-                (long) productMapper.countAll(),
-                (long) orderMapper.countAll(),
-                orderMapper.selectAll().stream()
-                        .filter(orderInfo -> orderInfo.getStatus() >= OrderInfoConstant.STATUS_WAIT_RECEIVE)
-                        .map(OrderInfo::getTotalAmount)
-                        .reduce(BigDecimal.ZERO, BigDecimal::add),
-                (long) userMapper.countTodayNew(),
-                (long) orderMapper.countTodayNew()
-        );
+        DashboardVO dashboardVO = new DashboardVO();
+        dashboardVO.setUserCount((long) userMapper.countAll());
+        dashboardVO.setProductCount((long) productMapper.countAll());
+        dashboardVO.setOrderCount((long) orderMapper.countAll());
+        dashboardVO.setTotalAmount(orderMapper.selectAll().stream()
+                .filter(orderInfo -> orderInfo.getStatus() >= OrderInfoConstant.STATUS_WAIT_RECEIVE)
+                .map(OrderInfo::getTotalAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add));
+        dashboardVO.setTodayNewUsers((long) userMapper.countTodayNew());
+        dashboardVO.setTodayNewOrders((long) orderMapper.countTodayNew());
+
+        return dashboardVO;
     }
 
-    /**
-     * 订单物品视图
-     * @param orderItem
-     * @param product
-     * @param productImageMapper
-     * @return
-     */
+    // 订单物品 VO
     public static OrderItemVO toOrderItemVO(
-            OrderItem orderItem,
-            Product product,
-            ProductImageMapper productImageMapper
+            OrderItem orderItem, Product product, ProductImageMapper productImageMapper
     ){
         String productTitle = "";
         String productImage = "";
@@ -87,13 +70,7 @@ public class ToVOUtil {
         );
     }
 
-    /**
-     * 订单视图
-     * @param orderInfo
-     * @param buyer
-     * @param seller
-     * @return
-     */
+    // 订单 VO
     public static OrderVO toOrderVO(
             OrderInfo orderInfo, User buyer, User seller
     ) {
@@ -118,17 +95,9 @@ public class ToVOUtil {
         return orderVO;
     }
 
-    /**
-     * 商品视图
-     * @param product
-     * @param seller
-     * @param category
-     * @return
-     */
+    // 商品 VO
     public static ProductVO toProductVO(
-            Product product,
-            User seller,
-            Category category
+            Product product, User seller, Category category
     ) {
         ProductVO productVO = new ProductVO();
 
@@ -156,20 +125,9 @@ public class ToVOUtil {
         return productVO;
     }
 
-    /**
-     * 购物车商品视图
-     *
-     * @param cartItem
-     * @param product
-     * @param seller
-     * @param productImageMapper
-     * @return
-     */
+    // 购物车商品 VO
     public static CartItemVO toCartItemVO(
-            CartItem cartItem,
-            Product product,
-            User seller,
-            ProductImageMapper productImageMapper
+            CartItem cartItem, Product product, User seller, ProductImageMapper productImageMapper
     ) {
         CartItemVO cartItemVO = new CartItemVO();
 
@@ -188,9 +146,9 @@ public class ToVOUtil {
         return cartItemVO;
     }
 
+    //分类 VO
     public static CategoryVO toCategoryVO(
-            Category category,
-            long categoryId
+            Category category, long categoryId
     ) {
         return new CategoryVO(
                 category.getId(),
@@ -201,6 +159,7 @@ public class ToVOUtil {
         );
     }
 
+    // 评论 VO
     public static ReviewVO toReviewVO(
             Review review, User reviewer
     ) {
@@ -219,6 +178,7 @@ public class ToVOUtil {
         return reviewVO;
     }
 
+    // 聊天信息 VO
     public static ChatMessageVO toChatMessageVO(
             ChatMessage msg
     ) {
@@ -234,6 +194,7 @@ public class ToVOUtil {
         return chatMessageVO;
     }
 
+    // 公告 VO
     public static AnnouncementVO toAnnouncementVO(Announcement announcement) {
         AnnouncementVO announcementVO = new AnnouncementVO();
         announcementVO.setId(announcement.getId());
@@ -244,4 +205,5 @@ public class ToVOUtil {
         return announcementVO;
 
     }
+
 }

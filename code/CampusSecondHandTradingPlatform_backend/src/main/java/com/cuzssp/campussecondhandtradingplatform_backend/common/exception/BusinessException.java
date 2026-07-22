@@ -1,8 +1,11 @@
 package com.cuzssp.campussecondhandtradingplatform_backend.common.exception;
 
+import lombok.Getter;
+
+@Getter
 public class BusinessException extends RuntimeException {
 
-    private Integer code;
+    private final Integer code;
 
     public BusinessException(String message) {
         super(message);
@@ -14,7 +17,4 @@ public class BusinessException extends RuntimeException {
         this.code = code;
     }
 
-    public Integer getCode() {
-        return code;
-    }
 }

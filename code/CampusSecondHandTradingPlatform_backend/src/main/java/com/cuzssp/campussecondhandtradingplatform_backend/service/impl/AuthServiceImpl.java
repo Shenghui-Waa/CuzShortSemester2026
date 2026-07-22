@@ -11,7 +11,7 @@ import com.cuzssp.campussecondhandtradingplatform_backend.common.util.ToVOUtil;
 import com.cuzssp.campussecondhandtradingplatform_backend.mapper.UserMapper;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.security.JwtTokenProvider;
 import com.cuzssp.campussecondhandtradingplatform_backend.service.AuthService;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.Result;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.Result;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.UserVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,6 +26,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordProvider passwordProvider;
     private final JwtTokenProvider jwtTokenProvider;
 
+    // 注册
     @Override
     public Result<UserVO> register(RegisterRequest request) {
         if (userMapper.countByUsername(request.getUsername()) > 0)
@@ -36,6 +37,7 @@ public class AuthServiceImpl implements AuthService {
         return Result.success(ToVOUtil.toUserVO(user));
     }
 
+    // 登录
     @Override
     public Result<String> login(LoginRequest request) {
         User user = userMapper.selectByUsername(request.getUsername());
@@ -53,11 +55,13 @@ public class AuthServiceImpl implements AuthService {
         return Result.success("Login successful", token);
     }
 
+    // 登出
     @Override
     public Result<Void> logout(Long userId) {
         return Result.success();
     }
 
+    // 获取账号信息
     public Result<UserVO> me (Long userId) {
         User user = userMapper.selectById(userId);
         return Result.success(ToVOUtil.toUserVO(user));

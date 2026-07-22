@@ -8,14 +8,12 @@ import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.RegisterReq
 import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.ReviewRequest;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.*;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.security.PasswordProvider;
-import org.springframework.stereotype.Component;
-
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-@Component
 public class ToEntityUtil {
 
+    // 用户实体
     public static User toUserEntity(
             RegisterRequest request, PasswordProvider passwordProvider
     ){
@@ -23,10 +21,8 @@ public class ToEntityUtil {
 
         user.setUsername(request.getUsername());
         user.setPassword(passwordProvider.encode(request.getPassword()));
-        user.setNickname(
-                request.getNickname() != null ?
-                request.getNickname()
-                : request.getUsername()
+        user.setNickname(request.getNickname() != null
+                ? request.getNickname() : request.getUsername()
         );
         user.setPhone(request.getPhone());
         user.setEmail(request.getEmail());
@@ -41,6 +37,7 @@ public class ToEntityUtil {
         return user;
     }
 
+    // 购物车物品实体
     public static CartItem toCartItemEntity(
             Long userId, Long productId
     ) {
@@ -51,6 +48,7 @@ public class ToEntityUtil {
         return cartItem;
     }
 
+    // 收藏物品实体
     public static Favorite toFavoriteEntity(
             Long userId, Long productId
     ) {
@@ -61,6 +59,7 @@ public class ToEntityUtil {
         return favorite;
     }
 
+    // 订单实体
     public static OrderInfo toOrderInfoEntity(
             Long buyerId, Product product, String remark
     ) {
@@ -75,6 +74,7 @@ public class ToEntityUtil {
         return orderInfo;
     }
 
+    // 订单物品实体
     public static OrderItem toOrderItemEntity(
             OrderInfo orderInfo, Product product
     ) {
@@ -86,6 +86,7 @@ public class ToEntityUtil {
         return orderItem;
     }
 
+    // 评价实体
     public static Review toReviewEntity(
             Long reviewerId, ReviewRequest request
     ) {
@@ -99,6 +100,7 @@ public class ToEntityUtil {
         return review;
     }
 
+    // 聊天信息实体
     public static ChatMessage toChatMessageEntity(
             Long senderId, Long receiverId, Long productId, String content
     ) {
@@ -109,11 +111,13 @@ public class ToEntityUtil {
         msg.setContent(content);
         msg.setIsRead(ChatMessageConstant.READ_STATUS_NO);
         msg.setCreatedAt(LocalDateTime.now());
-
         return msg;
     }
 
-    public static Announcement toAnnouncementEntity(AnnouncementRequest announcementRequest) {
+    // 公告实体
+    public static Announcement toAnnouncementEntity(
+            AnnouncementRequest announcementRequest
+    ) {
         Announcement announcement = new Announcement();
         announcement.setTitle(announcementRequest.getTitle());
         announcement.setContent(announcementRequest.getContent());
@@ -121,4 +125,6 @@ public class ToEntityUtil {
         announcement.setUpdatedAt(LocalDateTime.now());
         return announcement;
     }
+
+
 }

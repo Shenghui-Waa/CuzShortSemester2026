@@ -1,6 +1,6 @@
 package com.cuzssp.campussecondhandtradingplatform_backend.service;
 
-import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.Result;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.Result;
 
 public interface AiAssistantService {
 
@@ -12,4 +12,5 @@ public interface AiAssistantService {
     class ChatReply {
         private String reply;
     }
+
 }
