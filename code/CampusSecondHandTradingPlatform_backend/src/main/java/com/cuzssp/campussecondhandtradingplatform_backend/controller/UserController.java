@@ -1,11 +1,10 @@
 package com.cuzssp.campussecondhandtradingplatform_backend.controller;
 
 import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.ChangePasswordRequest;
-
 import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.UpdateProfileRequest;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.security.SecurityUtil;
 import com.cuzssp.campussecondhandtradingplatform_backend.service.UserService;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.Result;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.Result;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,8 +18,6 @@ public class UserController {
 
     /**
      * 获取用户信息
-     * @param id
-     * @return
      */
     @GetMapping("/{id}")
     public Result<?> getUserById(
@@ -31,9 +28,6 @@ public class UserController {
 
     /**
      * 修改个人信息
-     * @param token
-     * @param request
-     * @return
      */
     @PutMapping("/profile")
     public Result<?> updateProfile(
@@ -46,9 +40,6 @@ public class UserController {
 
     /**
      * 修改密码
-     * @param token
-     * @param request
-     * @return
      */
     @PutMapping("/password")
     public Result<?> changePassword(
@@ -61,9 +52,6 @@ public class UserController {
 
     /**
      * 修改头像
-     * @param token
-     * @param image
-     * @return
      */
     @PostMapping("/avatar")
     public Result<?> uploadAvatar(
@@ -73,4 +61,5 @@ public class UserController {
         Long currentUserId = securityUtil.getCurrentUserId(token);
         return userService.updateAvatar(currentUserId, image);
     }
+
 }

@@ -1,10 +1,9 @@
 package com.cuzssp.campussecondhandtradingplatform_backend.controller;
 
 import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.ReviewRequest;
-
 import com.cuzssp.campussecondhandtradingplatform_backend.common.security.SecurityUtil;
 import com.cuzssp.campussecondhandtradingplatform_backend.service.ReviewService;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.Result;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.Result;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,9 +17,6 @@ public class ReviewController {
 
     /**
      * 创建评价
-     * @param token
-     * @param request
-     * @return
      */
     @PostMapping
     public Result<?> createReview(
@@ -33,10 +29,6 @@ public class ReviewController {
 
     /**
      * 获取评价记录
-     * @param userId
-     * @param page
-     * @param pageSize
-     * @return
      */
     @GetMapping("/user/{userId}")
     public Result<?> getUserReviews(
@@ -46,4 +38,5 @@ public class ReviewController {
     ) {
         return reviewService.getUserReviews(userId, page, pageSize);
     }
+
 }

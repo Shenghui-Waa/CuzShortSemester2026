@@ -36,8 +36,8 @@ jwt:
   expiration: ${JWT_EXPIRATION:86400000}
 
 chat:
-  encryption:
-    key: ${CHAT_ENCRYPTION_KEY:cuzssp-chat-encryption-key-default}
+  secret:
+    key: ${CHAT_SECRET_KEY:cuzssp-chat-secret-key-default}
 
 s3:
   config:

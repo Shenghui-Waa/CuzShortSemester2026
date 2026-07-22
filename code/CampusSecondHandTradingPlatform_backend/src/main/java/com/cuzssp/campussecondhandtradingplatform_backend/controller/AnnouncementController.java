@@ -1,6 +1,6 @@
 package com.cuzssp.campussecondhandtradingplatform_backend.controller;
 
-import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.Result;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.Result;
 import com.cuzssp.campussecondhandtradingplatform_backend.service.AnnouncementService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -14,9 +14,6 @@ public class AnnouncementController {
 
     /**
      * 获取公告列表
-     * @param page 页码
-     * @param pageSize 页大小
-     * @return 公告列表
      */
     @GetMapping
     public Result<?> getAnnouncement(
@@ -28,8 +25,6 @@ public class AnnouncementController {
 
     /**
      * 查看公告详情
-     * @param id 公告 ID
-     * @return 公告详情
      */
     @GetMapping("/{id}")
     public Result<?> getAnnouncementInfo(

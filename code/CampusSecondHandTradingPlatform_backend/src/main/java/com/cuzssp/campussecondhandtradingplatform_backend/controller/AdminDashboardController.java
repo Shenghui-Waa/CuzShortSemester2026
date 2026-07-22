@@ -4,7 +4,7 @@ import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.Announcemen
 import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.RegisterRequest;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.*;
 import com.cuzssp.campussecondhandtradingplatform_backend.service.*;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.Result;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.Result;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class AdminDashboardController {
 
-    private final AdminService adminService;
+    private final AdminService adminService;    // 管理员操作
     private final UserService userService;  // 账户操作 用户管理
     private final ProductService productService;    // 商品操作 商品管理
     private final OrderService orderService;    // 订单查验 订单管理
@@ -23,7 +23,6 @@ public class AdminDashboardController {
 
     /**
      * 获取仪表盘
-     * @return 仪表盘信息
      */
     @GetMapping("/dashboard")
     public Result<?> getDashboard() {
@@ -32,23 +31,7 @@ public class AdminDashboardController {
 
     // 用户管理
     /**
-     * 添加管理员
-     * @param request 管理员信息注册请求体
-     * @return 管理员用户信息
-     */
-    @PostMapping("/users/newadmin")
-    public Result<?> addAdmin(
-            @Valid @RequestBody RegisterRequest request
-    ) {
-        return userService.addAdmin(request);
-    }
-
-    /**
      * 获取用户列表
-     * @param page 页码
-     * @param pageSize 页大小
-     * @param keyword 关键词
-     * @return 满足 keyword 的用户列表
      */
     @GetMapping("/users")
     public Result<?> getUserList(
@@ -60,10 +43,17 @@ public class AdminDashboardController {
     }
 
     /**
+     * 添加管理员
+     */
+    @PostMapping("/users/newadmin")
+    public Result<?> addAdmin(
+            @Valid @RequestBody RegisterRequest request
+    ) {
+        return userService.addAdmin(request);
+    }
+
+    /**
      * 修改用户状态
-     * @param id 用户 ID
-     * @param status 用户状态 0=正常 1=封禁
-     * @return 成功则空数据返回
      */
     @PutMapping("/users/{id}/status")
     public Result<?> updateUserStatus(
@@ -76,11 +66,6 @@ public class AdminDashboardController {
     // 商品管理
     /**
      * 获取商品列表
-     * @param page 页码
-     * @param pageSize 页大小
-     * @param keyword 关键词
-     * @param status 商品状态 0=待审核 1=在售 2=已售出 3=已下架
-     * @return 满足 keyword & status 的商品列表
      */
     @GetMapping("/products")
     public Result<?> getProductList(
@@ -94,25 +79,18 @@ public class AdminDashboardController {
 
     /**
      * 修改商品状态
-     * @param id 商品 ID
-     * @param status 商品状态 0=待审核 1=在售 2=已售出 3=已下架
-     * @return 成功则空数据返回
      */
     @PutMapping("/products/{id}/status")
     public Result<?> updateProductStatus(
             @PathVariable Long id,
             @RequestParam Integer status
     ) {
-        return productService.updateProductStatus(id, status);
+        return productService.updateProduct(id, status);
     }
 
     // 订单管理 仅查看
     /**
      * 获取订单表
-     * @param page 页码
-     * @param pageSize 页大小
-     * @param status 订单状态 0=待付款 1=待发货 2=待收货 3=已完成 4=已取消
-     * @return 满足 status 的订单列表
      */
     @GetMapping("/orders")
     public Result<?> getOrders(
@@ -126,8 +104,6 @@ public class AdminDashboardController {
     // 分类管理
     /**
      * 创建类别
-     * @param category 类别信息实体
-     * @return 类别信息
      */
     @PostMapping("/categories")
     public Result<?> createCategory(
@@ -138,9 +114,6 @@ public class AdminDashboardController {
 
     /**
      * 修改类别信息 基于 id
-     * @param id 类别 ID
-     * @param category 类别信息实体
-     * @return 类别信息
      */
     @PutMapping("/categories/{id}")
     public Result<?> updateCategory(
@@ -152,21 +125,17 @@ public class AdminDashboardController {
 
     /**
      * 删除类别 基于 id
-     * @param id 类别 ID
-     * @return 成功则空数据返回
      */
     @DeleteMapping("/categories/{id}")
     public Result<?> deleteCategory(
             @PathVariable Long id
     ) {
-        return categoryService.deleteCategory(id);
+        return categoryService.removeCategory(id);
     }
 
     // 公告管理
     /**
      * 新增公告
-     * @param announcementRequest 公告信息请求体
-     * @return 公告信息
      */
     @PostMapping("/announcements")
     public Result<?> createAnnouncement(
@@ -177,9 +146,6 @@ public class AdminDashboardController {
 
     /**
      * 修改公告
-     * @param id 公告 ID
-     * @param announcementRequest 公告信息请求体
-     * @return 公告信息
      */
     @PutMapping("/announcements/{id}")
     public Result<?> updateAnnouncement(
@@ -191,8 +157,6 @@ public class AdminDashboardController {
 
     /**
      * 删除公告
-     * @param id 公告 ID
-     * @return 成功则空数据返回
      */
     @DeleteMapping("/announcements/{id}")
     public Result<?> deleteAnnouncement(
@@ -200,7 +164,5 @@ public class AdminDashboardController {
     ) {
         return announcementService.removeAnnouncement(id);
     }
-
-
 
 }

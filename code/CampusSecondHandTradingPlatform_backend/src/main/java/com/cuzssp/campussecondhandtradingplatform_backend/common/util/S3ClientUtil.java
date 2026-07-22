@@ -11,8 +11,8 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import java.net.URI;
 
-/**
- * S3 兼容客户端
+/*
+ S3 兼容客户端
  */
 @Component
 @RequiredArgsConstructor

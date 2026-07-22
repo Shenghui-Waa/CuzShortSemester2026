@@ -2,7 +2,6 @@ package com.cuzssp.campussecondhandtradingplatform_backend.common.util;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
@@ -22,7 +21,7 @@ public class AesEncryptionUtil {
     private final SecureRandom secureRandom;
 
     public AesEncryptionUtil(
-            @Value("${chat.encryption.key}") String passphrase) {
+            @Value("${chat.secret.key}") String passphrase) {
         try {
             java.security.MessageDigest sha256 = java.security.MessageDigest.getInstance("SHA-256");
             byte[] keyBytes = sha256.digest(passphrase.getBytes(StandardCharsets.UTF_8));

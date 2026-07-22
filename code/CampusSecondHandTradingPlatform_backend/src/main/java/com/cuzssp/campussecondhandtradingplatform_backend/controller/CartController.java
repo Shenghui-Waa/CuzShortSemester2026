@@ -1,9 +1,8 @@
 package com.cuzssp.campussecondhandtradingplatform_backend.controller;
 
 import com.cuzssp.campussecondhandtradingplatform_backend.common.security.SecurityUtil;
-
 import com.cuzssp.campussecondhandtradingplatform_backend.service.CartService;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.Result;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.Result;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,8 +16,6 @@ public class CartController {
 
     /**
      * 获取购物车
-     * @param token
-     * @return
      */
     @GetMapping
     public Result<?> getCart(
@@ -30,9 +27,6 @@ public class CartController {
 
     /**
      * 添加到购物车
-     * @param token
-     * @param productId
-     * @return
      */
     @PostMapping
     public Result<?> addToCart(
@@ -45,9 +39,6 @@ public class CartController {
 
     /**
      * 从购物车移除商品
-     * @param token
-     * @param productId
-     * @return
      */
     @DeleteMapping("/{productId}")
     public Result<?> removeFromCart(
@@ -57,4 +48,5 @@ public class CartController {
         Long currentUserId = securityUtil.getCurrentUserId(token);
         return cartService.removeFromCart(currentUserId, productId);
     }
+
 }

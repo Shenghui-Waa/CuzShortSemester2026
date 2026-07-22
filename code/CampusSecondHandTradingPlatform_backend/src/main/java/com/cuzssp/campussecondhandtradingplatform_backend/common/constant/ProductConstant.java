@@ -1,9 +1,10 @@
 package com.cuzssp.campussecondhandtradingplatform_backend.common.constant;
 
-/**
- * 商品相关常量
+/*
+  商品相关常量
  */
 public class ProductConstant {
+
     public static final int CONDITION_100_NEW = 1;  // 全新
     public static final int CONDITION_95_NEW = 2;   // 几乎全新
     public static final int CONDITION_85_NEW = 3;   // 有使用痕迹

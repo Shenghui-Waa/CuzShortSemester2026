@@ -12,7 +12,7 @@ import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.PageResult;
 import com.cuzssp.campussecondhandtradingplatform_backend.mapper.ProductMapper;
 import com.cuzssp.campussecondhandtradingplatform_backend.mapper.UserMapper;
 import com.cuzssp.campussecondhandtradingplatform_backend.service.UserService;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.Result;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.Result;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.UserVO;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.UpdateProfileRequest;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.ChangePasswordRequest;
@@ -38,23 +38,25 @@ public class UserServiceImpl implements UserService {
 
     private static final int BATCH_SIZE = 50;
 
+    // 获取用户信息
     @Override
     public Result<UserVO> getUserById(
             Long id
     ) {
         User user = userMapper.selectById(id);
         if (user == null)
-            throw new BusinessException("User not found");
+            throw new BusinessException(404, "User not found");
         return Result.success(ToVOUtil.toUserVO(user));
     }
 
+    // 修改个人信息
     @Override
     public Result<UserVO> updateProfile(
             Long userId, UpdateProfileRequest request
     ) {
         User user = userMapper.selectById(userId);
         if (user == null)
-            throw new BusinessException("User not found");
+            throw new BusinessException(404, "User not found");
         if (request.getNickname() != null)
             user.setNickname(request.getNickname());
         if (request.getPhone() != null)
@@ -70,28 +72,30 @@ public class UserServiceImpl implements UserService {
         return Result.success(ToVOUtil.toUserVO(userMapper.selectById(userId)));
     }
 
+    // 修改密码
     @Override
     public Result<Void> changePassword(
             Long userId, ChangePasswordRequest request
     ) {
         User user = userMapper.selectById(userId);
         if (user == null)
-            throw new BusinessException("User not found");
+            throw new BusinessException(404, "User not found");
         if (!passwordProvider.matches(request.getOldPassword(), user.getPassword()))
-            throw new BusinessException("Old password is incorrect");
+            throw new BusinessException(412, "Old password is incorrect");
         user.setPassword(passwordProvider.encode(request.getNewPassword()));
         user.setUpdatedAt(LocalDateTime.now());
         userMapper.updateById(user);
         return Result.success();
     }
 
+    // 修改头像
     @Override
     public Result<Void> updateAvatar(
             Long userId, String imageURL
     ) {
         User user = userMapper.selectById(userId);
         if (user == null)
-            throw new BusinessException("User not found");
+            throw new BusinessException(404, "User not found");
         user.setAvatar(imageURL);
         user.setUpdatedAt(LocalDateTime.now());
         userMapper.updateById(user);
@@ -99,21 +103,11 @@ public class UserServiceImpl implements UserService {
     }
 
 
-    /*
-    管理员操作
-     */
-    @Override
-    public Result<UserVO> addAdmin(
-            RegisterRequest request
-    ) {
-        if (userMapper.countByUsername(request.getUsername()) > 0)
-            throw new BusinessException("Admin name already exists");
-        User user = ToEntityUtil.toUserEntity(request, passwordProvider);
-        user.setRole(UserConstant.ROLE_ADMIN);
-        userMapper.insert(user);
-        return Result.success(ToVOUtil.toUserVO(user));
-    }
+    // =====================================================================================
+    // ===========================>>>>> 管 理 员 操 作 <<<<<==================================
+    // =====================================================================================
 
+    // 获取用户列表
     @Override
     public Result<PageResult<UserVO>> getUserList(
             Integer page, Integer pageSize, String keyword
@@ -136,6 +130,20 @@ public class UserServiceImpl implements UserService {
         );
     }
 
+    // 添加管理员
+    @Override
+    public Result<UserVO> addAdmin(
+            RegisterRequest request
+    ) {
+        if (userMapper.countByUsername(request.getUsername()) > 0)
+            throw new BusinessException(403, "Admin name already exists");
+        User user = ToEntityUtil.toUserEntity(request, passwordProvider);
+        user.setRole(UserConstant.ROLE_ADMIN);
+        userMapper.insert(user);
+        return Result.success(ToVOUtil.toUserVO(user));
+    }
+
+    // 修改用户状态
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Result<Void> updateUserStatus(
@@ -156,6 +164,7 @@ public class UserServiceImpl implements UserService {
         return Result.success();
     }
 
+    // 修改用户的商品状态
     private void updateUserProductsStatus(Long userId, Integer targetStatus) {
         int offset = 0;
         List<Product> batch;

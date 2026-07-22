@@ -1,6 +1,7 @@
 package com.cuzssp.campussecondhandtradingplatform_backend.service.impl;
 
 import com.cuzssp.campussecondhandtradingplatform_backend.common.constant.ChatMessageConstant;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.Result;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.ChatMessage;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.User;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.handler.ChatWebSocketHandler;
@@ -27,6 +28,7 @@ public class ChatServiceImpl implements ChatService {
     private final AesEncryptionUtil aesEncryptionUtil;
     private final ChatWebSocketHandler chatWebSocketHandler;
 
+    // 获取消息列表
     @Override
     public Result<List<ChatContactVO>> getContacts(
             Long userId
@@ -72,6 +74,7 @@ public class ChatServiceImpl implements ChatService {
         return Result.success(chatContactVOs);
     }
 
+    // 获取聊天记录
     @Override
     public Result<List<ChatMessageVO>> getMessages(
             Long userId, Long contactId, Integer page, Integer pageSize
@@ -88,6 +91,7 @@ public class ChatServiceImpl implements ChatService {
         return Result.success(chatMessageVOs);
     }
 
+    // 发送信息
     @Override
     public Result<ChatMessageVO> sendMessage(
             Long senderId, Long receiverId, Long productId, String content
@@ -104,6 +108,7 @@ public class ChatServiceImpl implements ChatService {
         return Result.success(chatMessageVO);
     }
 
+    // 标记已读
     @Override
     public Result<Void> markAsRead(Long userId, Long contactId) {
         chatMessageMapper.markAsRead(userId, contactId);

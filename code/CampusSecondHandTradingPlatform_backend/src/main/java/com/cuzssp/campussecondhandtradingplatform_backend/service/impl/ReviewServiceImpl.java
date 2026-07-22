@@ -8,7 +8,7 @@ import com.cuzssp.campussecondhandtradingplatform_backend.mapper.ReviewMapper;
 import com.cuzssp.campussecondhandtradingplatform_backend.mapper.OrderMapper;
 import com.cuzssp.campussecondhandtradingplatform_backend.mapper.UserMapper;
 import com.cuzssp.campussecondhandtradingplatform_backend.service.ReviewService;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.Result;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.Result;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.ReviewVO;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.PageResult;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.ReviewRequest;
@@ -31,31 +31,7 @@ public class ReviewServiceImpl implements ReviewService {
     private final OrderMapper orderMapper;
     private final UserMapper userMapper;
 
-    @Override
-    public Result<Void> createReview(
-            Long reviewerId, ReviewRequest request
-    ) {
-        OrderInfo order = orderMapper.selectById(request.getOrderId());
-        if (order == null)
-            throw new BusinessException(404, "Order not found");
-        if (!Objects.equals(order.getBuyerId(), reviewerId)
-                && !Objects.equals(order.getSellerId(), reviewerId))
-            throw new BusinessException(403, "Not a participant of this order");
-        if (reviewMapper.countByOrderIdAndReviewerId(request.getOrderId(), reviewerId) > 0)
-            throw new BusinessException("Already reviewed");
-        Review review = ToEntityUtil.toReviewEntity(reviewerId, request);
-        reviewMapper.insert(review);
-        User target = userMapper.selectById(request.getTargetId());
-        if (target != null) {
-            target.setCreditScore(
-                    target.getCreditScore() + (request.getRating() >= 3 ? 1 : -1)
-            );
-            target.setUpdatedAt(LocalDateTime.now());
-            userMapper.updateById(target);
-        }
-        return Result.success();
-    }
-
+    // 获取评价
     @Override
     public Result<PageResult<ReviewVO>> getUserReviews(
             Long userId, Integer page, Integer pageSize
@@ -72,4 +48,32 @@ public class ReviewServiceImpl implements ReviewService {
                 reviewPageInfo.getPageNum(), reviewPageInfo.getPageSize()
         ));
     }
+
+    // 创建评价
+    @Override
+    public Result<Void> createReview(
+            Long reviewerId, ReviewRequest request
+    ) {
+        OrderInfo order = orderMapper.selectById(request.getOrderId());
+        if (order == null)
+            throw new BusinessException(404, "Order not found");
+        if (!Objects.equals(order.getBuyerId(), reviewerId)
+                && !Objects.equals(order.getSellerId(), reviewerId))
+            throw new BusinessException(403, "Not a participant of this order");
+        if (reviewMapper.countByOrderIdAndReviewerId(request.getOrderId(), reviewerId) > 0)
+            throw new BusinessException(403, "Already reviewed");
+        Review review = ToEntityUtil.toReviewEntity(reviewerId, request);
+        reviewMapper.insert(review);
+        User target = userMapper.selectById(request.getTargetId());
+        if (target != null) {
+            target.setCreditScore(
+                    target.getCreditScore() + (request.getRating() >= 3 ? 1 : -1)
+            );
+            target.setUpdatedAt(LocalDateTime.now());
+            userMapper.updateById(target);
+        }
+        return Result.success();
+    }
+
+
 }

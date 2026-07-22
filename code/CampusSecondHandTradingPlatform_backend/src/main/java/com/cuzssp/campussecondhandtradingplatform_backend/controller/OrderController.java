@@ -1,10 +1,9 @@
 package com.cuzssp.campussecondhandtradingplatform_backend.controller;
 
 import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.CreateOrderRequest;
-
 import com.cuzssp.campussecondhandtradingplatform_backend.common.security.SecurityUtil;
 import com.cuzssp.campussecondhandtradingplatform_backend.service.OrderService;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.Result;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.Result;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,9 +17,6 @@ public class OrderController {
 
     /**
      * 创建订单
-     * @param token
-     * @param request
-     * @return
      */
     @PostMapping
     public Result<?> createOrder(
@@ -33,11 +29,6 @@ public class OrderController {
 
     /**
      * 获取订单列表
-     * @param token
-     * @param status
-     * @param page
-     * @param pageSize
-     * @return
      */
     @GetMapping
     public Result<?> getOrders(
@@ -52,9 +43,6 @@ public class OrderController {
 
     /**
      * 获取订单详情
-     * @param token
-     * @param id
-     * @return
      */
     @GetMapping("/{id}")
     public Result<?> getOrderDetail(
@@ -66,10 +54,7 @@ public class OrderController {
     }
 
     /**
-     * 支付订单，为合规，不做支付逻辑
-     * @param token
-     * @param id
-     * @return
+     * 支付订单，暂不做支付逻辑
      */
     @PutMapping("/{id}/pay")
     public Result<?> payOrder(
@@ -82,9 +67,6 @@ public class OrderController {
 
     /**
      * 发货
-     * @param token
-     * @param id
-     * @return
      */
     @PutMapping("/{id}/ship")
     public Result<?> shipOrder(
@@ -97,9 +79,6 @@ public class OrderController {
 
     /**
      * 收货
-     * @param token
-     * @param id
-     * @return
      */
     @PutMapping("/{id}/confirm")
     public Result<?> confirmOrder(
@@ -112,9 +91,6 @@ public class OrderController {
 
     /**
      * 取消订单
-     * @param token
-     * @param id
-     * @return
      */
     @PutMapping("/{id}/cancel")
     public Result<?> cancelOrder(
@@ -124,4 +100,5 @@ public class OrderController {
         Long currentUserId = securityUtil.getCurrentUserId(token);
         return orderService.cancelOrder(currentUserId, id);
     }
+
 }
