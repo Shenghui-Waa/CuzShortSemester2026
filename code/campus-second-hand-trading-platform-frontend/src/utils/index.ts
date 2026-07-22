@@ -6,7 +6,7 @@ export function formatDate(date: string): string {
   return new Date(date).toLocaleString("zh-CN");
 }
 export function getConditionLabel(c: number): string {
-  return ({ 0: "全新", 1: "几乎全新", 2: "有使用痕迹" } as any)[c] ?? "未知";
+  return ({ 1: "全新", 2: "几乎全新", 3: "有使用痕迹" } as any)[c] ?? "未知";
 }
 export function getOrderStatusLabel(s: number): string {
   return ({ 0: "待付款", 1: "待发货", 2: "待收货", 3: "已完成", 4: "已取消" } as any)[s] ?? "未知";

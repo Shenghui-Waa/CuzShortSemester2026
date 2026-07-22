@@ -18,6 +18,7 @@ import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -50,6 +51,7 @@ public class OrderServiceImpl implements OrderService {
         if (Objects.equals(buyerId, product.getUserId()))
             throw new BusinessException("Buyer cannot be seller");
         product.setStatus(ProductConstant.STATUS_SOLD_OUT);
+        product.setUpdatedAt(LocalDateTime.now());
         OrderInfo order = ToEntityUtil.toOrderInfoEntity(buyerId, product, request.getRemark());
         orderMapper.insert(order);
         OrderItem orderItem = ToEntityUtil.toOrderItemEntity(order, product);
@@ -111,6 +113,7 @@ public class OrderServiceImpl implements OrderService {
         if (order.getStatus() != OrderInfoConstant.STATUS_WAIT_PAY)
             throw new BusinessException(400, "Invalid order status");
         order.setStatus(OrderInfoConstant.STATUS_WAIT_DELIVER);
+        order.setPaidAt(LocalDateTime.now());
         orderMapper.updateById(order);
         return Result.success();
     }
@@ -134,6 +137,7 @@ public class OrderServiceImpl implements OrderService {
         if (order.getStatus() != OrderInfoConstant.STATUS_WAIT_DELIVER)
             throw new BusinessException(400, "Invalid order status");
         order.setStatus(OrderInfoConstant.STATUS_WAIT_RECEIVE);
+        order.setShippedAt(LocalDateTime.now());
         orderMapper.updateById(order);
         return Result.success();
     }
@@ -157,6 +161,7 @@ public class OrderServiceImpl implements OrderService {
         if (order.getStatus() != OrderInfoConstant.STATUS_WAIT_RECEIVE)
             throw new BusinessException(400, "Invalid order status");
         order.setStatus(OrderInfoConstant.STATUS_COMPLETED);
+        order.setCompletedAt(LocalDateTime.now());
         orderMapper.updateById(order);
         return Result.success();
     }
@@ -181,6 +186,7 @@ public class OrderServiceImpl implements OrderService {
             Product product = productMapper.selectById(orderItem.getProductId());
             if (product != null) {
                 product.setStatus(ProductConstant.STATUS_ON_SALE);
+                product.setUpdatedAt(LocalDateTime.now());
                 productMapper.updateById(product);
             }
         }

@@ -14,9 +14,9 @@
         <el-form-item label="原价"><el-input-number v-model="f.originalPrice" :min="0" :precision="2" style="width:200px" /></el-form-item>
         <el-form-item label="成色" prop="condition">
           <el-radio-group v-model="f.condition">
-            <el-radio :value="0">全新</el-radio>
-            <el-radio :value="1">几乎全新</el-radio>
-            <el-radio :value="2">有使用痕迹</el-radio>
+            <el-radio :value="1">全新</el-radio>
+            <el-radio :value="2">几乎全新</el-radio>
+            <el-radio :value="3">有使用痕迹</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="校区" prop="campus"><el-select v-model="f.campus" placeholder="选择校区" style="width:100%"><el-option label="下沙校区" value="下沙校区" /><el-option label="桐乡校区" value="桐乡校区" /></el-select></el-form-item>
@@ -55,7 +55,7 @@ const f = reactive({
   categoryId: null as number | null,
   price: 0,
   originalPrice: 0,
-  condition: 0,
+  condition: 1,
   campus: "",
   description: "",
 });
