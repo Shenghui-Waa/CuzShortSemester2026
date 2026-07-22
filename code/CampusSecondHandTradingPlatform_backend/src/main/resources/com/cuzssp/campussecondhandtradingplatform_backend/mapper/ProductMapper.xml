@@ -4,24 +4,30 @@
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.cuzssp.campussecondhandtradingplatform_backend.mapper.ProductMapper">
 
-    <select id="searchByKeywordOrStatus"
-            resultType="com.cuzssp.campussecondhandtradingplatform_backend.common.entity.Product">
-        SELECT * FROM product
-        WHERE 1 = 1
-            <if test='keyword != null and keyword != ""'>
-                AND (title LIKE CONCAT('%',#{keyword},'%') OR description LIKE CONCAT('%',#{keyword},'%'))
-            </if>
-            <if test="status != null">
-                AND status = #{status}
-            </if>
-        ORDER BY created_at DESC, price
-    </select>
-
     <select id="selectByUserIdWithLimit"
             resultType="com.cuzssp.campussecondhandtradingplatform_backend.common.entity.Product">
         SELECT * FROM product
         WHERE user_id = #{userId}
         LIMIT #{offset}, #{batchSize}
+    </select>
+
+    <select id="selectByKeywordOrCategoryOrCampusOrStatus"
+            resultType="com.cuzssp.campussecondhandtradingplatform_backend.common.entity.Product">
+        SELECT * FROM product
+        WHERE 1 = 1
+        <if test='keyword != null and keyword != ""'>
+            AND (title LIKE CONCAT('%',#{keyword},'%') OR description LIKE CONCAT('%',#{keyword},'%'))
+        </if>
+        <if test="categoryId != null">
+            AND category_id = #{categoryId}
+        </if>
+        <if test='campus != null and campus != ""'>
+            AND campus = #{campus}
+        </if>
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+        ORDER BY price ASC, created_at DESC
     </select>
 
 </mapper>

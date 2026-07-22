@@ -31,25 +31,34 @@ public class ChatServiceImpl implements ChatService {
     public Result<List<ChatContactVO>> getContacts(
             Long userId
     ) {
-        List<ChatMessage> sent = chatMessageMapper.selectBySenderId(userId);
-        List<ChatMessage> received = chatMessageMapper.selectByReceiverId(userId);
-
+        List<ChatMessage> messages = chatMessageMapper.selectByUserId(userId);
         Map<Long, ChatContactVO> contactMap = new HashMap<>();
-        for (ChatMessage msg : sent) {
-            contactMap.putIfAbsent(msg.getReceiverId(), new ChatContactVO());
-            contactMap.get(msg.getReceiverId()).setContactId(msg.getReceiverId());
-            contactMap.get(msg.getReceiverId()).setLastMessage(aesEncryptionUtil.decrypt(msg.getContent()));
-            contactMap.get(msg.getReceiverId()).setLastTime(msg.getCreatedAt().toString());
+        for (ChatMessage msg : messages) {
+            // 发信人
+            if (msg.getSenderId().equals(userId)) {
+                contactMap.putIfAbsent(msg.getReceiverId(), new ChatContactVO());
+                ChatContactVO chatContactVO = contactMap.get(msg.getReceiverId());
+                chatContactVO.setContactId(msg.getReceiverId());
+                if (chatContactVO.getLastMessage() == null) {
+                    chatContactVO.setLastMessage(aesEncryptionUtil.decrypt(msg.getContent()));
+                    chatContactVO.setLastTime(msg.getCreatedAt().toString());
+                }
+            }
+            // 收信人
+            if (msg.getReceiverId().equals(userId)) {
+                contactMap.putIfAbsent(msg.getSenderId(), new ChatContactVO());
+                ChatContactVO chatContactVO = contactMap.get(msg.getSenderId());
+                chatContactVO.setContactId(msg.getSenderId());
+                if (chatContactVO.getLastMessage() == null) {
+                    chatContactVO.setLastMessage(aesEncryptionUtil.decrypt(msg.getContent()));
+                    chatContactVO.setLastTime(msg.getCreatedAt().toString());
+                }
+                if (msg.getIsRead() == ChatMessageConstant.READ_STATUS_NO)
+                    chatContactVO.setUnreadCount((chatContactVO.getUnreadCount() == null
+                            ? 0 : chatContactVO.getUnreadCount()) + 1);
+            }
         }
-        for (ChatMessage msg : received) {
-            contactMap.putIfAbsent(msg.getSenderId(), new ChatContactVO());
-            ChatContactVO vo = contactMap.get(msg.getSenderId());
-            vo.setContactId(msg.getSenderId());
-            vo.setLastMessage(aesEncryptionUtil.decrypt(msg.getContent()));
-            if (msg.getIsRead() == ChatMessageConstant.READ_STATUS_NO)
-                vo.setUnreadCount((vo.getUnreadCount() == null ? 0 : vo.getUnreadCount()) + 1);
-            vo.setLastTime(msg.getCreatedAt().toString());
-        }
+
         List<ChatContactVO> chatContactVOs = new ArrayList<>();
         for (ChatContactVO chatContactVO : contactMap.values()) {
             User contactedUser = userMapper.selectById(chatContactVO.getContactId());
@@ -72,8 +81,8 @@ public class ChatServiceImpl implements ChatService {
         List<ChatMessageVO> chatMessageVOs = chatMessageList.stream()
                 .map(ToVOUtil::toChatMessageVO)
                 .collect(Collectors.toList());
-        for (ChatMessageVO vo : chatMessageVOs) {
-            vo.setContent(aesEncryptionUtil.decrypt(vo.getContent()));
+        for (ChatMessageVO chatMessageVO : chatMessageVOs) {
+            chatMessageVO.setContent(aesEncryptionUtil.decrypt(chatMessageVO.getContent()));
         }
         Collections.reverse(chatMessageVOs);
         return Result.success(chatMessageVOs);
@@ -84,10 +93,8 @@ public class ChatServiceImpl implements ChatService {
             Long senderId, Long receiverId, Long productId, String content
     ) {
         String encryptedContent = aesEncryptionUtil.encrypt(content);
-
         ChatMessage message = ToEntityUtil.toChatMessageEntity(
-                senderId, receiverId, productId, encryptedContent
-        );
+                senderId, receiverId, productId, encryptedContent);
         chatMessageMapper.insert(message);
         ChatMessageVO chatMessageVO = ToVOUtil.toChatMessageVO(message);
         chatMessageVO.setContent(content);
