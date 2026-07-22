@@ -1,6 +1,8 @@
 package com.cuzssp.campussecondhandtradingplatform_backend.service.impl;
 
 import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.CartItem;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.Product;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.User;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.util.ToEntityUtil;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.util.ToVOUtil;
 import com.cuzssp.campussecondhandtradingplatform_backend.mapper.CartMapper;
@@ -29,12 +31,16 @@ public class CartServiceImpl implements CartService {
     public Result<List<CartItemVO>> getCart(Long userId) {
         List<CartItem> cartItems = cartMapper.selectByUserId(userId);
         List<CartItemVO> cartItemVOs = cartItems.stream()
-                .map(cartItem -> ToVOUtil.toCartItemVO(
-                        cartItem,
-                        productMapper.selectById(cartItem.getProductId()),
-                        userMapper.selectById(cartItem.getUserId()),
-                        productImageMapper
-                )).collect(Collectors.toList());
+                .map(cartItem -> {
+                    Product product = productMapper.selectById(cartItem.getProductId());
+                    User seller = product != null
+                            ? userMapper.selectById(product.getUserId())
+                            : null;
+                    return ToVOUtil.toCartItemVO(
+                            cartItem, product,
+                            seller, productImageMapper
+                    );
+                }).collect(Collectors.toList());
         return Result.success(cartItemVOs);
     }
 

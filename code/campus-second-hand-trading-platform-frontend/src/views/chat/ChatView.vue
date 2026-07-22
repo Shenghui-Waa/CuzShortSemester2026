@@ -142,7 +142,7 @@ async function loadContacts() {
 
 function connectWS() {
   const proto = location.protocol === "https:" ? "wss:" : "ws:";
-  ws = new WebSocket(`${proto}//${location.host}/ws/chat?userId=${userId.value}`);
+  ws = new WebSocket(`${proto}//${location.host}/ws/chat?token=${localStorage.getItem("token")}`);
   ws.onmessage = (e) => {
     try {
       const data = JSON.parse(e.data);

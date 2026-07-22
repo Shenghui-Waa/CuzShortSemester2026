@@ -80,9 +80,9 @@
         <el-form-item label="原价"><el-input-number v-model="ef.originalPrice" :min="0" :precision="2" style="width:200px" /></el-form-item>
         <el-form-item label="成色">
           <el-radio-group v-model="ef.condition">
-            <el-radio :value="0">全新</el-radio>
-            <el-radio :value="1">几乎全新</el-radio>
-            <el-radio :value="2">有使用痕迹</el-radio>
+            <el-radio :value="1">全新</el-radio>
+            <el-radio :value="2">几乎全新</el-radio>
+            <el-radio :value="3">有使用痕迹</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="校区">
@@ -223,7 +223,7 @@ const editImages = ref<string[]>([]);
 const editCategories = ref<any[]>([]);
 const ef = reactive({
   title: "", categoryId: null as number | null, price: 0,
-  originalPrice: 0, condition: 0, campus: "", description: "",
+  originalPrice: 0, condition: 1, campus: "", description: "",
 });
 
 async function openEdit() {
@@ -233,7 +233,7 @@ async function openEdit() {
   ef.categoryId = p.categoryId || null;
   ef.price = p.price || 0;
   ef.originalPrice = p.originalPrice || 0;
-  ef.condition = p.condition ?? 0;
+  ef.condition = p.condition ?? 1;
   ef.campus = p.campus || "";
   ef.description = p.description || "";
   editImages.value = p.images ? [...p.images] : [];
