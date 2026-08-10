@@ -1,11 +1,9 @@
 package com.cuzssp.campussecondhandtradingplatform_backend.service;
 
-import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.ChangePasswordRequest;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.RegisterRequest;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.UpdateProfileRequest;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.*;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.PageResult;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.Result;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.UserVO;
+import jakarta.validation.Valid;
 
 public interface UserService {
 
@@ -17,5 +15,6 @@ public interface UserService {
     Result<PageResult<UserVO>> getUserList(Integer page, Integer pageSize, String keyword);
     Result<UserVO> addAdmin(RegisterRequest request);
     Result<Void> updateUserStatus(Long userId, Integer targetStatus);
-
+    Result<Void> deleteUserById(Long id);
+    Result<Void> resetPassword(Long id, ResetPasswordRequest request);
 }

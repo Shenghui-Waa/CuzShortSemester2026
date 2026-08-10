@@ -9,7 +9,7 @@
       <el-table-column prop="id" label="ID" width="80" /><el-table-column prop="username" label="用户名" />
       <el-table-column prop="nickname" label="昵称" /><el-table-column prop="school" label="学校" />
       <el-table-column label="状态" width="80"><template #default="{row}"><el-tag :type="row.status?'danger':'success'">{{ row.status?'封禁':'正常' }}</el-tag></template></el-table-column>
-      <el-table-column label="操作" width="120"><template #default="{row}"><el-button size="small" :type="row.status?'success':'danger'" @click="toggle(row)">{{ row.status?'解封':'封禁' }}</el-button></template></el-table-column>
+      <el-table-column label="操作" width="160"><template #default="{row}"><template v-if="row.id===selfId"><el-tooltip content="不可操作自身" :hide-after="0"><el-button size="small" disabled><el-icon><Lock /></el-icon></el-button></el-tooltip><el-tooltip content="不可操作自身" :hide-after="0"><el-button size="small" type="warning" plain disabled><el-icon><Key /></el-icon></el-button></el-tooltip><el-tooltip content="不可操作自身" :hide-after="0"><el-button size="small" type="danger" plain disabled><el-icon><Delete /></el-icon></el-button></el-tooltip></template><template v-else><el-tooltip :content="row.status?'解封':'封禁'" :hide-after="0"><el-button size="small" :type="row.status?'success':'danger'" @click="toggle(row)"><el-icon><component :is="row.status?Unlock:Lock" /></el-icon></el-button></el-tooltip><el-tooltip content="重置密码" :hide-after="0"><el-button size="small" type="warning" plain @click="resetPw(row)"><el-icon><Key /></el-icon></el-button></el-tooltip><el-tooltip content="删除" :hide-after="0"><el-button size="small" type="danger" plain @click="del(row)"><el-icon><Delete /></el-icon></el-button></el-tooltip></template></template></el-table-column>
     </el-table>
     <Pagination :total="total" @change="onPage" />
 
@@ -35,13 +35,19 @@
 <script setup lang="ts">
 import { h, ref, reactive, onMounted } from "vue";
 import { ElMessage, ElButton } from "element-plus";
+import { ElMessageBox } from "element-plus";
+import { Lock, Unlock, Key, Delete } from "@element-plus/icons-vue";
 import Pagination from "@/components/Pagination.vue";
 import { adminApi } from "@/api/index";
+import { useUserStore } from "@/stores/user";
+const selfId = useUserStore().userInfo?.id;
 const users = ref<any[]>([]); const total = ref(0); const keyword = ref(""); const page = ref(1);
 onMounted(() => fetch());
 async function fetch() { const r: any = await adminApi.userList({ page: page.value, pageSize: 10, keyword: keyword.value }); users.value = r.data?.records||[]; total.value = r.data?.total||0; }
 function onPage(p: number) { page.value = p; fetch(); }
 async function toggle(row: any) { await adminApi.updateUserStatus(row.id, row.status?0:1); ElMessage.success("操作成功"); fetch(); }
+async function del(row: any) { try { await ElMessageBox.confirm(`确定删除用户 ${row.username}？此操作不可恢复。`, "警告", { type: "warning" }); await adminApi.deleteUser(row.id); ElMessage.success("已删除"); fetch(); } catch {} }
+async function resetPw(row: any) { try { await ElMessageBox.confirm(`确定重置用户 ${row.username} 的密码？`, "提示", { type: "warning" }); const pwd = Math.random().toString(36).slice(-10); await adminApi.resetUserPassword(row.id, { newPassword: pwd }); ElMessage.success({ message: h("div", { style: "display:flex;align-items:center;gap:12px" }, [h("span", `密码已重置为: ${pwd}`), h(ElButton, { size: "small", type: "warning", plain: true, onClick: () => { navigator.clipboard.writeText(pwd).then(() => ElMessage.success("密码已复制")).catch(() => ElMessage.error("复制失败")); } }, () => "复制密码")]), duration: 5000 }); } catch {} }
 
 const dialogVisible = ref(false);
 const submitting = ref(false);
@@ -99,4 +105,5 @@ async function submit() {
   margin-bottom: 16px;
 }
 .header-row h2 { margin: 0; }
+:deep(.el-tooltip__popper) { pointer-events: none; }
 </style>

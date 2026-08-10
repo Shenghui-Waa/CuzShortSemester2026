@@ -67,6 +67,7 @@ public class ChatServiceImpl implements ChatService {
             if (contactedUser != null) {
                 chatContactVO.setContactName(contactedUser.getNickname());
                 chatContactVO.setContactAvatar(contactedUser.getAvatar());
+                chatContactVO.setContactUsername(contactedUser.getUsername());
             }
             chatContactVOs.add(chatContactVO);
         }

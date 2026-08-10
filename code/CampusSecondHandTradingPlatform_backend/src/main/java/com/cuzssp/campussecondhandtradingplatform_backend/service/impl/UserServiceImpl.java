@@ -2,7 +2,7 @@ package com.cuzssp.campussecondhandtradingplatform_backend.service.impl;
 
 import com.cuzssp.campussecondhandtradingplatform_backend.common.constant.ProductConstant;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.constant.UserConstant;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.RegisterRequest;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.*;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.Product;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.User;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.security.PasswordProvider;
@@ -12,14 +12,13 @@ import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.PageResult;
 import com.cuzssp.campussecondhandtradingplatform_backend.mapper.ProductMapper;
 import com.cuzssp.campussecondhandtradingplatform_backend.mapper.UserMapper;
 import com.cuzssp.campussecondhandtradingplatform_backend.service.UserService;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.Result;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.UserVO;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.UpdateProfileRequest;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.ChangePasswordRequest;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.exception.BusinessException;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +27,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
@@ -164,6 +164,30 @@ public class UserServiceImpl implements UserService {
         return Result.success();
     }
 
+    // 删除用户
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Void> deleteUserById(Long id) {
+        User user = userMapper.selectById(id);
+        if (user == null)
+            throw new BusinessException(404, "User not found");
+        updateUserProductsStatus(user.getId(), ProductConstant.STATUS_DISABLE);
+        userMapper.deleteById(user.getId());
+        log.info("成功删除 ID={} 的用户", id);
+        return Result.success();
+    }
+
+    @Override
+    public Result<Void> resetPassword(Long id, ResetPasswordRequest request) {
+        User user = userMapper.selectById(id);
+        if (user == null)
+            throw new BusinessException(404, "User not found");
+        user.setPassword(passwordProvider.encode(request.getNewPassword()));
+        user.setUpdatedAt(LocalDateTime.now());
+        userMapper.updateById(user);
+        return Result.success();
+    }
+
     // 修改用户的商品状态
     private void updateUserProductsStatus(Long userId, Integer targetStatus) {
         int offset = 0;
@@ -180,5 +204,4 @@ public class UserServiceImpl implements UserService {
             offset += BATCH_SIZE;
         } while (batch.size() == BATCH_SIZE);
     }
-
 }
