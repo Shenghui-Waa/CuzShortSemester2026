@@ -7,6 +7,7 @@ public class ChatContactVO {
     private Long contactId;
     private String contactName;
     private String contactAvatar;
+    private String contactUsername;
     private String lastMessage;
     private Integer unreadCount;
     private String lastTime;

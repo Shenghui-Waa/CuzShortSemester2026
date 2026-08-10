@@ -2,6 +2,7 @@ package com.cuzssp.campussecondhandtradingplatform_backend.controller;
 
 import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.AnnouncementRequest;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.RegisterRequest;
+import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.ResetPasswordRequest;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.*;
 import com.cuzssp.campussecondhandtradingplatform_backend.service.*;
 import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.Result;
@@ -61,6 +62,27 @@ public class AdminDashboardController {
             @RequestParam Integer status
     ) {
         return userService.updateUserStatus(id, status);
+    }
+
+    /**
+     * 重置密码
+     */
+    @PutMapping("/users/{id}/reset-password")
+    public Result<?> resetPassword(
+            @PathVariable Long id,
+            @Valid @RequestBody ResetPasswordRequest request
+    ) {
+        return userService.resetPassword(id, request);
+    }
+
+    /**
+     * 删除用户
+     */
+    @DeleteMapping("/users/{id}")
+    public Result<?> deleteUser(
+            @PathVariable Long id
+    ) {
+        return userService.deleteUserById(id);
     }
 
     // 商品管理

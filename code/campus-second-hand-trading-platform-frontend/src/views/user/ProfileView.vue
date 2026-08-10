@@ -3,7 +3,8 @@
       <h2>个人中心</h2>
       <div class="back-row"><el-button class="back-btn" @click="$router.back()" text>&lt; 返回</el-button></div>
       <div class="av">
-        <el-avatar :src="user.userInfo?.avatar" :size="80"><el-icon :size="40" v-if="!user.userInfo?.avatar"><User /></el-icon></el-avatar>
+        <GradientAvatar v-if="!user.userInfo?.avatar" :seed="user.userInfo?.username" :size="80" :colors="avatarColors" pattern="dither" />
+        <el-avatar v-else :src="user.userInfo?.avatar" :size="80" />
         <div class="av-btns">
           <el-upload :action="`/api/files/upload`" :headers="{Authorization:`Bearer ${user.token}`}" :show-file-list="false"
             :on-success="onAvatarOk" accept="image/*">
@@ -13,6 +14,7 @@
         </div>
       </div>
       <el-form :model="f" label-width="80px" @submit.prevent="save" style="margin-top:20px">
+        <el-form-item label="用户名"><el-input :model-value="user.userInfo?.username" disabled /></el-form-item>
         <el-form-item label="昵称"><el-input v-model="f.nickname" /></el-form-item>
         <el-form-item label="手机号">
           <div class="phone-wrap">
@@ -47,28 +49,38 @@
           <el-select v-if="!user.isAdmin()" v-model="f.campus" style="width:100%"><el-option label="下沙校区" value="下沙校区" /><el-option label="桐乡校区" value="桐乡校区" /></el-select>
           <el-input v-else v-model="f.campus" />
         </el-form-item>
-        <el-form-item><el-button type="primary" native-type="submit">保存资料</el-button></el-form-item>
+        <el-form-item>
+          <div style="display:flex;justify-content:space-between;width:100%">
+            <el-button type="primary" native-type="submit">保存资料</el-button>
+            <el-button type="warning" @click="pwDialogVisible = true">修改密码</el-button>
+          </div>
+        </el-form-item>
       </el-form>
-      <h3>修改密码</h3>
-      <el-form :model="pw" label-width="100px" @submit.prevent="changePw">
-        <el-form-item label="旧密码"><el-input v-model="pw.oldPassword" type="password" show-password /></el-form-item>
-        <el-form-item label="新密码"><el-input v-model="pw.newPassword" type="password" show-password /></el-form-item>
-        <el-form-item label="确认新密码"><el-input v-model="pw.confirmPassword" type="password" show-password /></el-form-item>
-        <el-form-item><el-button type="warning" native-type="submit">修改密码</el-button></el-form-item>
-      </el-form>
+
+      <el-dialog v-model="pwDialogVisible" title="修改密码" width="400px" @closed="pw.oldPassword='';pw.newPassword='';pw.confirmPassword=''">
+        <el-form :model="pw" label-position="top" @submit.prevent="changePw" style="padding:0 20px">
+          <el-form-item label="旧密码"><el-input v-model="pw.oldPassword" type="password" show-password /></el-form-item>
+          <el-form-item label="新密码"><el-input v-model="pw.newPassword" type="password" show-password /></el-form-item>
+          <el-form-item label="确认新密码"><el-input v-model="pw.confirmPassword" type="password" show-password /></el-form-item>
+          <el-form-item class="pw-submit"><el-button type="warning" native-type="submit">确认修改</el-button></el-form-item>
+        </el-form>
+      </el-dialog>
     </div><AppFooter /></div>
 </template>
 <script setup lang="ts">
 import { ref, reactive, computed, watch, onMounted } from "vue";
 import { ElMessage } from "element-plus";
-import { User, Back } from "@element-plus/icons-vue";
+import { Back } from "@element-plus/icons-vue";
+import { GradientAvatar } from "@tsyanst/avatars-vue";
 import AppHeader from "@/components/layout/AppHeader.vue";
 import AppFooter from "@/components/layout/AppFooter.vue";
 import { userApi } from "@/api/user";
 import { useUserStore } from "@/stores/user";
 const user = useUserStore();
+const avatarColors = ["#fb1e47", "#fc5675", "#fd8fa3", "#fec7d1", "#cd2846", "#a03146", "#723b45", "#ffffff", "#444444"];
 const f = reactive({ nickname: "", phone: "", email: "", school: "", campus: "" });
 const pw = reactive({ oldPassword: "", newPassword: "", confirmPassword: "" });
+const pwDialogVisible = ref(false);
 const domainOptions = ["qq.com", "163.com", "126.com", "gmail.com", "outlook.com", "其他"];
 const emailPrefix = ref("");
 const emailDomain = ref("qq.com");
@@ -97,7 +109,7 @@ async function changePw() {
   if (pw.oldPassword === pw.newPassword) { ElMessage.warning("新密码不能与旧密码相同"); return; }
   if (pw.newPassword !== pw.confirmPassword) { ElMessage.warning("两次输入的新密码不一致"); return; }
   await userApi.changePassword({ oldPassword: pw.oldPassword, newPassword: pw.newPassword });
-  ElMessage.success("密码已修改"); pw.oldPassword = ""; pw.newPassword = ""; pw.confirmPassword = "";
+  ElMessage.success("密码已修改"); pw.oldPassword = ""; pw.newPassword = ""; pw.confirmPassword = ""; pwDialogVisible.value = false;
 }
 async function resetAvatar() {
   await userApi.updateAvatar("");
@@ -168,4 +180,6 @@ html.dark .phone-prefix, html.dark .email-at {
   background: #1e1e1e; border-color: var(--border-color); color: var(--text-muted);
 }
 html.dark .phone-prefix { border-right: none; }
+
+.pw-submit :deep(.el-form-item__content) { justify-content: center; }
 </style>

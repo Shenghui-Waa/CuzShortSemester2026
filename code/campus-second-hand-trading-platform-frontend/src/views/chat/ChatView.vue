@@ -16,7 +16,8 @@
             :class="{ active: selectedId === c.contactId }"
             @click="selectContact(c)"
           >
-            <el-avatar :size="40" :src="c.contactAvatar">{{ (c.contactName || "")[0] }}</el-avatar>
+            <GradientAvatar v-if="!c.contactAvatar" :seed="c.contactUsername || c.contactId" :size="40" :colors="avatarColors" pattern="dither" />
+            <el-avatar v-else :size="40" :src="c.contactAvatar" />
             <div class="contact-info">
               <div class="contact-name">
                 <span class="contact-name-text">{{ c.contactName }}</span>
@@ -63,16 +64,8 @@
       <el-dialog v-model="userDialogVisible" width="380px" center>
         <div class="profile-content" v-if="profileUser">
           <div class="profile-avatar">
-            <el-image
-              :src="profileUser.avatar"
-              :preview-src-list="[profileUser.avatar]"
-              fit="cover"
-              style="width:80px;height:80px;border-radius:50%"
-            >
-              <template #error>
-                <el-avatar :size="80">{{ (profileUser.nickname || "")[0] }}</el-avatar>
-              </template>
-            </el-image>
+            <GradientAvatar v-if="!profileUser.avatar" :seed="profileUser.username" :size="80" :colors="avatarColors" pattern="dither" />
+            <el-image v-else :src="profileUser.avatar" :preview-src-list="[profileUser.avatar]" fit="cover" style="width:80px;height:80px;border-radius:50%" />
           </div>
           <div class="profile-info">
             <div class="profile-row"><span class="profile-label">昵称</span><span>{{ profileUser.nickname }}</span></div>
@@ -98,8 +91,10 @@ import AppFooter from "@/components/layout/AppFooter.vue";
 import { chatApi } from "@/api/index";
 import { userApi } from "@/api/user";
 import { useUserStore } from "@/stores/user";
+import { GradientAvatar } from "@tsyanst/avatars-vue";
 
 const user = useUserStore();
+const avatarColors = ["#fb1e47", "#fc5675", "#fd8fa3", "#fec7d1", "#cd2846", "#a03146", "#723b45", "#ffffff", "#444444"];
 const userId = ref<number>(0);
 const contacts = ref<any[]>([]);
 const selectedId = ref<number | null>(null);
