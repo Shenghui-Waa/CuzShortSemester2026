@@ -50,7 +50,7 @@ docs/
 ## 文档与版本
 - [项目概述与技术审阅](./docs/overlook.md)
 - [开发说明](./docs/dev.md)
-- [版本日志](./docs/versionlog.md)（当前记录版本：v2.15.17）
+- [版本日志](./docs/versionlog.md)（当前记录版本：v2.15.18）
 
 构建和安全限制、已知问题及改进建议以 `docs/overlook.md` 为准。
 

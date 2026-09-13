@@ -42,7 +42,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/user/**").authenticated()
                 .requestMatchers("/api/files/**").authenticated()
                 .requestMatchers("/api/reviews/user/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/announcement/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/announcements/**").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/ws/**").permitAll()
                 .requestMatchers("/", "/index.html", "/assets/**", "/favicon.ico").permitAll()
