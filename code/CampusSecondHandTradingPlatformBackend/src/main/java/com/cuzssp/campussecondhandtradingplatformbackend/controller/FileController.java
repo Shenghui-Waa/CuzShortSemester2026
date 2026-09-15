@@ -1,16 +1,14 @@
 package com.cuzssp.campussecondhandtradingplatformbackend.controller;
 
-import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.Result;
-import com.cuzssp.campussecondhandtradingplatformbackend.common.security.TokenProvider;
 import com.cuzssp.campussecondhandtradingplatformbackend.service.FileService;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.Result;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @RestController
 @RequestMapping("/api/files")
@@ -21,13 +19,25 @@ import java.util.Set;
 public class FileController {
 
     private final FileService fileService;
-    private final TokenProvider tokenProvider;
 
-    private static final Set<String> ALLOWED_EXTENSIONS = new HashSet<>(Arrays.asList(
-            "jpg", "jpeg", "png", "gif", "webp", "svg"
-    ));
+    /**
+     * 单文件上传
+     */
+    @PostMapping("/upload")
+    public Result<?> uploadFile(
+            @RequestParam("file") MultipartFile file
+    ) {
+        return Result.success(fileService.uploadFile(file));
+    }
 
-    private static final long MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-
+    /**
+     * 多文件上传
+     */
+    @PostMapping("/uploads")
+    public Result<?> uploadFiles(
+            @RequestParam("files") List<MultipartFile> files
+    ) {
+        return Result.success(fileService.uploadFiles(files));
+    }
 
 }

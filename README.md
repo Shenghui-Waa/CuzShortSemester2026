@@ -1,58 +1,317 @@
 # CuzShortSemester2026
-> 2026 年 CUZ 短学期项目：校园二手交易平台
 
-这是一个前后端分离的校园二手交易 Web 应用，覆盖商品、订单、购物车、收藏、评价、聊天、公告、AI 助手和管理员后台。后端使用 Spring Boot + MySQL，前端使用 Vue 3 + TypeScript。
+2026 年 CUZ 短学期项目：校园二手交易平台。
+
+这是一个前后端一体化的校园二手交易 Web 应用。项目包含用户端、管理员端和后端 API，支持商品、订单、购物车、收藏、评价、聊天、公告、AI 助手、文件上传和管理后台。
+
+当前仓库使用重制版后端：
+
+- 后端：Spring Boot 4.0.8、Java 17、Spring Security、JWT、MyBatis-Plus、PageHelper
+- 数据库：开发环境 SQLite，生产环境 MySQL 8+
+- 前端：Vue 3、TypeScript、Element Plus、Pinia、Vite
+- 对象存储：AWS SDK S3，兼容 Cloudflare R2 和阿里云 OSS
+- 实时通信：WebSocket
+- 消息加密：AES-256-GCM
+- 密码加密：BCrypt
+
+## 项目结构
+
+```text
+CuzShortSemester2026/
+├── README.md
+├── LICENSE
+├── code/
+│   ├── CampusSecondHandTradingPlatformBackend/
+│   │   ├── pom.xml
+│   │   ├── env.yml.example
+│   │   └── src/
+│   │       ├── main/java/com/cuzssp/campussecondhandtradingplatformbackend/
+│   │       │   ├── controller/
+│   │       │   ├── service/
+│   │       │   ├── mapper/
+│   │       │   └── common/
+│   │       └── main/resources/
+│   │           ├── application.yml
+│   │           ├── application-dev.yml
+│   │           ├── application-prod.yml
+│   │           ├── dev/
+│   │           ├── prod/
+│   │           └── static/          # 已内联的前端构建产物
+│   └── campus-second-hand-trading-platform-frontend/
+│       ├── package.json
+│       ├── vite.config.ts
+│       └── src/
+└── docs/
+    ├── dev.md
+    ├── overlook.md
+    └── versionlog.md
+```
 
 ## 快速开始
 
-### 环境
-- JDK 17、Maven、MySQL 8+
-- Node.js、pnpm 或 npm
+### 环境要求
 
-### 后端
+- JDK 17
+- Maven 3.9+
+- Node.js 20+（仅前端开发或重新构建前端时需要）
+- SQLite（开发环境由 SQLite JDBC 驱动提供）
+- MySQL 8+（生产环境）
+- 可选：Cloudflare R2 或阿里云 OSS 账号
+
+### 配置后端
+
+进入后端目录：
+
 ```bash
-cd code/CampusSecondHandTradingPlatform_backend
-cp src/main/resources/.env.example src/main/resources/.env
-# 填写数据库、JWT、CHAT_SECRET_KEY、R2/OSS 等配置
-mysql -u root -p < ../../docs/sql/init.sql
+cd code/CampusSecondHandTradingPlatformBackend
+```
+
+复制配置模板：
+
+```bash
+cp env.yml.example env.yml
+```
+
+Windows PowerShell：
+
+```powershell
+Copy-Item env.yml.example env.yml
+```
+
+编辑 `env.yml`。
+
+开发环境示例：
+
+```yaml
+profiles-active: dev
+
+db:
+  url: ./data/campus-second-hand.db
+```
+
+生产环境示例：
+
+```yaml
+profiles-active: prod
+
+db:
+  url: //localhost:3306/cuzssp
+  username: your-db-username
+  password: your-db-password
+```
+
+还需要填写：
+
+- `external.jwt.secret`
+- `external.chat.secret`
+- `external.s3.config.*`
+- `external.cors.allow-origins`
+
+不要把真实密钥提交到 Git。
+
+### 启动后端并访问内联前端
+
+```bash
+cd code/CampusSecondHandTradingPlatformBackend
 mvn spring-boot:run
 ```
-默认地址：`http://localhost:8080`。
 
-### 前端
+启动后访问：
+
+```text
+http://localhost:8080/
+```
+
+后端会直接提供 `src/main/resources/static/` 中的前端构建产物。前端页面路由由 `SpaController` 转发到 `index.html`，因此不需要单独启动 Vite。
+
+API 基础路径：
+
+```text
+http://localhost:8080/api
+```
+
+WebSocket 地址：
+
+```text
+ws://localhost:8080/ws/chat
+```
+
+### 前端独立开发
+
+需要修改 Vue 页面时，在另一个终端运行：
+
 ```bash
 cd code/campus-second-hand-trading-platform-frontend
-pnpm install
-pnpm dev
+npm install
+npm run dev
 ```
-默认地址：`http://localhost:5173`。Vite 已将 `/api` 和 `/ws` 代理到后端 8080 端口。
 
-## 目录
+开发地址：
+
 ```text
-code/
-├── CampusSecondHandTradingPlatform_backend/      Spring Boot 后端
-└── campus-second-hand-trading-platform-frontend/ Vue 前端
-docs/
-├── overlook.md                                   项目概述与技术审阅
-├── dev.md                                        开发说明
-├── versionlog.md                                 版本日志
-└── sql/init.sql                                  数据库初始化
+http://localhost:5173/
 ```
 
-## 功能概览
-- 用户注册、登录、JWT 会话和个人资料
-- 商品发布、图片上传、搜索筛选、状态管理
-- 购物车、收藏、订单创建及支付/发货/收货模拟流程
-- AES 加密聊天消息、WebSocket 新消息通知
-- 评价与信誉分、公告、规则匹配式 AI 助手
-- 管理员仪表盘及用户、商品、订单、分类、公告管理
+Vite 会将 `/api` 和 `/ws` 代理到后端 8080 端口。
 
-## 文档与版本
-- [项目概述与技术审阅](./docs/overlook.md)
-- [开发说明](./docs/dev.md)
-- [版本日志](./docs/versionlog.md)（当前记录版本：v2.15.18）
+前端类型检查和生产构建：
 
-构建和安全限制、已知问题及改进建议以 `docs/overlook.md` 为准。
+```bash
+npm run build
+```
+
+构建完成后，将前端 `dist/` 内容复制到后端：
+
+```text
+code/CampusSecondHandTradingPlatformBackend/src/main/resources/static/
+```
+
+复制后，后端即可提供最新前端页面。
+
+## 数据库初始化
+
+### 开发环境 SQLite
+
+开发 profile 使用：
+
+```text
+src/main/resources/dev/schema.sql
+src/main/resources/dev/data.sql
+```
+
+应用启动时会自动执行初始化脚本。开发数据脚本使用 SQLite 的幂等插入语法，重复启动不会因为默认分类和管理员账号已存在而失败。
+
+建议使用文件数据库：
+
+```yaml
+db:
+  url: ./data/campus-second-hand.db
+```
+
+如果使用 SQLite 内存数据库，需要将连接池限制为单连接，否则不同连接可能看到不同的内存数据库。
+
+### 生产环境 MySQL
+
+生产 profile 使用：
+
+```text
+src/main/resources/prod/schema.sql
+src/main/resources/prod/data.sql
+```
+
+MySQL 数据库应提前创建，并通过 `db.url` 指定：
+
+```yaml
+db:
+  url: //localhost:3306/cuzssp
+```
+
+生产数据脚本使用 MySQL 兼容的幂等插入语法。正式部署前请确认数据库账号具有建表、建索引和写入初始化数据的权限。
+
+## 功能模块
+
+### 用户端
+
+- 注册、登录、退出登录和当前用户信息
+- JWT 身份认证与角色权限
+- 个人资料、密码和头像管理
+- 商品发布、编辑、浏览、搜索和筛选
+- 商品图片上传
+- 购物车和收藏
+- 创建订单、模拟支付、发货、收货和取消
+- 评价及信誉分变更
+- 聊天消息、未读状态和 WebSocket 通知
+- 公告浏览
+- 规则匹配式 AI 助手
+
+### 管理端
+
+- 数据仪表盘
+- 用户查询、禁用、删除、重置密码和新增管理员
+- 商品查询和状态管理
+- 订单查询
+- 分类增删改
+- 公告增删改
+
+## API 路径约定
+
+前端 Axios 的 `baseURL` 为 `/api`，以下路径省略 `/api` 前缀。
+
+### 公共和用户接口
+
+| 模块 | 路径 |
+| --- | --- |
+| 认证 | `/auth/**` |
+| 用户 | `/user/**` |
+| 商品 | `/product/**` |
+| 分类读取 | `GET /category/**` |
+| 公告读取 | `GET /announcement/**` |
+| 评价 | `/review/**` |
+| 购物车 | `/cart/**` |
+| 收藏 | `/favorite/**` |
+| 订单 | `/order/**` |
+| 聊天 | `/chat/**` |
+| 文件 | `/files/**` |
+| AI | `/ai/**` |
+
+### 管理接口
+
+| 模块 | 路径 |
+| --- | --- |
+| 仪表盘 | `/admin/dashboard` |
+| 用户管理 | `/admin/user/**` |
+| 商品管理 | `/admin/product/**` |
+| 订单管理 | `/admin/order/**` |
+| 分类管理 | `/admin/category/**` |
+| 公告管理 | `/admin/announcement/**` |
+
+### 权限规则
+
+- 登录和注册公开访问。
+- 商品、分类、公告的读取接口按 Controller 规则开放。
+- 用户中心、订单、购物车、收藏、聊天、文件上传需要登录。
+- 管理接口需要 `ROLE_ADMIN`。
+- 无效或过期 JWT 返回 401。
+- 已登录但没有权限返回 403。
+
+## 后端分层
+
+### Controller
+
+负责 HTTP 路由、请求参数接收和 `Result` 响应封装。
+
+### Service
+
+负责业务规则、权限检查、事务边界和领域流程。
+
+### Mapper
+
+- 原生增删改查优先直接调用 MyBatis-Plus `BaseMapper`。
+- 自定义简单 SQL 使用 MyBatis 注解。
+- 复杂动态 SQL 使用 XML。
+- SQL 需要同时兼容 SQLite 和 MySQL。
+
+### Common
+
+包含配置、安全、异常、实体、DTO、VO、常量和工具类。
+
+## 前端构建：
+
+```bash
+cd code/campus-second-hand-trading-platform-frontend
+npm run build
+```
+
+## 文档
+
+- [**`版本日志`↗**](./docs/versionlog.md) `v2.16.0` `2026.9.15`
+
+## 当前限制
+
+- 尚未进行真实 MySQL 测试库连接验证。
+- 对象存储上传测试使用模拟客户端，不连接真实 R2 或 OSS。
+- 修改前端源码后，需要重新执行前端构建并同步 `static/`，后端才会提供最新页面。
 
 ## License
-[Apache 2.0](./LICENSE)
+
+[Apache 2.0 ↗](./LICENSE)

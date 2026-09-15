@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cuzssp.campussecondhandtradingplatformbackend.mapper.OrderInfoMapper">
+    <select id="selectByUserIdOrStatus"
+            resultType="com.cuzssp.campussecondhandtradingplatformbackend.common.entity.OrderInfo">
+        SELECT * FROM order_info
+        <where>
+            <if test="userId != null">AND (buyer_id = #{userId} OR seller_id = #{userId})</if>
+            <if test="status != null">AND status = #{status}</if>
+        </where>
+        ORDER BY created_at DESC, id DESC
+    </select>
+
+    <update id="transitionIfStatusMatches">
+        UPDATE order_info
+        <set>
+            status = #{targetStatus}, updated_at = #{updatedAt},
+            <if test="paidAt != null">paid_at = #{paidAt},</if>
+            <if test="shippedAt != null">shipped_at = #{shippedAt},</if>
+            <if test="completedAt != null">completed_at = #{completedAt},</if>
+        </set>
+        WHERE id = #{id} AND status = #{expectedStatus}
+    </update>
+</mapper>

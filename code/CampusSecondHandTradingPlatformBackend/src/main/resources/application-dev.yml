@@ -7,6 +7,13 @@ spring:
   datasource:
     driver-class-name: org.sqlite.JDBC
     url: jdbc:sqlite:${db.url}
+    hikari:
+      maximum-pool-size: 1
+      minimum-idle: 1
+  sql:
+    init:
+      schema-locations: classpath:dev/schema.sql
+      data-locations: classpath:dev/data.sql
 
 mybatis-plus:
   configuration:

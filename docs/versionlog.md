@@ -1,5 +1,17 @@
 ## 版本日志
 
+### v2.16.0
+- 完成重制版后端迁移：重写 Controller、Service 和 Mapper 层，统一使用 Lombok 构造注入及 `Result` 响应封装
+- Mapper 查询优先使用 MyBatis-Plus `BaseMapper`，自定义 SQL 使用 MyBatis 注解，复杂动态 SQL 使用 XML 映射文件
+- 完善 SQLite 与 MySQL 双数据库配置，按 `dev` 和 `prod` profile 选择对应驱动、初始化脚本及 SQL 方言
+- 修复 SQLite 初始化脚本中的触发器分号解析问题，移除会导致 Spring SQL 初始化器报 `incomplete input` 的触发器定义
+- 完善 JWT、认证过滤器、401/403 JSON 响应、请求参数异常处理和文件上传校验
+- 文件上传统一由 Service 和 FileUtil 完成校验，批量上传在执行上传前完成全部文件预校验，并正确管理 S3Client 生命周期
+- 统一前端接口路径与重制版后端路由：商品、订单、收藏、评价、分类、公告及管理端接口改用当前单数路径前缀
+- 补充 Controller、Service、Mapper、事务回滚、认证、文件上传、工具类和 profile 配置测试；SQLite 隔离测试共 135 项全部通过
+- 修复前端 TypeScript 构建错误，补充生成式头像组件类型声明，生产构建通过
+- 修复了一些已知问题
+
 ### v2.15.18
 - 修复了一些已知问题
 

@@ -33,38 +33,31 @@ public class TokenProvider {
 
     // 解析 Token 获取用户 ID
     public Long getUserId(String token) {
-        token = token.replace("Bearer ", "");
-        if (validate(token)) {
-            Claims claims = parse(token);
-            return Long.parseLong(claims.getSubject());
-        }
-        throw new BusinessException("Invalid token");
+        if (!validate(token))
+            throw new BusinessException("Invalid token");
+        return Long.parseLong(parse(token).getSubject());
+
     }
 
     // 解析 Token 获取用户名
     public String getUsername(String token) {
-        token = token.replace("Bearer ", "");
-        if (validate(token)) {
-            Claims claims = parse(token);
-            return claims.get("username", String.class);
-        }
-        throw new BusinessException("Invalid token");
+        if (!validate(token))
+            throw new BusinessException("Invalid token");
+        return parse(token).get("username", String.class);
+
     }
 
-    public String getRole(String token) {
-        token = token.replace("Bearer ", "");
-        if (validate(token)) {
-            Claims claims = parse(token);
-            return claims.get("role", String.class);
-        }
-        throw new BusinessException("Invalid token");
+    public Integer getRole(String token) {
+        if (!validate(token))
+            throw new BusinessException("Invalid token");
+        return parse(token).get("role", Integer.class);
+
     }
 
     // 验证 Token 有效性
     public boolean validate(String token) {
         if (token == null || token.isEmpty()) return false;
         try {
-            token = token.replace("Bearer ", "");
             parse(token);
             return true;
         } catch (JwtException | IllegalArgumentException e) {
@@ -73,6 +66,8 @@ public class TokenProvider {
     }
 
     private Claims parse(String token) {
+        if (token != null && token.startsWith("Bearer "))
+            token = token.substring("Bearer ".length());
         return Jwts.parser()
                 .verifyWith(jwtConfig.getSecret())
                 .build()

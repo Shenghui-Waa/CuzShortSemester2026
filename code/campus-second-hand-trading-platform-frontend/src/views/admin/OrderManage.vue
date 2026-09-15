@@ -72,7 +72,7 @@ function setupTabIndicator() {
   const nav = el.querySelector(".el-tabs__nav") as HTMLElement;
   if (!nav) return;
   const items = nav.querySelectorAll(".el-tabs__item");
-  items.forEach((item: HTMLElement) => {
+  items.forEach((item) => {
     item.addEventListener("mouseenter", () => {
       const itemRect = item.getBoundingClientRect();
       const wrapRect = gridEl.getBoundingClientRect();

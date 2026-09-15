@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cuzssp.campussecondhandtradingplatformbackend.mapper.ProductImageMapper">
+    <select id="selectByProductIds"
+            resultType="com.cuzssp.campussecondhandtradingplatformbackend.common.entity.ProductImage">
+        SELECT * FROM product_image
+        <choose>
+            <when test="productIds != null and !productIds.isEmpty()">
+                WHERE product_id IN
+                <foreach collection="productIds" item="id" open="(" separator="," close=")">
+                    #{id}
+                </foreach>
+            </when>
+            <otherwise>WHERE 1 = 0</otherwise>
+        </choose>
+        ORDER BY sort_order, id
+    </select>
+</mapper>
