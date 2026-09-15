@@ -10,12 +10,11 @@ spring:
   application:
     name: CampusSecondHandTradingPlatformBackend
 
-  profiles:
-    active: ${profiles-active}
-
   config:
     import: optional:file:env.yml
 
+  profiles:
+    active: ${profiles-active}
 
   servlet:
     multipart:
@@ -23,10 +22,11 @@ spring:
       max-request-size: ${upload.max.size.request:50MB}
   sql:
     init:
-      schema-locations: classpath:${profiles-active}/schema.sql
-      data-locations: classpath:${profiles-active}/data.sql
+      continue-on-error: false
+      mode: always
 
 mybatis-plus:
+  mapper-locations: classpath*:com/cuzssp/campussecondhandtradingplatformbackend/mapper/*.xml
   configuration:
     map-underscore-to-camel-case: true
   global-config:

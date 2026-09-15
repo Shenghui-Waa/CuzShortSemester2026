@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">CSHTP abstract logo</title>
+  <desc id="desc">An abstract five-letter CSHTP monogram formed from connected geometric strokes.</desc>
+  <rect width="256" height="256" rx="48" fill="#111827"/>
+  <path d="M72 58H184L207 81V175L184 198H72L49 175V81L72 58Z" fill="none" stroke="#263449" stroke-width="10" stroke-linejoin="round"/>
+  <path d="M105 82H76L62 96V160L76 174H105" fill="none" stroke="#49D7C5" stroke-width="18" stroke-linecap="square" stroke-linejoin="round"/>
+  <path d="M119 82V174M119 128H151M151 82V174" fill="none" stroke="#F3F6FA" stroke-width="18" stroke-linecap="square"/>
+  <path d="M170 82H201L214 95V119L201 132H170M170 132V174" fill="none" stroke="#FFB454" stroke-width="18" stroke-linecap="square" stroke-linejoin="round"/>
+  <path d="M62 202H194" stroke="#49D7C5" stroke-width="6" stroke-linecap="round"/>
+</svg>

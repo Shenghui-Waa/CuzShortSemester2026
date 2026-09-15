@@ -10,6 +10,11 @@ spring:
     username: ${db.username}
     password: ${db.password}
 
+  sql:
+    init:
+      schema-locations: classpath:prod/schema.sql
+      data-locations: classpath:prod/data.sql
+
 mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl

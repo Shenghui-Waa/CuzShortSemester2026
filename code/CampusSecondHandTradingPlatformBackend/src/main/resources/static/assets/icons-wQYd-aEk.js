@@ -1,0 +1,1 @@
+import{$ as e,G as t,H as n,I as r,J as i,N as a,P as o,X as s,Y as c,_t as l,bt as u,ct as d,d as f,nt as p,ot as m,p as h}from"./_plugin-vue_export-helper-e_Dv554E.js";var g={商品:a,电子:t,手机:s,数码:o,服饰:d,美妆:n,手表:u,图书:p,文具:c,学习:m,运动:f,食品:h,交通:l,家居:r,礼品:e,其他:i};function _(e){return e&&g[e]||a}export{_ as t};

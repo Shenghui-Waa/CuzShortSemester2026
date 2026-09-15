@@ -3,9 +3,6 @@
 -- 数据库: cuzssp
 -- ===================================================
 
-CREATE DATABASE IF NOT EXISTS cuzssp DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE cuzssp;
-
 -- ---------------------------------------------------
 -- 用户表
 -- ---------------------------------------------------

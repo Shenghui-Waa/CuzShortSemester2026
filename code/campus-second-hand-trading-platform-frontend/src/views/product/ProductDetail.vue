@@ -197,7 +197,7 @@ async function delist() {
 async function withdraw() {
   try {
     await ElMessageBox.confirm("确认撤回审核申请？", "确认");
-    await request.delete(`/products/${product.value.id}/del`);
+    await request.delete(`/product/${product.value.id}/del`);
     ElMessage.success("已撤回");
     router.push("/my-products");
   } catch {}
@@ -218,7 +218,6 @@ function relist() {
 
 const editVisible = ref(false);
 const editSubmitting = ref(false);
-const efRef = ref();
 const editImages = ref<string[]>([]);
 const editCategories = ref<any[]>([]);
 const ef = reactive({

@@ -7,10 +7,10 @@ export const cartApi = {
 };
 
 export const favoriteApi = {
-  list: (page: number, pageSize: number) => request.get("/favorites", { params: { page, pageSize } }),
-  add: (productId: number) => request.post("/favorites", null, { params: { productId } }),
-  remove: (productId: number) => request.delete(`/favorites/${productId}`),
-  check: (productId: number) => request.get(`/favorites/check/${productId}`),
+  list: (page: number, pageSize: number) => request.get("/favorite", { params: { page, pageSize } }),
+  add: (productId: number) => request.post("/favorite", null, { params: { productId } }),
+  remove: (productId: number) => request.delete(`/favorite/${productId}`),
+  check: (productId: number) => request.get(`/favorite/check/${productId}`),
 };
 
 export const chatApi = {
@@ -22,9 +22,9 @@ export const chatApi = {
 };
 
 export const reviewApi = {
-  create: (data: any) => request.post("/reviews", data),
+  create: (data: any) => request.post("/review", data),
   getUserReviews: (userId: number, page: number, pageSize: number) =>
-    request.get(`/reviews/user/${userId}`, { params: { page, pageSize } }),
+    request.get(`/review/user/${userId}`, { params: { page, pageSize } }),
 };
 
 export const fileApi = {
@@ -34,31 +34,31 @@ export const fileApi = {
 };
 
 export const categoryApi = {
-  getAll: () => request.get("/categories"),
-  create: (data: any) => request.post("/categories", data),
-  update: (id: number, data: any) => request.put(`/categories/${id}`, data),
-  delete: (id: number) => request.delete(`/categories/${id}`),
+  getAll: () => request.get("/category"),
+  create: (data: any) => request.post("/admin/category", data),
+  update: (id: number, data: any) => request.put(`/admin/category/${id}`, data),
+  delete: (id: number) => request.delete(`/admin/category/${id}`),
 };
 
 
 export const announcementApi = {
-  list: (page: number, pageSize: number) => request.get("/announcements", { params: { page, pageSize } }),
-  detail: (id: number) => request.get(`/announcements/${id}`),
-  create: (data: any) => request.post("/admin/announcements", data),
-  update: (id: number, data: any) => request.put(`/admin/announcements/${id}`, data),
-  delete: (id: number) => request.delete(`/admin/announcements/${id}`),
+  list: (page: number, pageSize: number) => request.get("/announcement", { params: { page, pageSize } }),
+  detail: (id: number) => request.get(`/announcement/${id}`),
+  create: (data: any) => request.post("/admin/announcement", data),
+  update: (id: number, data: any) => request.put(`/admin/announcement/${id}`, data),
+  delete: (id: number) => request.delete(`/admin/announcement/${id}`),
 };
 export const adminApi = {
   dashboard: () => request.get("/admin/dashboard"),
-  userList: (params: any) => request.get("/admin/users", { params }),
-  updateUserStatus: (id: number, status: number) => request.put(`/admin/users/${id}/status`, null, { params: { status } }),
-  addAdmin: (data: any) => request.post("/admin/users/newadmin", data),
-  deleteUser: (id: number) => request.delete(`/admin/users/${id}`),
-  resetUserPassword: (id: number, data: any) => request.put(`/admin/users/${id}/reset-password`, data),
-  productList: (params: any) => request.get("/admin/products", { params }),
-  updateProductStatus: (id: number, status: number) => request.put(`/admin/products/${id}/status`, null, { params: { status } }),
-  orderList: (params: any) => request.get("/admin/orders", { params }),
-  categoryCreate: (data: any) => request.post("/admin/categories", data),
-  categoryUpdate: (id: number, data: any) => request.put(`/admin/categories/${id}`, data),
-  categoryDelete: (id: number) => request.delete(`/admin/categories/${id}`),
+  userList: (params: any) => request.get("/admin/user", { params }),
+  updateUserStatus: (id: number, status: number) => request.put(`/admin/user/${id}/status`, null, { params: { status } }),
+  addAdmin: (data: any) => request.post("/admin/user/newadmin", data),
+  deleteUser: (id: number) => request.delete(`/admin/user/${id}`),
+  resetUserPassword: (id: number, data: any) => request.put(`/admin/user/${id}/reset-password`, data),
+  productList: (params: any) => request.get("/admin/product", { params }),
+  updateProductStatus: (id: number, status: number) => request.put(`/admin/product/${id}/status`, null, { params: { status } }),
+  orderList: (params: any) => request.get("/admin/order", { params }),
+  categoryCreate: (data: any) => request.post("/admin/category", data),
+  categoryUpdate: (id: number, data: any) => request.put(`/admin/category/${id}`, data),
+  categoryDelete: (id: number) => request.delete(`/admin/category/${id}`),
 };

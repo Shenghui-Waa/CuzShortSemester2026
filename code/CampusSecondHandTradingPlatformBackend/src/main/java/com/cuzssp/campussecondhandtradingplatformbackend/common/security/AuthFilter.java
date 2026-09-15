@@ -1,8 +1,12 @@
 package com.cuzssp.campussecondhandtradingplatformbackend.common.security;
 
+import com.alibaba.fastjson.JSON;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.constant.UserConstant;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.Result;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.entity.User;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.exception.BusinessException;
 import com.cuzssp.campussecondhandtradingplatformbackend.mapper.UserMapper;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,7 +21,9 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.Objects;
 
 @Component
 @RequiredArgsConstructor
@@ -30,32 +36,85 @@ public class AuthFilter extends OncePerRequestFilter {
     protected void doFilterInternal(
             HttpServletRequest request, HttpServletResponse response, FilterChain filterChain
     ) throws ServletException, IOException {
-        String token = getTokenFromRequest(request);
+        String token = request.getHeader("Authorization");
 
-        if (StringUtils.hasText(token) && tokenProvider.validate(token)) {
-            Long userId = tokenProvider.getUserId(token);
-            User user = userMapper.selectById(userId);
-
-            if (user != null && user.getStatus() == UserConstant.Status.ACTIVE) {
-                String role = user.getRole() == UserConstant.Role.ADMIN ? "ROLE_ADMIN" : "ROLE_USER";
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(
-                                user, null,
-                                Collections.singletonList(new SimpleGrantedAuthority(role))
-                        );
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            }
+        if (!StringUtils.hasText(token)) {
+            filterChain.doFilter(request, response);
+            return;
         }
+
+        SecurityContextHolder.clearContext();
+
+        Long userId = resolveUserId(token, response);
+        if (userId == null) return;
+
+        User user = userMapper.selectById(userId);
+
+        if (user == null) {
+            writeError(response, Result.Code.UNAUTHORIZED, "User no longer exists");
+            return;
+        }
+
+        if (!Integer.valueOf(UserConstant.Status.ACTIVE).equals(user.getStatus())) {
+            writeError(response, Result.Code.FORBIDDEN, "Account has been disabled");
+            return;
+        }
+
+        String role = Objects.equals(
+                user.getRole(), UserConstant.Role.ADMIN
+        ) ? "ROLE_ADMIN" : "ROLE_USER";
+
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(
+                        user,
+                        null,
+                        Collections.singletonList(new SimpleGrantedAuthority(role))
+                );
+        authentication.setDetails(
+                new WebAuthenticationDetailsSource().buildDetails(request)
+        );
+        SecurityContextHolder.getContext()
+                .setAuthentication(authentication);
 
         filterChain.doFilter(request, response);
     }
 
-    private String getTokenFromRequest(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
+    private void writeError(
+            HttpServletResponse response, Integer code, String message
+    ) throws IOException {
+        SecurityContextHolder.clearContext();
+        response.setStatus(code);
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        response.setContentType("application/json");
+
+        if (Result.Code.UNAUTHORIZED.equals(code)) {
+            response.setHeader("WWW-Authenticate", "Bearer");
         }
-        return null;
+
+        response.getWriter()
+                .write(JSON.toJSONString(Result.error(code, message)));
     }
+
+    private Long resolveUserId(
+            String token,
+            HttpServletResponse response
+    ) throws IOException {
+        try {
+            if (!tokenProvider.validate(token)) {
+                writeError(response,
+                        Result.Code.UNAUTHORIZED,
+                        "Invalid or expired token");
+                return null;
+            }
+            return tokenProvider.getUserId(token);
+        } catch (BusinessException
+                 | IllegalArgumentException
+                 | JwtException exception) {
+            writeError(response,
+                    Result.Code.UNAUTHORIZED,
+                    "Invalid or expired token");
+            return null;
+        }
+    }
+
 }

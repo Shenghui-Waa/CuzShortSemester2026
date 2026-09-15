@@ -19,6 +19,8 @@ public class Result<T> {
         public final static Integer UNAUTHORIZED = 401;
         public final static Integer FORBIDDEN = 403;
         public final static Integer NOT_FOUND = 404;
+        public final static Integer METHOD_NOT_ALLOWED = 405;
+        public final static Integer REQUEST_ENTITY_TOO_LARGE = 413;
         public final static Integer INTERNAL_ERROR = 500;
     }
 

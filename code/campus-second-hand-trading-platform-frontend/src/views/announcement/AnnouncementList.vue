@@ -79,8 +79,9 @@ async function fetchList() {
   } catch {} finally { loading.value = false; }
 }
 
-function onPageChange(p: number, ps: number) {
-  page.value = p; pageSize.value = ps; fetchList();
+function onPageChange(p: number) {
+  page.value = p;
+  fetchList();
 }
 
 onMounted(fetchList);

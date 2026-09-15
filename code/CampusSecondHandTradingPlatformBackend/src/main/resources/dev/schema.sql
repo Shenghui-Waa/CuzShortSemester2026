@@ -189,37 +189,3 @@ CREATE TABLE IF NOT EXISTS announcement (
     PRIMARY KEY (id)
 );
 
--- ===================================================
--- 可选：用触发器模拟 MySQL 的 ON UPDATE CURRENT_TIMESTAMP
--- ===================================================
-CREATE TRIGGER IF NOT EXISTS trg_user_updated_at
-AFTER UPDATE ON user
-    FOR EACH ROW
-    WHEN NEW.updated_at = OLD.updated_at
-BEGIN
-UPDATE user SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
-END;
-
-CREATE TRIGGER IF NOT EXISTS trg_product_updated_at
-AFTER UPDATE ON product
-    FOR EACH ROW
-    WHEN NEW.updated_at = OLD.updated_at
-BEGIN
-UPDATE product SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
-END;
-
-CREATE TRIGGER IF NOT EXISTS trg_order_info_updated_at
-AFTER UPDATE ON order_info
-    FOR EACH ROW
-    WHEN NEW.updated_at = OLD.updated_at
-BEGIN
-UPDATE order_info SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
-END;
-
-CREATE TRIGGER IF NOT EXISTS trg_announcement_updated_at
-AFTER UPDATE ON announcement
-    FOR EACH ROW
-    WHEN NEW.updated_at = OLD.updated_at
-BEGIN
-UPDATE announcement SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
-END;

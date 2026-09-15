@@ -6,7 +6,7 @@
 -- ---------------------------------------------------
 -- 初始数据：商品分类
 -- ---------------------------------------------------
-INSERT INTO category (id, name, icon, sort_order) VALUES
+INSERT OR IGNORE INTO category (id, name, icon, sort_order) VALUES
 (1, '教材教辅', '', 1),
 (2, '数码产品', '', 2),
 (3, '生活用品', '', 3),
@@ -22,5 +22,5 @@ INSERT INTO category (id, name, icon, sort_order) VALUES
 -- 首次部署后请立即修改密码！
 -- ---------------------------------------------------
 INSERT OR IGNORE INTO user (id, username, password, nickname, role, status) VALUES
-(1, 'admin', '$2a$10$qEY58vWEvc0IJ2v3GIIH/OeH4VzqzadIbWUXFSaDxfikIQqifSw62', '管理员', 1, 0);
+(1, 'admin', '$2a$10$qEY58vWEvc0IJ2v3GIIH/OeH4VzqzadIbWUXFSaDxfikIQqifSw62', '管理员', 1, 1);
 
