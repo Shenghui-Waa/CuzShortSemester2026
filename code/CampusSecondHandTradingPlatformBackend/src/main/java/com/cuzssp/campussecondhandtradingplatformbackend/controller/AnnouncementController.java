@@ -1,37 +1,14 @@
-package com.cuzssp.campussecondhandtradingplatform_backend.controller;
+package com.cuzssp.campussecondhandtradingplatformbackend.controller;
 
-import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.Result;
-import com.cuzssp.campussecondhandtradingplatform_backend.service.AnnouncementService;
+import com.cuzssp.campussecondhandtradingplatformbackend.service.AnnouncementService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/announcements")
+@RequestMapping("/api/announcement")
 @RequiredArgsConstructor
 public class AnnouncementController {
 
     private final AnnouncementService announcementService;
-
-    /**
-     * 获取公告列表
-     */
-    @GetMapping
-    public Result<?> getAnnouncement(
-            @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer pageSize
-    ) {
-        return announcementService.getAllAnnouncement(page, pageSize);
-    }
-
-    /**
-     * 查看公告详情
-     */
-    @GetMapping("/{id}")
-    public Result<?> getAnnouncementInfo(
-            @PathVariable Long id
-    ) {
-        return announcementService.getAnnouncementInfo(id);
-    }
-
 
 }

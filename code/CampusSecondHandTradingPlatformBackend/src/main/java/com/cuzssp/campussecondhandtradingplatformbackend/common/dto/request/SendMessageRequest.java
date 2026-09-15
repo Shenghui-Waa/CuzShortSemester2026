@@ -1,10 +1,14 @@
-package com.cuzssp.campussecondhandtradingplatform_backend.common.dto;
+package com.cuzssp.campussecondhandtradingplatformbackend.common.dto.request;
 
 import lombok.Data;
 
 @Data
 public class SendMessageRequest {
+
     private Long receiverId;
+
     private Long productId;
+
     private String content;
+
 }

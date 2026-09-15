@@ -1,13 +1,5 @@
-package com.cuzssp.campussecondhandtradingplatform_backend.service;
-
-import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.ReviewRequest;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.PageResult;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.Result;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.ReviewVO;
+package com.cuzssp.campussecondhandtradingplatformbackend.service;
 
 public interface ReviewService {
-
-    Result<PageResult<ReviewVO>> getUserReviews(Long userId, Integer page, Integer pageSize);
-    Result<Void> createReview(Long reviewerId, ReviewRequest request);
 
 }

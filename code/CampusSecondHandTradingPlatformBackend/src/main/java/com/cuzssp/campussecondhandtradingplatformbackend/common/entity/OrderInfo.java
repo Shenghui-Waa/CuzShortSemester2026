@@ -1,7 +1,8 @@
-package com.cuzssp.campussecondhandtradingplatform_backend.common.entity;
+package com.cuzssp.campussecondhandtradingplatformbackend.common.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -12,25 +13,38 @@ public class OrderInfo {
     @TableId(type = IdType.ASSIGN_ID)
     private Long id;
 
+    @TableField("order_no")
     private String orderNo;
 
+    @TableField("buyer_id")
     private Long buyerId;
 
+    @TableField("seller_id")
     private Long sellerId;
 
+    @TableField("total_amount")
     private BigDecimal totalAmount;
 
-    /** 0=待付款 1=待发货 2=待收货 3=已完成 4=已取消 */
+    @TableField("status")
+    // 0=待付款 1=待发货 2=待收货 3=已完成 4=已取消
     private Integer status;
 
+    @TableField("remark")
     private String remark;
 
+    @TableField(value = "created_at",fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 
+    @TableField(value = "updated_at", fill =  FieldFill.INSERT_UPDATE)
+    private LocalDateTime updatedAt;
+
+    @TableField("paid_at")
     private LocalDateTime paidAt;
 
+    @TableField("shipped_at")
     private LocalDateTime shippedAt;
 
+    @TableField("completed_at")
     private LocalDateTime completedAt;
 
 }

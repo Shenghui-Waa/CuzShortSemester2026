@@ -1,6 +1,6 @@
-package com.cuzssp.campussecondhandtradingplatform_backend.common.handler;
+package com.cuzssp.campussecondhandtradingplatformbackend.common.handler;
 
-import com.cuzssp.campussecondhandtradingplatform_backend.common.security.JwtTokenProvider;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.security.TokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -8,6 +8,7 @@ import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -17,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     private final Map<Long, WebSocketSession> sessions = new ConcurrentHashMap<>();
-    private final JwtTokenProvider jwtTokenProvider;
+    private final TokenProvider tokenProvider;
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
@@ -59,8 +60,8 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         if (query != null && query.contains("token=")) {
             try {
                 String token = query.split("token=")[1].split("&")[0];
-                if (jwtTokenProvider.validateToken(token)) {
-                    return jwtTokenProvider.getUserIdFromToken(token);
+                if (tokenProvider.validate(token)) {
+                    return tokenProvider.getUserId(token);
                 }
             } catch (Exception e) {
                 return null;

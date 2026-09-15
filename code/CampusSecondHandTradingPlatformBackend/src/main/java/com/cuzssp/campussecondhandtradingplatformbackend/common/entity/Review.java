@@ -1,7 +1,8 @@
-package com.cuzssp.campussecondhandtradingplatform_backend.common.entity;
+package com.cuzssp.campussecondhandtradingplatformbackend.common.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
+
 import java.time.LocalDateTime;
 
 @Data
@@ -11,17 +12,23 @@ public class Review {
     @TableId(type = IdType.ASSIGN_ID)
     private Long id;
 
+    @TableField("order_id")
     private Long orderId;
 
+    @TableField("reviewer_id")
     private Long reviewerId;
 
+    @TableField("target_id")
     private Long targetId;
 
-    /** 评分 1-5 */
+    @TableField("rating")
+    // 评分 1-5
     private Integer rating;
 
+    @TableField("content")
     private String content;
 
+    @TableField(value = "created_at", fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 
 }

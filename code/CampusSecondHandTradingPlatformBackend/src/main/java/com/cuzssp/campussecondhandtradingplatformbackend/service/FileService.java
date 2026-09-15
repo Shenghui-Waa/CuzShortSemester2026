@@ -1,12 +1,5 @@
-package com.cuzssp.campussecondhandtradingplatform_backend.service;
-
-import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.Result;
-import org.springframework.web.multipart.MultipartFile;
-import java.util.List;
+package com.cuzssp.campussecondhandtradingplatformbackend.service;
 
 public interface FileService {
-
-    Result<String> uploadFile(MultipartFile file);
-    Result<List<String>> uploadFiles(List<MultipartFile> files);
 
 }

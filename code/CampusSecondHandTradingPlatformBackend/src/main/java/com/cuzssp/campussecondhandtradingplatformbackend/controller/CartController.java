@@ -1,8 +1,7 @@
-package com.cuzssp.campussecondhandtradingplatform_backend.controller;
+package com.cuzssp.campussecondhandtradingplatformbackend.controller;
 
-import com.cuzssp.campussecondhandtradingplatform_backend.common.security.SecurityUtil;
-import com.cuzssp.campussecondhandtradingplatform_backend.service.CartService;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.Result;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.security.TokenProvider;
+import com.cuzssp.campussecondhandtradingplatformbackend.service.CartService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,41 +11,6 @@ import org.springframework.web.bind.annotation.*;
 public class CartController {
 
     private final CartService cartService;
-    private final SecurityUtil securityUtil;
-
-    /**
-     * 获取购物车
-     */
-    @GetMapping
-    public Result<?> getCart(
-            @RequestHeader("Authorization") String token
-    ) {
-        Long currentUserId = securityUtil.getCurrentUserId(token);
-        return cartService.getCart(currentUserId);
-    }
-
-    /**
-     * 添加到购物车
-     */
-    @PostMapping
-    public Result<?> addToCart(
-            @RequestHeader("Authorization") String token,
-            @RequestParam Long productId
-    ) {
-        Long currentUserId = securityUtil.getCurrentUserId(token);
-        return cartService.addToCart(currentUserId, productId);
-    }
-
-    /**
-     * 从购物车移除商品
-     */
-    @DeleteMapping("/{productId}")
-    public Result<?> removeFromCart(
-            @RequestHeader("Authorization") String token,
-            @PathVariable Long productId
-    ) {
-        Long currentUserId = securityUtil.getCurrentUserId(token);
-        return cartService.removeFromCart(currentUserId, productId);
-    }
+    private final TokenProvider tokenProvider;
 
 }

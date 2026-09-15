@@ -1,6 +1,7 @@
-package com.cuzssp.campussecondhandtradingplatform_backend.common.vo;
+package com.cuzssp.campussecondhandtradingplatformbackend.common.vo;
 
 import lombok.Data;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 

@@ -1,10 +1,9 @@
-package com.cuzssp.campussecondhandtradingplatform_backend.common.dto;
+package com.cuzssp.campussecondhandtradingplatformbackend.common.dto.request;
 
 import lombok.Data;
-import java.math.BigDecimal;
 
 @Data
-public class ProductQueryDTO {
+public class ProductQueryRequest {
 
     private String keyword;
 

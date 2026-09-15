@@ -1,6 +1,7 @@
-package com.cuzssp.campussecondhandtradingplatform_backend.common.vo;
+package com.cuzssp.campussecondhandtradingplatformbackend.common.vo;
 
 import lombok.Data;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -17,12 +18,12 @@ public class ProductVO {
     private String description;
     private BigDecimal price;
     private BigDecimal originalPrice;
-    private Integer condition;
+    private Integer state;
     private String campus;
     private Integer status;
     private Integer viewCount;
     private List<String> images;
-    private Boolean isFavorited;
+    private Boolean isFavorite;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

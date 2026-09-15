@@ -1,6 +1,6 @@
-package com.cuzssp.campussecondhandtradingplatform_backend.common.exception;
+package com.cuzssp.campussecondhandtradingplatformbackend.common.exception;
 
-import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.Result;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

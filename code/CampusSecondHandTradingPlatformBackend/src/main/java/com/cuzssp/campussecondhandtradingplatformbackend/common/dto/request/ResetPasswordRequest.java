@@ -1,8 +1,10 @@
-package com.cuzssp.campussecondhandtradingplatform_backend.common.dto;
+package com.cuzssp.campussecondhandtradingplatformbackend.common.dto.request;
 
 import lombok.Data;
 
 @Data
 public class ResetPasswordRequest {
+
     private String newPassword;
+
 }

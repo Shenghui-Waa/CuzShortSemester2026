@@ -1,6 +1,6 @@
-package com.cuzssp.campussecondhandtradingplatform_backend.common.util;
+package com.cuzssp.campussecondhandtradingplatformbackend.common.util;
 
-import com.cuzssp.campussecondhandtradingplatform_backend.common.config.S3Config;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.config.S3Config;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

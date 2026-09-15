@@ -1,20 +1,24 @@
-package com.cuzssp.campussecondhandtradingplatform_backend.common.entity;
+package com.cuzssp.campussecondhandtradingplatformbackend.common.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
+
 import java.time.LocalDateTime;
 
 @Data
-@TableName("cart")
+@TableName("cart_item")
 public class CartItem {
 
     @TableId(type = IdType.ASSIGN_ID)
     private Long id;
 
+    @TableField("user_id")
     private Long userId;
 
+    @TableField("product_id")
     private Long productId;
 
+    @TableField(value = "created_at", fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 
 }

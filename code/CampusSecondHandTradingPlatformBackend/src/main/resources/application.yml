@@ -1,0 +1,56 @@
+# ===================================================
+# 校园二手交易平台 - 默认应用配置
+# 所有敏感值通过环境变量注入
+# ===================================================
+
+server:
+  port: ${server-port:8080}
+
+spring:
+  application:
+    name: CampusSecondHandTradingPlatformBackend
+
+  profiles:
+    active: ${profiles-active}
+
+  config:
+    import: optional:file:env.yml
+
+
+  servlet:
+    multipart:
+      max-file-size: ${upload.max.size.file:10MB}
+      max-request-size: ${upload.max.size.request:50MB}
+  sql:
+    init:
+      schema-locations: classpath:${profiles-active}/schema.sql
+      data-locations: classpath:${profiles-active}/data.sql
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      id-type: assign_id
+
+cors:
+  allow-origins: ${external.cors.allow-origins:*}
+
+jwt:
+  secret: ${external.jwt.secret}
+  expiration: ${external.jwt.expiration:86400}
+
+chat:
+  secret: ${external.chat.secret}
+
+s3:
+  config:
+    storage-support: ${external.s3.config.storage-support:r2}
+    account-id: ${external.s3.config.account-id}
+    access-key: ${external.s3.config.access-key}
+    secret-key: ${external.s3.config.secret-key}
+    endpoint: ${external.s3.config.endpoint}
+    bucket-name: ${external.s3.config.bucket-name}
+    child-folder: ${external.s3.config.child-folder}
+    cdn-domain: ${external.s3.config.cdn-domain}
+    region: ${external.s3.config.region:auto}
