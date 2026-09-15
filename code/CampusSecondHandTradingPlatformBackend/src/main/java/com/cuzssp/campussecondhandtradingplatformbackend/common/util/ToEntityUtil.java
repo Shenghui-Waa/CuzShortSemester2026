@@ -1,13 +1,16 @@
-package com.cuzssp.campussecondhandtradingplatform_backend.common.util;
+package com.cuzssp.campussecondhandtradingplatformbackend.common.util;
 
-import com.cuzssp.campussecondhandtradingplatform_backend.common.constant.ChatMessageConstant;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.constant.OrderInfoConstant;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.constant.UserConstant;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.AnnouncementRequest;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.RegisterRequest;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.ReviewRequest;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.entity.*;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.security.PasswordProvider;
+
+
+import com.cuzssp.campussecondhandtradingplatformbackend.common.constant.ChatMessageConstant;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.constant.OrderInfoConstant;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.constant.UserConstant;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.request.AnnouncementRequest;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.request.RegisterRequest;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.request.ReviewRequest;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.entity.*;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.security.PasswordProvider;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -28,8 +31,8 @@ public class ToEntityUtil {
         user.setEmail(request.getEmail());
         user.setSchool(request.getSchool());
         user.setCampus(request.getCampus());
-        user.setRole(UserConstant.ROLE_USER);
-        user.setStatus(UserConstant.STATUS_ABLE);
+        user.setRole(UserConstant.Role.USER);
+        user.setStatus(UserConstant.Status.ACTIVE);
         user.setCreditScore(UserConstant.CREDIT_SCORE_DEFAULT);
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
@@ -68,7 +71,7 @@ public class ToEntityUtil {
         orderInfo.setBuyerId(buyerId);
         orderInfo.setSellerId(product.getUserId());
         orderInfo.setTotalAmount(product.getPrice());
-        orderInfo.setStatus(OrderInfoConstant.STATUS_WAIT_PAY);
+        orderInfo.setStatus(OrderInfoConstant.Status.WAIT_PAY);
         orderInfo.setRemark(remark);
         orderInfo.setCreatedAt(LocalDateTime.now());
         return orderInfo;
@@ -109,7 +112,7 @@ public class ToEntityUtil {
         msg.setReceiverId(receiverId);
         msg.setProductId(productId);
         msg.setContent(content);
-        msg.setIsRead(ChatMessageConstant.READ_STATUS_NO);
+        msg.setIsRead(ChatMessageConstant.ReadStatus.NO);
         msg.setCreatedAt(LocalDateTime.now());
         return msg;
     }
@@ -125,6 +128,5 @@ public class ToEntityUtil {
         announcement.setUpdatedAt(LocalDateTime.now());
         return announcement;
     }
-
 
 }

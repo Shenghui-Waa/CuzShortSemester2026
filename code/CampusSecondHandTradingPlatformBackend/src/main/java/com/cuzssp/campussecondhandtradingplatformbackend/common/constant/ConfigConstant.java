@@ -1,11 +1,25 @@
-package com.cuzssp.campussecondhandtradingplatform_backend.common.constant;
+package com.cuzssp.campussecondhandtradingplatformbackend.common.constant;
+
+import java.time.LocalDateTime;
 
 /*
   配置信息常量
  */
 public class ConfigConstant {
 
-    public static final String R2 = "r2";   // Cloudflare R2 存储
-    public static final String OSS = "oss"; // Alibaba Cloud OSS 存储
+    public enum StorageSupport {
+        R2{
+            @Override
+            public String toString() {
+                return super.toString().toLowerCase();
+            }
+        },
+        OSS{
+            @Override
+            public String toString() {
+                return super.toString().toLowerCase();
+            }
+        }
+    }
 
 }

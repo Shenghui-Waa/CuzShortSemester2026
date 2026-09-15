@@ -1,4 +1,4 @@
-package com.cuzssp.campussecondhandtradingplatform_backend.common.vo;
+package com.cuzssp.campussecondhandtradingplatformbackend.common.vo;
 
 import lombok.Data;
 

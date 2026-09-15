@@ -1,12 +1,15 @@
-package com.cuzssp.campussecondhandtradingplatform_backend.common.dto;
+package com.cuzssp.campussecondhandtradingplatformbackend.common.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
 public class ChangePasswordRequest {
+
     @NotBlank(message = "Old password is required")
     private String oldPassword;
+
     @NotBlank(message = "New password is required")
     private String newPassword;
+
 }

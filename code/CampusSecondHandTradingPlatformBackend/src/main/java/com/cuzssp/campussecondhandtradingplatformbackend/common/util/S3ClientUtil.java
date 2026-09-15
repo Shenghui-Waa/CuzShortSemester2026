@@ -1,7 +1,7 @@
-package com.cuzssp.campussecondhandtradingplatform_backend.common.util;
+package com.cuzssp.campussecondhandtradingplatformbackend.common.util;
 
-import com.cuzssp.campussecondhandtradingplatform_backend.common.config.S3Config;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.constant.ConfigConstant;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.config.S3Config;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.constant.ConfigConstant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -9,6 +9,7 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
+
 import java.net.URI;
 
 /*
@@ -30,10 +31,10 @@ public class S3ClientUtil {
                 s3Config.getSecretKey()
         );
         S3Configuration serviceConfiguration = S3Configuration.builder()
-                .pathStyleAccessEnabled(s3Config.getStorageSupport().equals(ConfigConstant.R2))
+                .pathStyleAccessEnabled(s3Config.getStorageSupport().equals(ConfigConstant.StorageSupport.R2.toString()))
                 .chunkedEncodingEnabled(false)
                 .build();
-        Region region = s3Config.getStorageSupport().equals(ConfigConstant.R2)
+        Region region = s3Config.getStorageSupport().equals(ConfigConstant.StorageSupport.R2.toString())
                 ? Region.of(s3Config.getRegion())
                 : Region.AWS_GLOBAL;
         return S3Client.builder()

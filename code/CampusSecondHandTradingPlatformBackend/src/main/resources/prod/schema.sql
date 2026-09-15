@@ -89,6 +89,9 @@ CREATE TABLE IF NOT EXISTS order_info (
     remark         VARCHAR(255)    DEFAULT NULL COMMENT '备注',
     created_at     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    paid_at        DATETIME        DEFAULT NULL COMMENT '付款时间',
+    shipped_at     DATETIME        DEFAULT NULL COMMENT '发货时间',
+    completed_at   DATETIME        DEFAULT NULL COMMENT '完成时间',
     PRIMARY KEY (id),
     UNIQUE KEY uk_order_no (order_no),
     KEY idx_buyer_id (buyer_id),
@@ -111,7 +114,7 @@ CREATE TABLE IF NOT EXISTS order_item (
 -- ---------------------------------------------------
 -- 购物车表
 -- ---------------------------------------------------
-CREATE TABLE IF NOT EXISTS cart (
+CREATE TABLE IF NOT EXISTS cart_item (
     id            BIGINT          NOT NULL COMMENT '主键',
     user_id       BIGINT          NOT NULL COMMENT '用户ID',
     product_id    BIGINT          NOT NULL COMMENT '商品ID',

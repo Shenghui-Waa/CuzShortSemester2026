@@ -1,5 +1,6 @@
-package com.cuzssp.campussecondhandtradingplatform_backend.common.exception;
+package com.cuzssp.campussecondhandtradingplatformbackend.common.exception;
 
+import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.Result;
 import lombok.Getter;
 
 @Getter
@@ -9,7 +10,7 @@ public class BusinessException extends RuntimeException {
 
     public BusinessException(String message) {
         super(message);
-        this.code = 400;
+        this.code = Result.Code.BAD_REQUEST;
     }
 
     public BusinessException(Integer code, String message) {

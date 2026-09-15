@@ -1,8 +1,8 @@
-package com.cuzssp.campussecondhandtradingplatform_backend.common.security;
+package com.cuzssp.campussecondhandtradingplatformbackend.common.security;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor

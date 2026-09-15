@@ -1,14 +1,5 @@
-package com.cuzssp.campussecondhandtradingplatform_backend.service;
-
-import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.PageResult;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.vo.ProductVO;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.Result;
+package com.cuzssp.campussecondhandtradingplatformbackend.service;
 
 public interface FavoriteService {
-
-    Result<PageResult<ProductVO>> getFavorites(Long userId, Integer page, Integer pageSize);
-    Result<Void> addFavorite(Long userId, Long productId);
-    Result<Void> removeFavorite(Long userId, Long productId);
-    Result<Boolean> isFavorited(Long userId, Long productId);
 
 }

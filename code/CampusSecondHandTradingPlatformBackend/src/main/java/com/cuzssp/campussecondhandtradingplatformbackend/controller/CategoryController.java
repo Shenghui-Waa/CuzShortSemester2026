@@ -1,23 +1,15 @@
-package com.cuzssp.campussecondhandtradingplatform_backend.controller;
+package com.cuzssp.campussecondhandtradingplatformbackend.controller;
 
-import com.cuzssp.campussecondhandtradingplatform_backend.service.CategoryService;
-import com.cuzssp.campussecondhandtradingplatform_backend.common.dto.Result;
+import com.cuzssp.campussecondhandtradingplatformbackend.service.CategoryService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/categories")
+@RequestMapping("/api/category")
 @RequiredArgsConstructor
 public class CategoryController {
 
     private final CategoryService categoryService;
-
-    /**
-     * 获取所有分类
-     */
-    @GetMapping
-    public Result<?> getAllCategories() {
-        return categoryService.getAllCategories();
-    }
 
 }

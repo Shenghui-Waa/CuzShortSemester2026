@@ -1,38 +1,13 @@
-server:
-  port: ${server.portport:8080}
+# ===================================================
+# 校园二手交易平台 - 应用配置 - 开发
+# 所有敏感值通过环境变量注入
+# ===================================================
 
 spring:
-  application:
-    name: CampusSecondHandTradingPlatformBackend
-
-  profiles:
-    active: ${profiles-active}
-
-  config:
-    import: optional:file:env.yml
-
-  servlet:
-    multipart:
-      max-file-size: ${upload.max.size.file:10MB}
-      max-request-size: ${upload.max.size.request:50MB}
+  datasource:
+    driver-class-name: org.sqlite.JDBC
+    url: jdbc:sqlite:${db.url}
 
 mybatis-plus:
   configuration:
-    map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
-# log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
-  global-config:
-    db-config:
-      id-type: assign_id
-
-s3:
-  config:
-    storage-support: ${s3.storage-support:r2}
-    account-id: ${s3.account-id}
-    access-key: ${s3.access-key}
-    secret-key: ${s3.secret-key}
-    endpoint: ${s3.endpoint}
-    bucket-name: ${s3.bucket-name}
-    child-folder: ${s3.child-folder}
-    cdn-domain: ${s3.cdn-domain}
-    region: ${s3.region:auto}

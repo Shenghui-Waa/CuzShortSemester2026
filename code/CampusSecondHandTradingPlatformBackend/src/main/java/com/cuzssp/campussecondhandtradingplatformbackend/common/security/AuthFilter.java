@@ -2,6 +2,7 @@ package com.cuzssp.campussecondhandtradingplatformbackend.common.security;
 
 import com.cuzssp.campussecondhandtradingplatformbackend.common.constant.UserConstant;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.entity.User;
+import com.cuzssp.campussecondhandtradingplatformbackend.mapper.UserMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

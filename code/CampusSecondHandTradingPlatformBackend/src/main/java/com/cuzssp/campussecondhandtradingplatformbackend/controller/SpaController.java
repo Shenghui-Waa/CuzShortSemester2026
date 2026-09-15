@@ -1,4 +1,4 @@
-package com.cuzssp.campussecondhandtradingplatform_backend.controller;
+package com.cuzssp.campussecondhandtradingplatformbackend.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;

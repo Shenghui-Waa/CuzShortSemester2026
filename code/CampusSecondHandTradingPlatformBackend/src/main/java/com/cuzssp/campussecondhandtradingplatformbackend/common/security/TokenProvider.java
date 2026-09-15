@@ -6,7 +6,6 @@ import com.cuzssp.campussecondhandtradingplatformbackend.common.exception.Busine
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -28,41 +27,54 @@ public class TokenProvider {
                 .claim("role", user.getRole())
                 .issuedAt(now)
                 .expiration(expiryDate)
-                .signWith(SignatureAlgorithm.HS256, jwtConfig.getSecret())
+                .signWith(jwtConfig.getSecret())
                 .compact();
     }
 
     // 解析 Token 获取用户 ID
-    public Long getUserIdFromToken(String token) {
-        if (validateToken(token)) {
-            Claims claims = parseToken(token);
+    public Long getUserId(String token) {
+        token = token.replace("Bearer ", "");
+        if (validate(token)) {
+            Claims claims = parse(token);
             return Long.parseLong(claims.getSubject());
         }
         throw new BusinessException("Invalid token");
     }
 
     // 解析 Token 获取用户名
-    public String getUsernameFromToken(String token) {
-        if (validateToken(token)) {
-            Claims claims = parseToken(token);
+    public String getUsername(String token) {
+        token = token.replace("Bearer ", "");
+        if (validate(token)) {
+            Claims claims = parse(token);
             return claims.get("username", String.class);
         }
         throw new BusinessException("Invalid token");
     }
 
+    public String getRole(String token) {
+        token = token.replace("Bearer ", "");
+        if (validate(token)) {
+            Claims claims = parse(token);
+            return claims.get("role", String.class);
+        }
+        throw new BusinessException("Invalid token");
+    }
+
     // 验证 Token 有效性
-    public boolean validateToken(String token) {
+    public boolean validate(String token) {
+        if (token == null || token.isEmpty()) return false;
         try {
-            parseToken(token);
+            token = token.replace("Bearer ", "");
+            parse(token);
             return true;
         } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
     }
 
-    private Claims parseToken(String token) {
+    private Claims parse(String token) {
         return Jwts.parser()
-                .setSigningKey(jwtConfig.getSecret())
+                .verifyWith(jwtConfig.getSecret())
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();

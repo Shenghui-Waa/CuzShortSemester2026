@@ -1,6 +1,6 @@
-package com.cuzssp.campussecondhandtradingplatform_backend.common.config;
+package com.cuzssp.campussecondhandtradingplatformbackend.common.config;
 
-import com.cuzssp.campussecondhandtradingplatform_backend.common.handler.ChatWebSocketHandler;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.handler.ChatWebSocketHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
