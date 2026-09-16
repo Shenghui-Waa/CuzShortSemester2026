@@ -22,4 +22,17 @@
         </set>
         WHERE id = #{id} AND status = #{expectedStatus}
     </update>
+
+    <update id="cancelIfStatusMatches">
+        UPDATE order_info
+        <set>
+            status = 4,
+            updated_at = #{updatedAt},
+            refund_status = #{refundStatus},
+            <if test="refundedAt != null">
+                refunded_at = #{refundedAt},
+            </if>
+        </set>
+        WHERE id = #{id} AND status = #{expectedStatus}
+    </update>
 </mapper>

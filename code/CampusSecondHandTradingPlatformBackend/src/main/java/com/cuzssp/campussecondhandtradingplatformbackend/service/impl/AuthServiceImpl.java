@@ -3,7 +3,7 @@ package com.cuzssp.campussecondhandtradingplatformbackend.service.impl;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.constant.UserConstant;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.Result;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.request.LoginRequest;
-import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.request.RegisterRequest;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.request.UserRequest;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.entity.User;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.exception.BusinessException;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.security.PasswordProvider;
@@ -28,11 +28,12 @@ public class AuthServiceImpl implements AuthService {
 
     // 注册
     @Override
-    public UserVO register(RegisterRequest request) {
+    public UserVO register(UserRequest request) {
         if (userMapper.countByUsername(request.getUsername()) > 0)
             throw new BusinessException("Username already exists");
 
-        User user = ToEntityUtil.toUserEntity(request, passwordProvider);
+        User user = ToEntityUtil.toUserEntity(
+                request, passwordProvider, UserConstant.Role.USER);
         userMapper.insert(user);
         log.info("User registered: {}", user.getUsername());
         return ToVOUtil.toUserVO(user);
@@ -60,7 +61,8 @@ public class AuthServiceImpl implements AuthService {
 
     // 登出
     @Override
-    public Void logout(Long userId) {
+    public Void logout(String token) {
+        tokenProvider.revoke(token);
         return null;
     }
 

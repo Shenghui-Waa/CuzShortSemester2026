@@ -24,6 +24,12 @@ public interface OrderInfoMapper extends BaseMapper<OrderInfo> {
                                   @Param("shippedAt") LocalDateTime shippedAt,
                                   @Param("completedAt") LocalDateTime completedAt);
 
+    int cancelIfStatusMatches(@Param("id") Long id,
+                              @Param("expectedStatus") Integer expectedStatus,
+                              @Param("refundStatus") Integer refundStatus,
+                              @Param("refundedAt") LocalDateTime refundedAt,
+                              @Param("updatedAt") LocalDateTime updatedAt);
+
     @Update("UPDATE order_info SET updated_at = updated_at WHERE id = #{id}")
     int lockForReview(@Param("id") Long id);
 

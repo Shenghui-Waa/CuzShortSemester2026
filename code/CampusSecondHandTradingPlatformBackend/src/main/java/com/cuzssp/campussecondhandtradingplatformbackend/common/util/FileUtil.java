@@ -25,7 +25,7 @@ public class FileUtil {
             "jpg", "jpeg", "png", "gif", "webp", "svg"
     ));
 
-    private static final long MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+    private static final long MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 
     public String upload(MultipartFile file) {
         try (
@@ -71,7 +71,7 @@ public class FileUtil {
 
         if (file.getSize() > MAX_FILE_SIZE) {
             throw new BusinessException(Result.Code.REQUEST_ENTITY_TOO_LARGE,
-                    "File size exceeds 10MB limit");
+                    "File size exceeds 2MB limit");
         }
         String originalFilename = file.getOriginalFilename();
         if (originalFilename == null || !originalFilename.contains(".")) {

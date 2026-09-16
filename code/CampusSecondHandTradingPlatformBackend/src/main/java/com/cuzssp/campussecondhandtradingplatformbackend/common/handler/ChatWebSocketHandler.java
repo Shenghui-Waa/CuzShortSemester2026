@@ -22,8 +22,11 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        Long userId = getUserId(session);
-        if (userId != null) {
+        String token = (String) session.getAttributes()
+                .get(ChatWebSocketHandshakeInterceptor.TOKEN_ATTRIBUTE);
+        Long userId = (Long) session.getAttributes()
+                .get(ChatWebSocketHandshakeInterceptor.USER_ID_ATTRIBUTE);
+        if (userId != null && tokenProvider.validate(token)) {
             sessions.put(userId, session);
         } else {
             session.close(CloseStatus.POLICY_VIOLATION);
@@ -37,9 +40,10 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-        Long userId = getUserId(session);
+        Long userId = (Long) session.getAttributes()
+                .get(ChatWebSocketHandshakeInterceptor.USER_ID_ATTRIBUTE);
         if (userId != null) {
-            sessions.remove(userId);
+            sessions.remove(userId, session);
         }
     }
 
@@ -47,26 +51,18 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         WebSocketSession session = sessions.get(userId);
         if (session != null && session.isOpen()) {
             try {
+                String token = (String) session.getAttributes()
+                        .get(ChatWebSocketHandshakeInterceptor.TOKEN_ATTRIBUTE);
+                if (!tokenProvider.validate(token)) {
+                    sessions.remove(userId, session);
+                    session.close(CloseStatus.POLICY_VIOLATION);
+                    return;
+                }
                 String notification = String.format("{\"type\":\"new_message\",\"from\":%d}", senderId);
                 session.sendMessage(new TextMessage(notification));
             } catch (Exception e) {
                 log.warn("Failed to send message to user {}: {}", userId, e.getMessage());
             }
         }
-    }
-
-    private Long getUserId(WebSocketSession session) {
-        String query = session.getUri() != null ? session.getUri().getQuery() : null;
-        if (query != null && query.contains("token=")) {
-            try {
-                String token = query.split("token=")[1].split("&")[0];
-                if (tokenProvider.validate(token)) {
-                    return tokenProvider.getUserId(token);
-                }
-            } catch (Exception e) {
-                return null;
-            }
-        }
-        return null;
     }
 }

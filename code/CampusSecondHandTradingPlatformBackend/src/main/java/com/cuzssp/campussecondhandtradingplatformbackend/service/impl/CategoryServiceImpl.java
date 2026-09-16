@@ -1,7 +1,9 @@
 package com.cuzssp.campussecondhandtradingplatformbackend.service.impl;
 
 import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.Result;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.request.CategoryRequest;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.entity.Category;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.util.ToEntityUtil;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.util.ToVOUtil;
 import com.cuzssp.campussecondhandtradingplatformbackend.mapper.CategoryMapper;
 import com.cuzssp.campussecondhandtradingplatformbackend.mapper.ProductMapper;
@@ -11,7 +13,6 @@ import com.cuzssp.campussecondhandtradingplatformbackend.common.exception.Busine
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,26 +40,27 @@ public class CategoryServiceImpl implements CategoryService {
     // 创建分类
     @Override
     public Category createCategory(
-            Category category
+            CategoryRequest request
     ) {
-        if (categoryMapper.selectByName(category.getName()) > 0)
+        if (categoryMapper.selectByName(request.getName()) > 0)
             throw new BusinessException(Result.Code.FORBIDDEN, "Category already exists");
 
-        category.setId(null);
-        category.setCreatedAt(LocalDateTime.now());
+        Category category = ToEntityUtil.toCategoryEntity(request);
         categoryMapper.insert(category);
         return category;
     }
 
     // 修改分类
     @Override
-    public Category updateCategory(Long id, Category category) {
+    public Category updateCategory(Long id, CategoryRequest request) {
         Category existing = categoryMapper.selectById(id);
 
         if (existing == null)
             throw new BusinessException(Result.Code.NOT_FOUND, "Category not found");
 
+        Category category = ToEntityUtil.toCategoryEntity(request);
         category.setId(id);
+        category.setCreatedAt(existing.getCreatedAt());
         categoryMapper.updateById(category);
         return categoryMapper.selectById(id);
     }

@@ -12,7 +12,13 @@ import java.util.List;
 @Mapper
 public interface FavoriteMapper extends BaseMapper<Favorite> {
 
-    @Select("SELECT * FROM favorite WHERE user_id = #{userId} ORDER BY created_at DESC, id DESC")
+    @Select("""
+            SELECT f.* FROM favorite f
+            JOIN product p ON p.id = f.product_id
+            WHERE f.user_id = #{userId}
+                AND p.status = 1 AND p.is_deleted = 0
+            ORDER BY f.created_at DESC, f.id DESC
+            """)
     List<Favorite> selectByUserId(@Param("userId") Long userId);
 
     @Select("SELECT COUNT(*) FROM favorite WHERE user_id = #{userId} AND product_id = #{productId}")
@@ -21,7 +27,11 @@ public interface FavoriteMapper extends BaseMapper<Favorite> {
     @Delete("DELETE FROM favorite WHERE user_id = #{userId} AND product_id = #{productId}")
     int deleteByUserIdAndProductId(@Param("userId") Long userId, @Param("productId") Long productId);
 
-    @Select("SELECT product_id FROM favorite WHERE user_id = #{userId}")
+    @Select("""
+            SELECT f.product_id FROM favorite f
+            JOIN product p ON p.id = f.product_id
+            WHERE f.user_id = #{userId} AND p.is_deleted = 0
+            """)
     List<Long> selectFavoriteProductIdsByUserId(@Param("userId") Long userId);
 
     @Delete("DELETE FROM favorite WHERE product_id = #{productId}")

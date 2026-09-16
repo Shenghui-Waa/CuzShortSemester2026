@@ -10,7 +10,7 @@
     <div class="announcement-content">
       <p class="announcement-body">{{ announcement?.content || "" }}</p>
       <p class="announcement-time" v-if="announcement?.createdAt">
-        {{ new Date(announcement.createdAt).toLocaleString() }}
+        {{ formatDateTime(announcement.createdAt) }}
       </p>
     </div>
 
@@ -26,6 +26,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { announcementApi } from "@/api";
+import { formatDateTime } from "@/utils";
 
 interface Announcement {
   id: number;

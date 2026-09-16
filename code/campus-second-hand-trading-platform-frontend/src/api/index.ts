@@ -2,13 +2,13 @@ import request from "./request";
 
 export const cartApi = {
   list: () => request.get("/cart"),
-  add: (productId: number) => request.post("/cart", null, { params: { productId } }),
+  add: (productId: number) => request.post("/cart", { productId }),
   remove: (productId: number) => request.delete(`/cart/${productId}`),
 };
 
 export const favoriteApi = {
   list: (page: number, pageSize: number) => request.get("/favorite", { params: { page, pageSize } }),
-  add: (productId: number) => request.post("/favorite", null, { params: { productId } }),
+  add: (productId: number) => request.post("/favorite", { productId }),
   remove: (productId: number) => request.delete(`/favorite/${productId}`),
   check: (productId: number) => request.get(`/favorite/check/${productId}`),
 };
@@ -56,6 +56,7 @@ export const adminApi = {
   deleteUser: (id: number) => request.delete(`/admin/user/${id}`),
   resetUserPassword: (id: number, data: any) => request.put(`/admin/user/${id}/reset-password`, data),
   productList: (params: any) => request.get("/admin/product", { params }),
+  productDetail: (id: number) => request.get(`/admin/product/${id}`),
   updateProductStatus: (id: number, status: number) => request.put(`/admin/product/${id}/status`, null, { params: { status } }),
   orderList: (params: any) => request.get("/admin/order", { params }),
   categoryCreate: (data: any) => request.post("/admin/category", data),

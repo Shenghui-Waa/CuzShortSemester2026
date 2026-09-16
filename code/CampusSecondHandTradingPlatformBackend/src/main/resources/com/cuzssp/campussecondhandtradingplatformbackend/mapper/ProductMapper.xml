@@ -6,6 +6,7 @@
             resultType="com.cuzssp.campussecondhandtradingplatformbackend.common.entity.Product">
         SELECT * FROM product
         <where>
+            is_deleted = 0
             <if test="keyword != null and !keyword.isBlank()">
                 <bind name="pattern" value="'%' + keyword + '%'"/>
                 AND (title LIKE #{pattern} OR description LIKE #{pattern})

@@ -23,5 +23,7 @@ public class ProductConstant {
     }
 
     public static final int VIEW_COUNT_DEFAULT = 0; // 初始浏览人数
+    public static final int DEFAULT_DELETED = 0;    // 默认未删除
+    public static final int DELETED = 1;            // 已删除
 
 }

@@ -6,12 +6,13 @@
       <el-descriptions v-if="order" :column="2" border>
         <el-descriptions-item label="订单号">{{ order.orderNo }}</el-descriptions-item>
         <el-descriptions-item label="状态">
-          <el-tag :type="getOrderStatusType(order.status)">{{ getOrderStatusLabel(order.status) }}</el-tag>
+          <el-tag :type="getOrderStatusType(order.status)">{{ getDisplayOrderStatus(order) }}</el-tag>
         </el-descriptions-item>
         <el-descriptions-item label="买家">{{ order.buyerName }}</el-descriptions-item>
         <el-descriptions-item label="卖家">{{ order.sellerName }}</el-descriptions-item>
         <el-descriptions-item label="金额">{{ formatPrice(order.totalAmount) }}</el-descriptions-item>
         <el-descriptions-item label="下单时间">{{ formatDate(order.createdAt) }}</el-descriptions-item>
+        <el-descriptions-item v-if="isRefunded(order)" label="退款时间">{{ formatDate(order.refundedAt) }}</el-descriptions-item>
       </el-descriptions>
       <div class="order-actions" v-if="order" style="margin-top:16px;display:flex;gap:12px;flex-wrap:wrap">
         <el-button type="success" v-if="order.status===0 && isBuyer" @click="doPay">付款</el-button>
@@ -65,9 +66,13 @@ const reviewForm = reactive({ rating: 3, content: "" });
 
 onMounted(async () => {
   await userStore.ensureUserInfo();
+  await fetchOrder();
+});
+
+async function fetchOrder() {
   const r: any = await orderApi.detail(Number(route.params.id));
   order.value = r.data;
-});
+}
 
 async function doPay() {
   await orderApi.pay(order.value.id);
@@ -89,11 +94,21 @@ async function doConfirm() {
 
 async function doCancel() {
   try {
-    await ElMessageBox.confirm("确定取消订单？");
+    const willRefund = order.value.status === 1 || order.value.status === 2;
+    const message = willRefund ? "取消后将模拟全额退款，确定取消订单？" : "确定取消订单？";
+    await ElMessageBox.confirm(message, "取消订单");
     await orderApi.cancel(order.value.id);
-    ElMessage.success("已取消");
-    order.value.status = 4;
+    ElMessage.success(willRefund ? "订单已取消，模拟退款成功" : "订单已取消");
+    await fetchOrder();
   } catch {}
+}
+
+function isRefunded(value: any): boolean {
+  return value?.status === 4 && value?.refundStatus === 1 && Boolean(value?.refundedAt);
+}
+
+function getDisplayOrderStatus(value: any): string {
+  return isRefunded(value) ? "已取消（已退款）" : getOrderStatusLabel(value.status);
 }
 
 function showReview() {

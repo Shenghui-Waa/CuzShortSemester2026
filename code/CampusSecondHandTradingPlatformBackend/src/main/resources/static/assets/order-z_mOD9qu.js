@@ -1,1 +1,0 @@
-import{t as e}from"./request-Std26Kll.js";var t={create:t=>e.post(`/order`,t),list:t=>e.get(`/order`,{params:t}),detail:t=>e.get(`/order/${t}`),pay:t=>e.put(`/order/${t}/pay`),ship:t=>e.put(`/order/${t}/ship`),confirm:t=>e.put(`/order/${t}/confirm`),cancel:t=>e.put(`/order/${t}/cancel`)};export{t};

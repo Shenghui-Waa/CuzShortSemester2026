@@ -2,6 +2,7 @@ package com.cuzssp.campussecondhandtradingplatformbackend.service.impl;
 
 import com.cuzssp.campussecondhandtradingplatformbackend.common.constant.ChatMessageConstant;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.Result;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.request.ChatMessageRequest;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.entity.ChatMessage;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.entity.User;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.handler.ChatWebSocketHandler;
@@ -118,22 +119,18 @@ public class ChatServiceImpl implements ChatService {
     // 发送信息
     @Override
     public ChatMessageVO sendMessage(
-            Long senderId, Long receiverId, Long productId, String content
+            Long senderId, ChatMessageRequest request
     ) {
-        if (receiverId == null || userMapper.selectById(receiverId) == null)
+        if (userMapper.selectById(request.getReceiverId()) == null)
             throw new BusinessException(Result.Code.NOT_FOUND, "Receiver not found");
 
-        if (content == null || content.isBlank())
-            throw new BusinessException("Message content is required");
-
-        String encryptedContent = aesEncryptionUtil.encrypt(content);
-        ChatMessage message = ToEntityUtil.toChatMessageEntity(
-                senderId, receiverId, productId, encryptedContent);
+        ChatMessage message = ToEntityUtil.toChatMessageEntity(senderId, request);
+        message.setContent(aesEncryptionUtil.encrypt(request.getContent()));
         chatMessageMapper.insert(message);
         ChatMessageVO chatMessageVO = ToVOUtil.toChatMessageVO(message);
-        chatMessageVO.setContent(content);
+        chatMessageVO.setContent(request.getContent());
 
-        chatWebSocketHandler.sendMessageToUser(receiverId, senderId);
+        chatWebSocketHandler.sendMessageToUser(request.getReceiverId(), senderId);
 
         return chatMessageVO;
     }

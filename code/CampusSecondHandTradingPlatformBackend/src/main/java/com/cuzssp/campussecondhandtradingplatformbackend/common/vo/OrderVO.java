@@ -22,4 +22,6 @@ public class OrderVO {
     private LocalDateTime paidAt;
     private LocalDateTime shippedAt;
     private LocalDateTime completedAt;
+    private Integer refundStatus;
+    private LocalDateTime refundedAt;
 }

@@ -24,8 +24,8 @@
         <el-table-column label="金额" width="110">
           <template #default="{ row }">{{ formatPrice(row.totalAmount) }}</template>
         </el-table-column>
-        <el-table-column label="状态" width="90">
-          <template #default="{ row }"><el-tag :type="getOrderStatusType(row.status)">{{ getOrderStatusLabel(row.status) }}</el-tag></template>
+        <el-table-column label="状态" width="140">
+          <template #default="{ row }"><el-tag :type="getOrderStatusType(row.status)">{{ getDisplayOrderStatus(row) }}</el-tag></template>
         </el-table-column>
         <el-table-column label="时间" width="170">
           <template #default="{ row }">{{ formatDate(row.createdAt) }}</template>
@@ -124,12 +124,21 @@ async function doConfirm(row: any) {
 
 async function doCancel(row: any) {
   try {
-    await ElMessageBox.confirm("确定取消订单？");
+    const willRefund = row.status === 1 || row.status === 2;
+    const message = willRefund ? "取消后将模拟全额退款，确定取消订单？" : "确定取消订单？";
+    await ElMessageBox.confirm(message, "取消订单");
     await orderApi.cancel(row.id);
-    ElMessage.success("已取消");
-    row.status = 4;
-    fetchList();
+    ElMessage.success(willRefund ? "订单已取消，模拟退款成功" : "订单已取消");
+    await fetchList();
   } catch {}
+}
+
+function isRefunded(order: any): boolean {
+  return order.status === 4 && order.refundStatus === 1 && Boolean(order.refundedAt);
+}
+
+function getDisplayOrderStatus(order: any): string {
+  return isRefunded(order) ? "已取消（已退款）" : getOrderStatusLabel(order.status);
 }
 
 function showReview(order: any) {

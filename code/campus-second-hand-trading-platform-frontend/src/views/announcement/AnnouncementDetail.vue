@@ -9,8 +9,8 @@
       <template v-if="detail">
         <h1 class="detail-title">{{ detail.title }}</h1>
         <div class="detail-meta">
-          <span>发布于 {{ formatTime(detail.createdAt) }}</span>
-          <span v-if="detail.updatedAt !== detail.createdAt">更新于 {{ formatTime(detail.updatedAt) }}</span>
+          <span>发布于 {{ formatDateTime(detail.createdAt) }}</span>
+          <span v-if="detail.updatedAt !== detail.createdAt">更新于 {{ formatDateTime(detail.updatedAt) }}</span>
         </div>
         <div class="detail-divider"></div>
         <div class="detail-content" style="white-space: pre-wrap">{{ detail.content }}</div>
@@ -27,17 +27,11 @@ import { ArrowLeft } from "@element-plus/icons-vue";
 import AppHeader from "@/components/layout/AppHeader.vue";
 import AppFooter from "@/components/layout/AppFooter.vue";
 import { announcementApi } from "@/api";
+import { formatDateTime } from "@/utils";
 
 const route = useRoute();
 const detail = ref<any>(null);
 const loading = ref(false);
-
-function formatTime(t: string) {
-  if (!t) return "";
-  const d = new Date(t);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
 
 async function fetchDetail() {
   loading.value = true;

@@ -12,7 +12,7 @@
       >
         <div class="card-title">{{ item.title }}</div>
         <div class="card-meta">
-          <span>{{ formatTime(item.createdAt) }}</span>
+          <span>{{ formatDateTime(item.createdAt) }}</span>
           <span v-if="item.updatedAt !== item.createdAt" class="edited">已编辑</span>
         </div>
         <div class="card-preview">{{ item.content?.slice(0, 120) }}{{ item.content?.length > 120 ? '...' : '' }}</div>
@@ -24,8 +24,8 @@
     <el-dialog v-model="dialogVisible" :title="dialogTitle" width="640px" :close-on-click-modal="false">
       <div class="detail-body">
         <div class="detail-meta">
-          <span>发布于 {{ formatTime(dialogCreatedAt) }}</span>
-          <span v-if="dialogUpdatedAt !== dialogCreatedAt">更新于 {{ formatTime(dialogUpdatedAt) }}</span>
+          <span>发布于 {{ formatDateTime(dialogCreatedAt) }}</span>
+          <span v-if="dialogUpdatedAt !== dialogCreatedAt">更新于 {{ formatDateTime(dialogUpdatedAt) }}</span>
         </div>
         <div class="detail-divider"></div>
         <div class="detail-content" v-html="dialogContent"></div>
@@ -40,6 +40,7 @@ import AppHeader from "@/components/layout/AppHeader.vue";
 import AppFooter from "@/components/layout/AppFooter.vue";
 import Pagination from "@/components/Pagination.vue";
 import { announcementApi } from "@/api";
+import { formatDateTime } from "@/utils";
 
 const list = ref<any[]>([]);
 const loading = ref(false);
@@ -52,13 +53,6 @@ const dialogTitle = ref("");
 const dialogContent = ref("");
 const dialogCreatedAt = ref("");
 const dialogUpdatedAt = ref("");
-
-function formatTime(t: string) {
-  if (!t) return "";
-  const d = new Date(t);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
 
 function openDetail(item: any) {
   dialogTitle.value = item.title;

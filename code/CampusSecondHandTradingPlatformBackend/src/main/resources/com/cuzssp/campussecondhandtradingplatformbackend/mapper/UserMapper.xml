@@ -5,13 +5,13 @@
     <update id="updateProfileFields">
         UPDATE user
         <set>
-            <if test="request.nickname != null">nickname = #{request.nickname},</if>
-            <if test="request.phone != null">phone = #{request.phone},</if>
-            <if test="request.email != null">email = #{request.email},</if>
-            <if test="request.school != null">school = #{request.school},</if>
-            <if test="request.campus != null">campus = #{request.campus},</if>
+            <if test="nickname != null">nickname = #{nickname},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="school != null">school = #{school},</if>
+            <if test="campus != null">campus = #{campus},</if>
             updated_at = #{updatedAt}
         </set>
-        WHERE id = #{userId}
+        WHERE id = #{id}
     </update>
 </mapper>

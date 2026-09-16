@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @TableName("order_item")
 public class OrderItem {
 
-    @TableId(type = IdType.ASSIGN_ID)
+    @TableId(type = IdType.AUTO)
     private Long id;
 
     @TableField("order_id")
@@ -21,6 +21,15 @@ public class OrderItem {
 
     @TableField("price")
     private BigDecimal price;
+
+    @TableField("product_title")
+    private String productTitle;
+
+    @TableField("product_image")
+    private String productImage;
+
+    @TableField("product_state")
+    private Integer productState;
 
     @TableField(value = "created_at", fill = FieldFill.INSERT)
     private LocalDateTime createdAt;

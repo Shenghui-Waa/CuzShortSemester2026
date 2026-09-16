@@ -18,8 +18,8 @@ spring:
 
   servlet:
     multipart:
-      max-file-size: ${upload.max.size.file:10MB}
-      max-request-size: ${upload.max.size.request:50MB}
+      max-file-size: 2MB
+      max-request-size: 10MB
   sql:
     init:
       continue-on-error: false
@@ -31,7 +31,7 @@ mybatis-plus:
     map-underscore-to-camel-case: true
   global-config:
     db-config:
-      id-type: assign_id
+      id-type: auto
 
 cors:
   allow-origins: ${external.cors.allow-origins:*}

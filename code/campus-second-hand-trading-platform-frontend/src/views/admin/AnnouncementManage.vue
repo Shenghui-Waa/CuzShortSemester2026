@@ -9,10 +9,10 @@
       <el-table-column prop="id" label="ID" width="180" />
       <el-table-column prop="title" label="标题" min-width="200" />
       <el-table-column label="创建时间" width="170">
-        <template #default="{ row }">{{ formatTime(row.createdAt) }}</template>
+        <template #default="{ row }">{{ formatDateTime(row.createdAt) }}</template>
       </el-table-column>
       <el-table-column label="更新时间" width="170">
-        <template #default="{ row }">{{ formatTime(row.updatedAt) }}</template>
+        <template #default="{ row }">{{ formatDateTime(row.updatedAt) }}</template>
       </el-table-column>
       <el-table-column label="操作" width="150">
         <template #default="{ row }">
@@ -46,6 +46,7 @@ import { ref, reactive, onMounted } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { announcementApi } from "@/api";
 import Pagination from "@/components/Pagination.vue";
+import { formatDateTime } from "@/utils";
 
 const list = ref<any[]>([]);
 const loading = ref(false);
@@ -57,13 +58,6 @@ const dialogVisible = ref(false);
 const editId = ref<number | null>(null);
 const form = reactive({ title: "", content: "" });
 const submitting = ref(false);
-
-function formatTime(t: string) {
-  if (!t) return "";
-  const d = new Date(t);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
 
 async function fetchList() {
   loading.value = true;

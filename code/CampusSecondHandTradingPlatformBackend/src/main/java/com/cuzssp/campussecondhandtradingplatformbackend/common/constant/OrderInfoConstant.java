@@ -15,4 +15,11 @@ public class OrderInfoConstant {
 
     }
 
+    public static class RefundStatus {
+
+        public static final int NONE = 0;      // 未退款或无需退款
+        public static final int REFUNDED = 1;  // 已退款
+
+    }
+
 }

@@ -14,7 +14,7 @@
         <el-table-column prop="buyerName" label="买家" width="100" />
         <el-table-column prop="sellerName" label="卖家" width="100" />
         <el-table-column label="金额" width="110"><template #default="{row}">{{ formatPrice(row.totalAmount) }}</template></el-table-column>
-        <el-table-column label="状态" width="90"><template #default="{row}"><el-tag :type="getOrderStatusType(row.status)">{{ getOrderStatusLabel(row.status) }}</el-tag></template></el-table-column>
+        <el-table-column label="状态" width="140"><template #default="{row}"><el-tag :type="getOrderStatusType(row.status)">{{ getDisplayOrderStatus(row) }}</el-tag></template></el-table-column>
         <el-table-column label="时间" width="170"><template #default="{row}">{{ formatDate(row.createdAt) }}</template></el-table-column>
       </el-table>
       <div class="header-indicator" :style="indicatorStyle"></div>
@@ -31,6 +31,11 @@ const orders = ref<any[]>([]); const total = ref(0); const page = ref(1); const 
 onMounted(() => { fetch(); nextTick(() => { setupHeaderIndicator(); setupTabIndicator(); }); });
 async function fetch() { const r: any = await adminApi.orderList({ page: page.value, pageSize: 10, status: sf.value||undefined }); orders.value = r.data?.records||[]; total.value = r.data?.total||0; }
 function onPage(p: number) { page.value = p; fetch(); }
+function getDisplayOrderStatus(order: any): string {
+  return order.status === 4 && order.refundStatus === 1
+    ? "已取消（已退款）"
+    : getOrderStatusLabel(order.status);
+}
 
 // 表头滑动指示器
 const tableRef = ref();

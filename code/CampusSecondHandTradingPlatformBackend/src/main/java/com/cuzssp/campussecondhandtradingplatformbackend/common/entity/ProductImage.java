@@ -10,7 +10,7 @@ import lombok.Data;
 @TableName("product_image")
 public class ProductImage {
 
-    @TableId(type = IdType.ASSIGN_ID)
+    @TableId(type = IdType.AUTO)
     private Long id;
 
     @TableField("product_id")

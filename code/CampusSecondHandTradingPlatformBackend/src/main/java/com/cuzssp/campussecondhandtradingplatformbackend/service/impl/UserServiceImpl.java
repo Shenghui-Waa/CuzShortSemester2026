@@ -4,13 +4,13 @@ import com.cuzssp.campussecondhandtradingplatformbackend.common.constant.Product
 import com.cuzssp.campussecondhandtradingplatformbackend.common.constant.UserConstant;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.Result;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.request.ChangePasswordRequest;
-import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.request.UpdateProfileRequest;
-import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.request.RegisterRequest;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.request.ResetPasswordRequest;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.request.UserRequest;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.entity.User;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.security.PasswordProvider;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.util.ToEntityUtil;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.util.ToVOUtil;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.util.UtcTime;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.PageResult;
 import com.cuzssp.campussecondhandtradingplatformbackend.mapper.ProductMapper;
 import com.cuzssp.campussecondhandtradingplatformbackend.mapper.UserMapper;
@@ -53,13 +53,13 @@ public class UserServiceImpl implements UserService {
     // 修改个人信息
     @Override
     public UserVO updateProfile(
-            Long userId, UpdateProfileRequest request
+            Long userId, UserRequest request
     ) {
         User user = userMapper.selectById(userId);
         if (user == null)
             throw new BusinessException(Result.Code.NOT_FOUND, "User not found");
 
-        userMapper.updateProfileFields(userId, request, LocalDateTime.now());
+        userMapper.updateProfileFields(ToEntityUtil.updateUserEntity(user, request));
         return ToVOUtil.toUserVO(userMapper.selectById(userId));
     }
 
@@ -79,7 +79,7 @@ public class UserServiceImpl implements UserService {
             throw new BusinessException("New password is required");
 
         user.setPassword(passwordProvider.encode(request.getNewPassword()));
-        user.setUpdatedAt(LocalDateTime.now());
+        user.setUpdatedAt(UtcTime.now());
         userMapper.updatePassword(user.getId(), user.getPassword(), user.getUpdatedAt());
         return null;
     }
@@ -93,7 +93,7 @@ public class UserServiceImpl implements UserService {
         if (user == null)
             throw new BusinessException(Result.Code.NOT_FOUND, "User not found");
 
-        userMapper.updateAvatar(userId, imageURL, LocalDateTime.now());
+        userMapper.updateAvatar(userId, imageURL, UtcTime.now());
         return null;
     }
 
@@ -129,13 +129,13 @@ public class UserServiceImpl implements UserService {
     // 添加管理员
     @Override
     public UserVO addAdmin(
-            RegisterRequest request
+            UserRequest request
     ) {
         if (userMapper.countByUsername(request.getUsername()) > 0)
             throw new BusinessException(Result.Code.FORBIDDEN, "Admin name already exists");
 
-        User user = ToEntityUtil.toUserEntity(request, passwordProvider);
-        user.setRole(UserConstant.Role.ADMIN);
+        User user = ToEntityUtil.toUserEntity(
+                request, passwordProvider, UserConstant.Role.ADMIN);
         userMapper.insert(user);
         return ToVOUtil.toUserVO(user);
     }
@@ -155,7 +155,7 @@ public class UserServiceImpl implements UserService {
             throw new BusinessException("Invalid user status");
 
         user.setStatus(targetStatus);
-        user.setUpdatedAt(LocalDateTime.now());
+        user.setUpdatedAt(UtcTime.now());
         userMapper.updateStatus(user.getId(), user.getStatus(), user.getUpdatedAt());
 
         if (targetStatus == UserConstant.Status.INACTIVE)
@@ -190,13 +190,13 @@ public class UserServiceImpl implements UserService {
             throw new BusinessException("New password is required");
 
         user.setPassword(passwordProvider.encode(request.getNewPassword()));
-        user.setUpdatedAt(LocalDateTime.now());
+        user.setUpdatedAt(UtcTime.now());
         userMapper.updatePassword(user.getId(), user.getPassword(), user.getUpdatedAt());
         return null;
     }
 
     // 修改用户的商品状态
     private void updateUserProductsStatus(Long userId, Integer targetStatus) {
-        productMapper.updateUserProductsStatus(userId, targetStatus, LocalDateTime.now());
+        productMapper.updateUserProductsStatus(userId, targetStatus, UtcTime.now());
     }
 }

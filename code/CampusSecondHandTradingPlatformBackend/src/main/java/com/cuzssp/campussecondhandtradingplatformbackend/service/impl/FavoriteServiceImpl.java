@@ -1,6 +1,8 @@
 package com.cuzssp.campussecondhandtradingplatformbackend.service.impl;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.constant.ProductConstant;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.PageResult;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.Result;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.request.FavoriteRequest;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.entity.Product;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.entity.Favorite;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.util.ToEntityUtil;
@@ -54,7 +56,9 @@ public class FavoriteServiceImpl implements FavoriteService {
                 .map(favorite -> {
                     Product product = productMapper.selectById(favorite.getProductId());
 
-                    if (product == null) return null;
+                    if (product == null
+                            || !Objects.equals(product.getStatus(), ProductConstant.Status.ON_SALE))
+                        return null;
 
                     ProductVO productVO = ToVOUtil.toProductVO(
                             product, userMapper.selectById(product.getUserId()),
@@ -74,15 +78,19 @@ public class FavoriteServiceImpl implements FavoriteService {
     // 添加收藏
     @Override
     public Void addFavorite(
-            Long userId, Long productId
+            Long userId, FavoriteRequest request
     ) {
-        if (productId == null || productMapper.selectById(productId) == null)
+        Product product = productMapper.selectById(request.getProductId());
+        if (product == null)
             throw new BusinessException(Result.Code.NOT_FOUND, "Product not found");
 
-        if (favoriteMapper.countByUserIdAndProductId(userId, productId) > 0)
+        if (!Objects.equals(product.getStatus(), ProductConstant.Status.ON_SALE))
+            throw new BusinessException("Product is not available");
+
+        if (favoriteMapper.countByUserIdAndProductId(userId, request.getProductId()) > 0)
             return null;
 
-        Favorite favorite = ToEntityUtil.toFavoriteEntity(userId, productId);
+        Favorite favorite = ToEntityUtil.toFavoriteEntity(userId, request);
         favoriteMapper.insert(favorite);
         return null;
     }

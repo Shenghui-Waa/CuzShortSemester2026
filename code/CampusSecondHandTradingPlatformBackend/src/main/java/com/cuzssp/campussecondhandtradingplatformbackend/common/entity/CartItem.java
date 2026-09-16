@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @TableName("cart_item")
 public class CartItem {
 
-    @TableId(type = IdType.ASSIGN_ID)
+    @TableId(type = IdType.AUTO)
     private Long id;
 
     @TableField("user_id")

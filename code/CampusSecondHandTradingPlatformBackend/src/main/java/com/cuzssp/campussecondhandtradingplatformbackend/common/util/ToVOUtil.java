@@ -47,24 +47,15 @@ public class ToVOUtil {
 
     // 订单物品 VO
     public static OrderItemVO toOrderItemVO(
-            OrderItem orderItem, Product product,
-            List<ProductImage> productImages
+            OrderItem orderItem
     ){
-        String productTitle = "";
-        String productImage = "";
-        if (product != null) {
-            productTitle = product.getTitle();
-            productImage = productImages.isEmpty()
-                    ? null
-                    : productImages.get(0).getUrl();
-        }
-
         OrderItemVO vo = new OrderItemVO();
         vo.setId(orderItem.getId());
         vo.setProductId(orderItem.getProductId());
-        vo.setProductTitle(productTitle);
-        vo.setProductImage(productImage);
+        vo.setProductTitle(orderItem.getProductTitle());
+        vo.setProductImage(orderItem.getProductImage());
         vo.setPrice(orderItem.getPrice());
+        vo.setProductState(orderItem.getProductState());
 
         return vo;
     }
@@ -90,6 +81,8 @@ public class ToVOUtil {
         vo.setPaidAt(orderInfo.getPaidAt());
         vo.setShippedAt(orderInfo.getShippedAt());
         vo.setCompletedAt(orderInfo.getCompletedAt());
+        vo.setRefundStatus(orderInfo.getRefundStatus());
+        vo.setRefundedAt(orderInfo.getRefundedAt());
 
         return vo;
     }
