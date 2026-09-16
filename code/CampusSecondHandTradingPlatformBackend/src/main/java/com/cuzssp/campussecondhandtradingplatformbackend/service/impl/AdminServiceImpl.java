@@ -8,6 +8,7 @@ import com.cuzssp.campussecondhandtradingplatformbackend.service.AdminService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.util.ToVOUtil;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.util.UtcTime;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.vo.DashboardVO;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -23,7 +24,7 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public DashboardVO getDashboard() {
-        LocalDateTime start = LocalDate.now().atStartOfDay();
+        LocalDateTime start = UtcTime.today().atStartOfDay();
         LocalDateTime end = start.plusDays(1);
         Long todayUsers = userMapper.countCreatedBetween(start, end);
         Long todayOrders = orderInfoMapper.countCreatedBetween(start, end);

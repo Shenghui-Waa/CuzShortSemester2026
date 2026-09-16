@@ -4,6 +4,7 @@ import com.cuzssp.campussecondhandtradingplatformbackend.common.entity.Review;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.entity.OrderInfo;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.util.ToEntityUtil;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.util.ToVOUtil;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.util.UtcTime;
 import com.cuzssp.campussecondhandtradingplatformbackend.mapper.ReviewMapper;
 import com.cuzssp.campussecondhandtradingplatformbackend.mapper.OrderInfoMapper;
 import com.cuzssp.campussecondhandtradingplatformbackend.mapper.UserMapper;
@@ -91,7 +92,7 @@ public class ReviewServiceImpl implements ReviewService {
         Review review = ToEntityUtil.toReviewEntity(reviewerId, request);
         reviewMapper.insert(review);
         int adjustment = request.getRating() >= 3 ? 1 : -1;
-        userMapper.adjustCreditScore(request.getTargetId(), adjustment, LocalDateTime.now());
+        userMapper.adjustCreditScore(request.getTargetId(), adjustment, UtcTime.now());
         return null;
     }
 

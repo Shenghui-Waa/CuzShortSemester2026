@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @TableName("order_info")
 public class OrderInfo {
 
-    @TableId(type = IdType.ASSIGN_ID)
+    @TableId(type = IdType.AUTO)
     private Long id;
 
     @TableField("order_no")
@@ -46,5 +46,12 @@ public class OrderInfo {
 
     @TableField("completed_at")
     private LocalDateTime completedAt;
+
+    @TableField("refund_status")
+    // 0=未退款/无需退款 1=已退款
+    private Integer refundStatus;
+
+    @TableField("refunded_at")
+    private LocalDateTime refundedAt;
 
 }

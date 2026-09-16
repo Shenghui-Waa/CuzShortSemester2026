@@ -9,6 +9,8 @@ spring:
     url: jdbc:mysql:${db.url}
     username: ${db.username}
     password: ${db.password}
+    hikari:
+      connection-init-sql: "SET time_zone = '+00:00'"
 
   sql:
     init:

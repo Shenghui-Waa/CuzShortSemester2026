@@ -20,7 +20,7 @@
             <span class="orig" v-if="product.originalPrice">{{ formatPrice(product.originalPrice) }}</span>
           </div>
           <div class="meta">
-            <el-tag size="small">{{ getConditionLabel(product.condition) }}</el-tag>
+            <el-tag size="small">{{ getConditionLabel(product.state) }}</el-tag>
             <span>{{ product.campus }}</span>
             <span>{{ product.viewCount }}次浏览</span>
           </div>
@@ -29,20 +29,21 @@
             <el-button type="primary" size="large" v-if="product.status===0||product.status===1" @click="openEdit">编辑</el-button>
             <el-button type="danger" size="large" v-if="product.status===1" @click="delist">下架</el-button>
             <el-button size="large" v-if="product.status===0" @click="withdraw">撤回审核申请</el-button>
-            <el-button type="primary" size="large" v-if="product.status===2||product.status===3" @click="relist">再次上架</el-button>
+            <el-button type="primary" size="large" v-if="product.status===3" @click="relist">再次上架</el-button>
           </div>
           <div class="actions" v-else-if="user.isLogin()">
-            <el-button type="primary" size="large" v-if="product.status!==2" @click="buyNow">立即购买</el-button>
-            <el-button type="info" size="large" v-else disabled>售罄</el-button>
-            <el-button size="large" :type="inCart?'warning':''" @click="toggleCart">
-              {{ inCart?'已加入购物车':'加入购物车' }}
-            </el-button>
-            <el-button size="large" :type="product.isFavorited?'warning':''" @click="toggleFav">
-              {{ product.isFavorited?'已收藏':'收藏' }}
-            </el-button>
+            <template v-if="product.status===1">
+              <el-button type="primary" size="large" @click="buyNow">立即购买</el-button>
+              <el-button size="large" :type="inCart?'warning':''" @click="toggleCart">
+                {{ inCart?'已加入购物车':'加入购物车' }}
+              </el-button>
+              <el-button size="large" :type="product.isFavorite?'warning':''" @click="toggleFav">
+                {{ product.isFavorite?'已收藏':'收藏' }}
+              </el-button>
+            </template>
             <el-button size="large" @click="openChat">联系卖家</el-button>
           </div>
-          <div class="actions" v-else>
+          <div class="actions" v-else-if="product.status===1">
             <el-button type="primary" size="large" @click="$router.push('/login')">登录后购买</el-button>
           </div>
         </div>
@@ -79,7 +80,7 @@
         <el-form-item label="售价" required><el-input-number v-model="ef.price" :min="0" :precision="2" style="width:200px" /></el-form-item>
         <el-form-item label="原价"><el-input-number v-model="ef.originalPrice" :min="0" :precision="2" style="width:200px" /></el-form-item>
         <el-form-item label="成色">
-          <el-radio-group v-model="ef.condition">
+          <el-radio-group v-model="ef.state">
             <el-radio :value="1">全新</el-radio>
             <el-radio :value="2">几乎全新</el-radio>
             <el-radio :value="3">有使用痕迹</el-radio>
@@ -108,7 +109,7 @@ import { useRoute, useRouter } from "vue-router";
 import { ElMessage, ElMessageBox } from "element-plus";
 import AppHeader from "@/components/layout/AppHeader.vue";
 import AppFooter from "@/components/layout/AppFooter.vue";
-import { productApi } from "@/api/product";
+import { productApi, type ProductRequest } from "@/api/product";
 import { orderApi } from "@/api/order";
 import { cartApi, categoryApi, favoriteApi, reviewApi } from "@/api/index";
 import { useUserStore } from "@/stores/user";
@@ -170,13 +171,13 @@ async function toggleCart() {
 
 async function toggleFav() {
   if (!user.isLogin()) { router.push("/login"); return; }
-  if (product.value.isFavorited) {
+  if (product.value.isFavorite) {
     await favoriteApi.remove(product.value.id);
-    product.value.isFavorited = false;
+    product.value.isFavorite = false;
     ElMessage.success("已取消收藏");
   } else {
     await favoriteApi.add(product.value.id);
-    product.value.isFavorited = true;
+    product.value.isFavorite = true;
     ElMessage.success("已收藏");
   }
 }
@@ -209,7 +210,7 @@ function relist() {
     path: "/publish",
     query: {
       id: p.id, title: p.title, price: p.price,
-      categoryId: p.categoryId, condition: p.condition,
+      categoryId: p.categoryId, state: p.state,
       campus: p.campus, description: p.description,
       originalPrice: p.originalPrice,
     }
@@ -222,8 +223,12 @@ const editImages = ref<string[]>([]);
 const editCategories = ref<any[]>([]);
 const ef = reactive({
   title: "", categoryId: null as number | null, price: 0,
-  originalPrice: 0, condition: 1, campus: "", description: "",
+  originalPrice: 0, state: 1, campus: "", description: "",
 });
+
+function toImageRequests(urls: string[]): ProductRequest["images"] {
+  return urls.map((url, index) => ({ url, sortOrder: index + 1 }));
+}
 
 async function openEdit() {
   await fetchCategories();
@@ -232,7 +237,7 @@ async function openEdit() {
   ef.categoryId = p.categoryId || null;
   ef.price = p.price || 0;
   ef.originalPrice = p.originalPrice || 0;
-  ef.condition = p.condition ?? 1;
+  ef.state = p.state ?? 1;
   ef.campus = p.campus || "";
   ef.description = p.description || "";
   editImages.value = p.images ? [...p.images] : [];
@@ -247,12 +252,13 @@ async function fetchCategories() {
 async function submitEdit() {
   editSubmitting.value = true;
   try {
-    const data = {
+    const data: ProductRequest = {
       title: ef.title, categoryId: ef.categoryId, price: ef.price,
-      originalPrice: ef.originalPrice, condition: ef.condition,
-      campus: ef.campus, description: ef.description, status: 0,
+      originalPrice: ef.originalPrice, state: ef.state,
+      campus: ef.campus, description: ef.description,
+      images: toImageRequests(editImages.value),
     };
-    await productApi.update(product.value.id, data, editImages.value);
+    await productApi.update(product.value.id, data);
     ElMessage.success("修改成功，已提交审核");
     editVisible.value = false;
     product.value.status = 0;

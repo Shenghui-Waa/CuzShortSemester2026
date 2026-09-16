@@ -1,9 +1,10 @@
 package com.cuzssp.campussecondhandtradingplatformbackend.controller;
 
-import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.request.SendMessageRequest;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.request.ChatMessageRequest;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.security.TokenProvider;
 import com.cuzssp.campussecondhandtradingplatformbackend.service.ChatService;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.Result;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -54,13 +55,10 @@ public class ChatController {
     @PostMapping("/send")
     public Result<?> sendMessage(
             @RequestHeader("Authorization") String token,
-            @RequestBody SendMessageRequest request
+            @Valid @RequestBody ChatMessageRequest request
     ) {
         Long currentUserId = tokenProvider.getUserId(token);
-        return Result.success(chatService.sendMessage(
-                currentUserId, request.getReceiverId(),
-                request.getProductId(), request.getContent()
-        ));
+        return Result.success(chatService.sendMessage(currentUserId, request));
     }
 
     /**

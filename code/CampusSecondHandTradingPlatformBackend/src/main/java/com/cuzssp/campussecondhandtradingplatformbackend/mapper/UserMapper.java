@@ -1,7 +1,6 @@
 package com.cuzssp.campussecondhandtradingplatformbackend.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.request.UpdateProfileRequest;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.entity.User;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -37,9 +36,7 @@ public interface UserMapper extends BaseMapper<User> {
     Long countCreatedBetween(@Param("start") LocalDateTime start,
                             @Param("end") LocalDateTime end);
 
-    int updateProfileFields(@Param("userId") Long userId,
-                            @Param("request") UpdateProfileRequest request,
-                            @Param("updatedAt") LocalDateTime updatedAt);
+    int updateProfileFields(User user);
 
     @Update("""
             UPDATE user SET password = #{password}, updated_at = #{updatedAt}

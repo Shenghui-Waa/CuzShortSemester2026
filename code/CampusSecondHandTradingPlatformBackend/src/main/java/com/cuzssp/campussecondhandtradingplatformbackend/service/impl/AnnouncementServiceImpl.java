@@ -86,12 +86,11 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         if (announcement == null)
             throw new BusinessException(Result.Code.NOT_FOUND, "Announcement not found");
 
-        announcement.setTitle(announcementRequest.getTitle());
-        announcement.setContent(announcementRequest.getContent());
-        announcement.setUpdatedAt(LocalDateTime.now());
-        announcementMapper.updateById(announcement);
-
-        return announcement;
+        Announcement updated = ToEntityUtil.toAnnouncementEntity(announcementRequest);
+        updated.setId(id);
+        updated.setCreatedAt(announcement.getCreatedAt());
+        announcementMapper.updateById(updated);
+        return updated;
     }
 
     // 删除公告

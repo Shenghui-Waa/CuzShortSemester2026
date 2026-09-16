@@ -1,12 +1,13 @@
 package com.cuzssp.campussecondhandtradingplatformbackend.controller;
 
 import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.request.ChangePasswordRequest;
-import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.request.UpdateProfileRequest;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.request.UserRequest;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.security.TokenProvider;
 import com.cuzssp.campussecondhandtradingplatformbackend.service.UserService;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.Result;
 import lombok.RequiredArgsConstructor;
 import jakarta.validation.Valid;
+import jakarta.validation.groups.Default;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.validation.annotation.Validated;
 
 @RestController
 @RequestMapping("/api/user")
@@ -41,7 +43,8 @@ public class UserController {
     @PutMapping("/profile")
     public Result<?> updateProfile(
             @RequestHeader("Authorization") String token,
-            @RequestBody UpdateProfileRequest request
+            @Validated({Default.class, UserRequest.Update.class})
+            @RequestBody UserRequest request
     ) {
         Long currentUserId = tokenProvider.getUserId(token);
         return Result.success(userService.updateProfile(currentUserId, request));

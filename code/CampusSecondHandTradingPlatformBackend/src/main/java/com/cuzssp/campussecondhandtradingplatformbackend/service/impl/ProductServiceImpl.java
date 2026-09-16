@@ -8,7 +8,9 @@ import com.cuzssp.campussecondhandtradingplatformbackend.common.entity.Product;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.entity.ProductImage;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.entity.User;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.exception.BusinessException;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.util.ToEntityUtil;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.util.ToVOUtil;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.util.UtcTime;
 import com.cuzssp.campussecondhandtradingplatformbackend.mapper.CategoryMapper;
 import com.cuzssp.campussecondhandtradingplatformbackend.mapper.CartItemMapper;
 import com.cuzssp.campussecondhandtradingplatformbackend.mapper.FavoriteMapper;
@@ -18,6 +20,8 @@ import com.cuzssp.campussecondhandtradingplatformbackend.mapper.UserMapper;
 import com.cuzssp.campussecondhandtradingplatformbackend.service.ProductService;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.vo.ProductVO;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.request.ProductQueryRequest;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.request.ProductImageRequest;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.request.ProductRequest;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import lombok.RequiredArgsConstructor;
@@ -104,38 +108,51 @@ public class ProductServiceImpl implements ProductService {
         if (product == null)
             throw new BusinessException(Result.Code.NOT_FOUND, "Product not found");
 
-        productMapper.addViewCount(id);
+        boolean owner = currentUserId != null
+                && Objects.equals(product.getUserId(), currentUserId);
+        if (!owner && !Objects.equals(product.getStatus(), ProductConstant.Status.ON_SALE))
+            throw new BusinessException(Result.Code.NOT_FOUND, "Product not found");
+
+        if (!owner) {
+            productMapper.addViewCount(id);
+            product = productMapper.selectById(id);
+            if (product == null)
+                throw new BusinessException(Result.Code.NOT_FOUND, "Product not found");
+        }
+
         Set<Long> favoritedProductsIds = Collections.emptySet();
         if (currentUserId != null)
             favoritedProductsIds = new HashSet<>(favoriteIds(currentUserId));
 
-        product = productMapper.selectById(product.getId());
         return toVO(product, favoritedProductsIds);
+    }
+
+    @Override
+    public ProductVO getProductDetailForAdmin(Long id) {
+        Product product = productMapper.selectById(id);
+        if (product == null)
+            throw new BusinessException(Result.Code.NOT_FOUND, "Product not found");
+
+        return toVO(product, Collections.emptySet());
     }
 
     // 发布商品
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ProductVO createProduct(
-            Long userId, Product product, List<String> images
+            Long userId, ProductRequest request
     ) {
-        validateProduct(product);
-        product.setId(null);
+        validateProduct(request);
+        Product product = ToEntityUtil.toProductEntity(request);
         product.setUserId(userId);
         product.setStatus(ProductConstant.Status.NEED_CHECK);
         product.setViewCount(ProductConstant.VIEW_COUNT_DEFAULT);
-        product.setCreatedAt(LocalDateTime.now());
-        product.setUpdatedAt(LocalDateTime.now());
+        product.setIsDeleted(ProductConstant.DEFAULT_DELETED);
+        product.setDeletedAt(null);
+        product.setCreatedAt(UtcTime.now());
+        product.setUpdatedAt(UtcTime.now());
         productMapper.insert(product);
-        if (images != null) {
-            for (int i = 0; i < images.size(); i++) {
-                ProductImage productImage = new ProductImage();
-                productImage.setProductId(product.getId());
-                productImage.setUrl(images.get(i));
-                productImage.setSortOrder(i + 1);
-                productImageMapper.insert(productImage);
-            }
-        }
+        replaceProductImages(product.getId(), request.getImages());
         return toVO(productMapper.selectById(product.getId()), Collections.emptySet());
     }
 
@@ -143,7 +160,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ProductVO updateProduct(
-            Long userId, Long productId, Product product, List<String> images
+            Long userId, Long productId, ProductRequest request
     ) {
         Product existing = productMapper.selectById(productId);
         if (existing == null)
@@ -152,30 +169,24 @@ public class ProductServiceImpl implements ProductService {
         if (!Objects.equals(existing.getUserId(), userId))
             throw new BusinessException(Result.Code.FORBIDDEN, "Permission denied");
 
-        validateProduct(product);
+        validateProduct(request);
         if (Objects.equals(existing.getStatus(), ProductConstant.Status.SOLD_OUT))
             throw new BusinessException("Sold product cannot be edited");
 
+        Product product = ToEntityUtil.toProductEntity(request);
         product.setCreatedAt(existing.getCreatedAt());
         product.setId(productId);
         product.setUserId(existing.getUserId());
         product.setStatus(ProductConstant.Status.NEED_CHECK);
         product.setViewCount(existing.getViewCount());
-        product.setUpdatedAt(LocalDateTime.now());
+        product.setIsDeleted(existing.getIsDeleted());
+        product.setDeletedAt(existing.getDeletedAt());
+        product.setUpdatedAt(UtcTime.now());
         int updated = productMapper.updateDetailsIfStatusMatches(product, existing.getStatus());
         if (updated != 1)
             throw new BusinessException("Product status has changed");
 
-        if (images != null) {
-            productImageMapper.deleteByProductId(productId);
-            for (int i = 0; i < images.size(); i++) {
-                ProductImage productImage = new ProductImage();
-                productImage.setProductId(productId);
-                productImage.setUrl(images.get(i));
-                productImage.setSortOrder(i + 1);
-                productImageMapper.insert(productImage);
-            }
-        }
+        replaceProductImages(productId, request.getImages());
         return toVO(productMapper.selectById(productId), Collections.emptySet());
     }
 
@@ -215,15 +226,14 @@ public class ProductServiceImpl implements ProductService {
         if (Objects.equals(product.getStatus(), ProductConstant.Status.SOLD_OUT))
             throw new BusinessException("Sold product cannot be removed");
 
-        int locked = productMapper.lockForRemoval(
-                productId, userId, product.getStatus(), LocalDateTime.now());
+        int locked = productMapper.softDeleteIfStatusMatches(
+                productId, userId, product.getStatus(),
+                ProductConstant.Status.DISABLE, UtcTime.now());
         if (locked != 1)
             throw new BusinessException("Product status has changed");
 
-        productImageMapper.deleteByProductId(productId);
         favoriteMapper.deleteByProductId(productId);
         cartItemMapper.deleteByProductId(productId);
-        productMapper.deleteById(product.getId());
         return null;
     }
 
@@ -283,9 +293,15 @@ public class ProductServiceImpl implements ProductService {
         if (product == null)
             throw new BusinessException(Result.Code.NOT_FOUND, "Product not found");
 
-        if (Objects.equals(product.getStatus(), ProductConstant.Status.SOLD_OUT)
-                && !Objects.equals(status, ProductConstant.Status.SOLD_OUT))
-            throw new BusinessException("Sold product can only be restored by cancelling its order");
+        boolean allowedTransition =
+                (Objects.equals(product.getStatus(), ProductConstant.Status.NEED_CHECK)
+                        && Objects.equals(status, ProductConstant.Status.ON_SALE))
+                        || (Objects.equals(product.getStatus(), ProductConstant.Status.NEED_CHECK)
+                        && Objects.equals(status, ProductConstant.Status.DISABLE))
+                        || (Objects.equals(product.getStatus(), ProductConstant.Status.ON_SALE)
+                        && Objects.equals(status, ProductConstant.Status.DISABLE));
+        if (!allowedTransition)
+            throw new BusinessException("Invalid admin product status transition");
 
         updateStatus(product, status);
         return null;
@@ -389,17 +405,24 @@ public class ProductServiceImpl implements ProductService {
         return favoriteMapper.selectFavoriteProductIdsByUserId(userId);
     }
 
-    private void validateProduct(Product product) {
-        if (product == null || product.getTitle() == null || product.getTitle().isBlank()
-                || product.getPrice() == null || product.getPrice().signum() < 0
-                || product.getCategoryId() == null || product.getState() == null
-                || product.getState() < ProductConstant.State.S_NEW
-                || product.getState() > ProductConstant.State.B_NEW)
+    private void validateProduct(ProductRequest request) {
+        if (request == null || request.getCategoryId() == null)
             throw new BusinessException("Invalid product details");
 
-        if (categoryMapper.selectById(product.getCategoryId()) == null)
+        if (categoryMapper.selectById(request.getCategoryId()) == null)
             throw new BusinessException(Result.Code.NOT_FOUND, "Category not found");
+    }
 
+    private void replaceProductImages(Long productId, List<ProductImageRequest> images) {
+        productImageMapper.deleteByProductId(productId);
+        if (images == null || images.isEmpty())
+            return;
+
+        for (int i = 0; i < images.size(); i++) {
+            ProductImage productImage = ToEntityUtil.toProductImageEntity(
+                    images.get(i), productId, i + 1);
+            productImageMapper.insert(productImage);
+        }
     }
 
     private void validatePagination(Integer page, Integer pageSize) {
@@ -411,7 +434,7 @@ public class ProductServiceImpl implements ProductService {
 
     private void updateStatus(Product product, Integer status) {
         int updated = productMapper.updateStatusIfMatches(
-                product.getId(), product.getStatus(), status, LocalDateTime.now());
+                product.getId(), product.getStatus(), status, UtcTime.now());
         if (updated != 1)
             throw new BusinessException("Product status has changed");
 

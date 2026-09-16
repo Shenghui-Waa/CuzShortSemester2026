@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @TableName("user")
 public class User {
 
-    @TableId(type = IdType.ASSIGN_ID)
+    @TableId(type = IdType.AUTO)
     private Long id;
 
     @TableField("username")
@@ -41,7 +41,7 @@ public class User {
     private Integer role;
 
     @TableField("status")
-    // 状态：0=正常 1=封禁
+    // 状态：0=封禁 1=正常
     private Integer status;
 
     @TableField("credit_score")

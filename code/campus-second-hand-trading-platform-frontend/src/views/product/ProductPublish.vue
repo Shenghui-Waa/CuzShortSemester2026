@@ -12,8 +12,8 @@
         </el-form-item>
         <el-form-item label="售价" prop="price"><el-input-number v-model="f.price" :min="0" :precision="2" style="width:200px" /></el-form-item>
         <el-form-item label="原价"><el-input-number v-model="f.originalPrice" :min="0" :precision="2" style="width:200px" /></el-form-item>
-        <el-form-item label="成色" prop="condition">
-          <el-radio-group v-model="f.condition">
+        <el-form-item label="成色" prop="state">
+          <el-radio-group v-model="f.state">
             <el-radio :value="1">全新</el-radio>
             <el-radio :value="2">几乎全新</el-radio>
             <el-radio :value="3">有使用痕迹</el-radio>
@@ -39,7 +39,7 @@ import { ElMessage } from "element-plus";
 import AppHeader from "@/components/layout/AppHeader.vue";
 import AppFooter from "@/components/layout/AppFooter.vue";
 import ImageUpload from "@/components/ImageUpload.vue";
-import { productApi } from "@/api/product";
+import { productApi, type ProductRequest } from "@/api/product";
 import { categoryApi } from "@/api/index";
 
 import { useRoute } from "vue-router";
@@ -55,7 +55,7 @@ const f = reactive({
   categoryId: null as number | null,
   price: 0,
   originalPrice: 0,
-  condition: 1,
+  state: 1,
   campus: "",
   description: "",
 });
@@ -64,11 +64,15 @@ const rules = {
   title: [{ required: true, message: "请输入标题", trigger: "blur" }],
   categoryId: [{ required: true, message: "请选择分类", trigger: "change" }],
   price: [{ required: true, message: "请输入价格", trigger: "blur" }],
-  condition: [{ required: true }],
+  state: [{ required: true }],
   campus: [{ required: true, message: "请输入校区", trigger: "blur" }],
 };
 
 const editId = ref<string | null>(null);
+
+function toImageRequests(urls: string[]): ProductRequest["images"] {
+  return urls.map((url, index) => ({ url, sortOrder: index + 1 }));
+}
 
 onMounted(async () => {
   const r: any = await categoryApi.getAll();
@@ -79,7 +83,7 @@ onMounted(async () => {
     f.title = (q.title as string) || "";
     f.price = Number(q.price) || 0;
     f.categoryId = Number(q.categoryId) || null;
-    f.condition = Number(q.condition) ?? 0;
+    f.state = Number(q.state) || 1;
     f.campus = (q.campus as string) || "";
     f.description = (q.description as string) || "";
     f.originalPrice = Number(q.originalPrice) || 0;
@@ -95,11 +99,12 @@ async function submit() {
   if (!ok) return;
   loading.value = true;
   try {
+    const data: ProductRequest = { ...f, images: toImageRequests(images.value) };
     if (editId.value) {
-      await productApi.update(Number(editId.value), { ...f }, images.value);
+      await productApi.update(Number(editId.value), data);
       ElMessage.success("已重新上架，等待审核");
     } else {
-      await productApi.create({ ...f }, images.value);
+      await productApi.create(data);
       ElMessage.success("发布成功，等待审核");
     }
     router.push("/my-products");

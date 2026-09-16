@@ -41,7 +41,25 @@ onMounted(() => fetchCart());
 async function fetchCart() { const r: any = await cartApi.list(); items.value = r.data || []; }
 function onSel(rows: any[]) { selected.value = rows.map((r:any) => r.productId); }
 async function removeItem(pid: number) { await cartApi.remove(pid); ElMessage.success("已移除"); fetchCart(); }
-async function batchBuy() { for (const pid of selected.value) { try { await orderApi.create({ productId: pid }); } catch {} } ElMessage.success("下单成功"); router.push("/orders"); }
+async function batchBuy() {
+  let successCount = 0;
+  let failureCount = 0;
+  for (const pid of selected.value) {
+    try {
+      await orderApi.create({ productId: pid });
+      successCount += 1;
+    } catch {
+      failureCount += 1;
+    }
+  }
+  if (failureCount === 0) {
+    ElMessage.success("下单成功");
+    router.push("/orders");
+    return;
+  }
+  await fetchCart();
+  ElMessage.warning(`成功 ${successCount} 件、失败 ${failureCount} 件`);
+}
 </script>
 <style scoped>
 .cp { display: flex; align-items: center; gap: 12px; cursor: pointer; }

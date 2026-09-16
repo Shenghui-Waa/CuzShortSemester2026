@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @TableName("product")
 public class Product {
 
-    @TableId(type = IdType.ASSIGN_ID)
+    @TableId(type = IdType.AUTO)
     private Long id;
 
     @TableField("user_id")
@@ -45,6 +45,13 @@ public class Product {
     @TableField("view_count")
     // 浏览量，默认0
     private Integer viewCount;
+
+    @TableField("is_deleted")
+    @TableLogic(value = "0", delval = "1")
+    private Integer isDeleted;
+
+    @TableField("deleted_at")
+    private LocalDateTime deletedAt;
 
     @TableField(value = "created_at", fill = FieldFill.INSERT)
     private LocalDateTime createdAt;

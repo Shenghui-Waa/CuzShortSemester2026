@@ -1,6 +1,6 @@
 package com.cuzssp.campussecondhandtradingplatformbackend.controller;
 
-import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.request.CreateOrderRequest;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.request.OrderInfoRequest;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.security.TokenProvider;
 import com.cuzssp.campussecondhandtradingplatformbackend.service.OrderService;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.Result;
@@ -30,7 +30,7 @@ public class OrderController {
     @PostMapping
     public Result<?> createOrder(
             @RequestHeader("Authorization") String token,
-            @Valid @RequestBody CreateOrderRequest request
+            @Valid @RequestBody OrderInfoRequest request
     ) {
         Long currentUserId = tokenProvider.getUserId(token);
         return Result.success(orderService.createOrder(currentUserId, request));

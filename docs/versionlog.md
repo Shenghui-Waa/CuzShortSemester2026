@@ -1,5 +1,17 @@
 ## 版本日志
 
+### v2.19.6
+- 新增 JWT `jti` 持久化撤销机制，退出登录后当前 Token 立即失效，同账号其他设备签发的 Token 不受影响
+- REST 与 WebSocket 统一校验 Token 撤销状态，WebSocket 推送前再次检查；旧版不含 `jti` 的 Token 需重新登录
+- 新增 `revoked_token` 表并自动清理过期记录，SQLite 与 MySQL 初始化脚本同步支持
+- 商品发布、详情、编辑和后台详情统一使用 `state`，收藏状态统一使用 `isFavorite`，修复发布商品报 `Invalid product details`
+- SQLite 与 MySQL 主键改为数据库自增，避免长整型雪花 ID 传到前端后丢失精度
+- 开发与生产 schema 移除重复表级参数，补齐 17 个外键约束及必要索引
+- 后端时间统一使用 UTC，MySQL 连接固定 UTC，前端按 UTC 解析无时区时间，避免时间显示偏移
+- 完善商品详情权限、订单取消、购物车、商品软删除等关键业务链路
+- 后台用户与商品 ID 按 `...` 加后四位显示，详情和操作仍使用完整 ID
+- 补充认证、商品、订单、WebSocket、数据库初始化等测试，前端生产构建通过
+
 ### v2.16.0
 - 完成重制版后端迁移：重写 Controller、Service 和 Mapper 层，统一使用 Lombok 构造注入及 `Result` 响应封装
 - Mapper 查询优先使用 MyBatis-Plus `BaseMapper`，自定义 SQL 使用 MyBatis 注解，复杂动态 SQL 使用 XML 映射文件

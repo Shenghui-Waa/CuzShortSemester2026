@@ -1,9 +1,9 @@
 package com.cuzssp.campussecondhandtradingplatformbackend.controller;
 
 import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.request.AnnouncementRequest;
-import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.request.RegisterRequest;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.request.CategoryRequest;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.request.ResetPasswordRequest;
-import com.cuzssp.campussecondhandtradingplatformbackend.common.entity.Category;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.request.UserRequest;
 import com.cuzssp.campussecondhandtradingplatformbackend.service.AdminService;
 import com.cuzssp.campussecondhandtradingplatformbackend.service.UserService;
 import com.cuzssp.campussecondhandtradingplatformbackend.service.ProductService;
@@ -12,6 +12,7 @@ import com.cuzssp.campussecondhandtradingplatformbackend.service.CategoryService
 import com.cuzssp.campussecondhandtradingplatformbackend.service.AnnouncementService;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.Result;
 import jakarta.validation.Valid;
+import jakarta.validation.groups.Default;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.validation.annotation.Validated;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -61,7 +63,8 @@ public class AdminDashboardController {
      */
     @PostMapping("/user/newadmin")
     public Result<?> addAdmin(
-            @Valid @RequestBody RegisterRequest request
+            @Validated({Default.class, UserRequest.Create.class})
+            @RequestBody UserRequest request
     ) {
         return Result.success(userService.addAdmin(request));
     }
@@ -113,6 +116,16 @@ public class AdminDashboardController {
     }
 
     /**
+     * 获取商品详情
+     */
+    @GetMapping("/product/{id}")
+    public Result<?> getProductDetail(
+            @PathVariable Long id
+    ) {
+        return Result.success(productService.getProductDetailForAdmin(id));
+    }
+
+    /**
      * 修改商品状态
      */
     @PutMapping("/product/{id}/status")
@@ -142,9 +155,9 @@ public class AdminDashboardController {
      */
     @PostMapping("/category")
     public Result<?> createCategory(
-            @RequestBody Category category
+            @Valid @RequestBody CategoryRequest request
     ) {
-        return Result.success(categoryService.createCategory(category));
+        return Result.success(categoryService.createCategory(request));
     }
 
     /**
@@ -153,9 +166,9 @@ public class AdminDashboardController {
     @PutMapping("/category/{id}")
     public Result<?> updateCategory(
             @PathVariable Long id,
-            @RequestBody Category category
+            @Valid @RequestBody CategoryRequest request
     ) {
-        return Result.success(categoryService.updateCategory(id, category));
+        return Result.success(categoryService.updateCategory(id, request));
     }
 
     /**

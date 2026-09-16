@@ -12,7 +12,13 @@ import java.util.List;
 @Mapper
 public interface CartItemMapper extends BaseMapper<CartItem> {
 
-    @Select("SELECT * FROM cart_item WHERE user_id = #{userId} ORDER BY created_at DESC, id DESC")
+    @Select("""
+            SELECT c.* FROM cart_item c
+            JOIN product p ON p.id = c.product_id
+            WHERE c.user_id = #{userId}
+                AND p.status = 1 AND p.is_deleted = 0
+            ORDER BY c.created_at DESC, c.id DESC
+            """)
     List<CartItem> selectByUserId(@Param("userId") Long userId);
 
     @Select("SELECT COUNT(*) FROM cart_item WHERE user_id = #{userId} AND product_id = #{productId}")

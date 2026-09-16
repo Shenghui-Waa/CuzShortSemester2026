@@ -6,10 +6,10 @@
     </div>
     <el-input v-model="keyword" placeholder="搜索用户名/昵称/学校" style="width:240px;margin-bottom:16px" clearable @change="fetch" />
     <el-table :data="users" stripe>
-      <el-table-column prop="id" label="ID" width="80" /><el-table-column prop="username" label="用户名" />
+      <el-table-column label="ID" width="80"><template #default="{row}">{{ formatUserId(row.id) }}</template></el-table-column><el-table-column prop="username" label="用户名" />
       <el-table-column prop="nickname" label="昵称" /><el-table-column prop="school" label="学校" />
-      <el-table-column label="状态" width="80"><template #default="{row}"><el-tag :type="row.status?'danger':'success'">{{ row.status?'封禁':'正常' }}</el-tag></template></el-table-column>
-      <el-table-column label="操作" width="160"><template #default="{row}"><template v-if="row.id===selfId"><el-tooltip content="不可操作自身" :hide-after="0"><el-button size="small" disabled><el-icon><Lock /></el-icon></el-button></el-tooltip><el-tooltip content="不可操作自身" :hide-after="0"><el-button size="small" type="warning" plain disabled><el-icon><Key /></el-icon></el-button></el-tooltip><el-tooltip content="不可操作自身" :hide-after="0"><el-button size="small" type="danger" plain disabled><el-icon><Delete /></el-icon></el-button></el-tooltip></template><template v-else><el-tooltip :content="row.status?'解封':'封禁'" :hide-after="0"><el-button size="small" :type="row.status?'success':'danger'" @click="toggle(row)"><el-icon><component :is="row.status?Unlock:Lock" /></el-icon></el-button></el-tooltip><el-tooltip content="重置密码" :hide-after="0"><el-button size="small" type="warning" plain @click="resetPw(row)"><el-icon><Key /></el-icon></el-button></el-tooltip><el-tooltip content="删除" :hide-after="0"><el-button size="small" type="danger" plain @click="del(row)"><el-icon><Delete /></el-icon></el-button></el-tooltip></template></template></el-table-column>
+      <el-table-column label="状态" width="80"><template #default="{row}"><el-tag :type="getStatusType(row.status)">{{ getStatusLabel(row.status) }}</el-tag></template></el-table-column>
+      <el-table-column label="操作" width="160"><template #default="{row}"><template v-if="row.id===selfId"><el-tooltip content="不可操作自身" :hide-after="0"><el-button size="small" disabled><el-icon><Lock /></el-icon></el-button></el-tooltip><el-tooltip content="不可操作自身" :hide-after="0"><el-button size="small" type="warning" plain disabled><el-icon><Key /></el-icon></el-button></el-tooltip><el-tooltip content="不可操作自身" :hide-after="0"><el-button size="small" type="danger" plain disabled><el-icon><Delete /></el-icon></el-button></el-tooltip></template><template v-else><el-tooltip :content="getToggleLabel(row.status)" :hide-after="0"><el-button size="small" :type="getToggleType(row.status)" @click="toggle(row)"><el-icon><component :is="getToggleIcon(row.status)" /></el-icon></el-button></el-tooltip><el-tooltip content="重置密码" :hide-after="0"><el-button size="small" type="warning" plain @click="resetPw(row)"><el-icon><Key /></el-icon></el-button></el-tooltip><el-tooltip content="删除" :hide-after="0"><el-button size="small" type="danger" plain @click="del(row)"><el-icon><Delete /></el-icon></el-button></el-tooltip></template></template></el-table-column>
     </el-table>
     <Pagination :total="total" @change="onPage" />
 
@@ -41,11 +41,52 @@ import Pagination from "@/components/Pagination.vue";
 import { adminApi } from "@/api/index";
 import { useUserStore } from "@/stores/user";
 const selfId = useUserStore().userInfo?.id;
+const USER_STATUS = {
+  ACTIVE: 1,
+  INACTIVE: 0,
+} as const;
 const users = ref<any[]>([]); const total = ref(0); const keyword = ref(""); const page = ref(1);
 onMounted(() => fetch());
 async function fetch() { const r: any = await adminApi.userList({ page: page.value, pageSize: 10, keyword: keyword.value }); users.value = r.data?.records||[]; total.value = r.data?.total||0; }
 function onPage(p: number) { page.value = p; fetch(); }
-async function toggle(row: any) { await adminApi.updateUserStatus(row.id, row.status?0:1); ElMessage.success("操作成功"); fetch(); }
+
+function formatUserId(id: unknown): string {
+  const value = String(id ?? "");
+  return value.length <= 4 ? value : "..." + value.slice(-4);
+}
+
+function isInactive(status: unknown): boolean {
+  return Number(status) === USER_STATUS.INACTIVE;
+}
+
+function getStatusLabel(status: unknown): string {
+  return isInactive(status) ? "封禁" : "正常";
+}
+
+function getStatusType(status: unknown): "success" | "danger" {
+  return isInactive(status) ? "danger" : "success";
+}
+
+function getToggleLabel(status: unknown): string {
+  return isInactive(status) ? "解封" : "封禁";
+}
+
+function getToggleType(status: unknown): "success" | "danger" {
+  return isInactive(status) ? "success" : "danger";
+}
+
+function getToggleIcon(status: unknown) {
+  return isInactive(status) ? Unlock : Lock;
+}
+
+async function toggle(row: any) {
+  const nextStatus = isInactive(row.status)
+    ? USER_STATUS.ACTIVE
+    : USER_STATUS.INACTIVE;
+  await adminApi.updateUserStatus(row.id, nextStatus);
+  ElMessage.success("操作成功");
+  fetch();
+}
 async function del(row: any) { try { await ElMessageBox.confirm(`确定删除用户 ${row.username}？此操作不可恢复。`, "警告", { type: "warning" }); await adminApi.deleteUser(row.id); ElMessage.success("已删除"); fetch(); } catch {} }
 async function resetPw(row: any) { try { await ElMessageBox.confirm(`确定重置用户 ${row.username} 的密码？`, "提示", { type: "warning" }); const pwd = Math.random().toString(36).slice(-10); await adminApi.resetUserPassword(row.id, { newPassword: pwd }); ElMessage.success({ message: h("div", { style: "display:flex;align-items:center;gap:12px" }, [h("span", `密码已重置为: ${pwd}`), h(ElButton, { size: "small", type: "warning", plain: true, onClick: () => { navigator.clipboard.writeText(pwd).then(() => ElMessage.success("密码已复制")).catch(() => ElMessage.error("复制失败")); } }, () => "复制密码")]), duration: 5000 }); } catch {} }
 

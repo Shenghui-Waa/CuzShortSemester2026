@@ -7,7 +7,7 @@
 -- 用户表
 -- ---------------------------------------------------
 CREATE TABLE IF NOT EXISTS user (
-    id            BIGINT          NOT NULL COMMENT '主键，雪花ID',
+    id            BIGINT          NOT NULL AUTO_INCREMENT COMMENT '主键，自增ID',
     username      VARCHAR(32)     NOT NULL COMMENT '用户名，唯一',
     password      VARCHAR(128)    NOT NULL COMMENT 'BCrypt加密密文',
     nickname      VARCHAR(32)     DEFAULT NULL COMMENT '昵称',
@@ -17,32 +17,32 @@ CREATE TABLE IF NOT EXISTS user (
     school        VARCHAR(64)     DEFAULT NULL COMMENT '学校',
     campus        VARCHAR(32)     DEFAULT NULL COMMENT '校区',
     role          TINYINT         NOT NULL DEFAULT 0 COMMENT '角色：0=用户 1=管理员',
-    status        TINYINT         NOT NULL DEFAULT 0 COMMENT '状态：0=正常 1=封禁',
+    status        TINYINT         NOT NULL DEFAULT 1 COMMENT '状态：0=封禁 1=正常',
     credit_score  INT             NOT NULL DEFAULT 100 COMMENT '信誉分',
     created_at    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (id),
     UNIQUE KEY uk_username (username),
     KEY idx_created_at (created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户表';
+) COMMENT='用户表';
 
 -- ---------------------------------------------------
 -- 商品分类表
 -- ---------------------------------------------------
 CREATE TABLE IF NOT EXISTS category (
-    id            BIGINT          NOT NULL COMMENT '主键',
+    id            BIGINT          NOT NULL AUTO_INCREMENT COMMENT '主键，自增ID',
     name          VARCHAR(32)     NOT NULL COMMENT '分类名',
     icon          VARCHAR(255)    DEFAULT NULL COMMENT '分类图标URL',
     sort_order    INT             NOT NULL DEFAULT 0 COMMENT '排序',
     created_at    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     PRIMARY KEY (id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='商品分类表';
+) COMMENT='商品分类表';
 
 -- ---------------------------------------------------
 -- 商品表
 -- ---------------------------------------------------
 CREATE TABLE IF NOT EXISTS product (
-    id             BIGINT          NOT NULL COMMENT '主键',
+    id             BIGINT          NOT NULL AUTO_INCREMENT COMMENT '主键，自增ID',
     user_id        BIGINT          NOT NULL COMMENT '发布者ID',
     category_id    BIGINT          NOT NULL COMMENT '分类ID',
     title          VARCHAR(128)    NOT NULL COMMENT '标题',
@@ -53,31 +53,39 @@ CREATE TABLE IF NOT EXISTS product (
     campus         VARCHAR(32)     DEFAULT NULL COMMENT '交易校区',
     status         TINYINT         NOT NULL DEFAULT 0 COMMENT '0=待审核 1=在售 2=已售出 3=已下架',
     view_count     INT             NOT NULL DEFAULT 0 COMMENT '浏览量',
+    is_deleted     TINYINT         NOT NULL DEFAULT 0 COMMENT '0=未删除 1=已删除',
+    deleted_at     DATETIME        DEFAULT NULL COMMENT '删除时间',
     created_at     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '发布时间',
     updated_at     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (id),
     KEY idx_user_id (user_id),
     KEY idx_category_status (category_id, status),
-    KEY idx_created_at (created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='商品表';
+    KEY idx_created_at (created_at),
+    CONSTRAINT fk_product_user
+        FOREIGN KEY (user_id) REFERENCES user (id),
+    CONSTRAINT fk_product_category
+        FOREIGN KEY (category_id) REFERENCES category (id)
+) COMMENT='商品表';
 
 -- ---------------------------------------------------
 -- 商品图片表
 -- ---------------------------------------------------
 CREATE TABLE IF NOT EXISTS product_image (
-    id            BIGINT          NOT NULL COMMENT '主键',
+    id            BIGINT          NOT NULL AUTO_INCREMENT COMMENT '主键，自增ID',
     product_id    BIGINT          NOT NULL COMMENT '商品ID',
     url           VARCHAR(255)    NOT NULL COMMENT '图片URL',
     sort_order    INT             NOT NULL DEFAULT 1 COMMENT '排序（首图=1）',
     PRIMARY KEY (id),
-    KEY idx_product_id (product_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='商品图片表';
+    KEY idx_product_id (product_id),
+    CONSTRAINT fk_product_image_product
+        FOREIGN KEY (product_id) REFERENCES product (id)
+) COMMENT='商品图片表';
 
 -- ---------------------------------------------------
 -- 订单表
 -- ---------------------------------------------------
 CREATE TABLE IF NOT EXISTS order_info (
-    id             BIGINT          NOT NULL COMMENT '主键',
+    id             BIGINT          NOT NULL AUTO_INCREMENT COMMENT '主键，自增ID',
     order_no       VARCHAR(32)     NOT NULL COMMENT '订单编号',
     buyer_id       BIGINT          NOT NULL COMMENT '买家ID',
     seller_id      BIGINT          NOT NULL COMMENT '卖家ID',
@@ -89,56 +97,80 @@ CREATE TABLE IF NOT EXISTS order_info (
     paid_at        DATETIME        DEFAULT NULL COMMENT '付款时间',
     shipped_at     DATETIME        DEFAULT NULL COMMENT '发货时间',
     completed_at   DATETIME        DEFAULT NULL COMMENT '完成时间',
+    refund_status  TINYINT         NOT NULL DEFAULT 0 COMMENT '0=未退款/无需退款 1=已退款',
+    refunded_at    DATETIME        DEFAULT NULL COMMENT '退款时间',
     PRIMARY KEY (id),
     UNIQUE KEY uk_order_no (order_no),
     KEY idx_buyer_id (buyer_id),
-    KEY idx_seller_id (seller_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='订单表';
+    KEY idx_seller_id (seller_id),
+    CONSTRAINT fk_order_buyer
+        FOREIGN KEY (buyer_id) REFERENCES user (id),
+    CONSTRAINT fk_order_seller
+        FOREIGN KEY (seller_id) REFERENCES user (id)
+) COMMENT='订单表';
 
 -- ---------------------------------------------------
 -- 订单明细表
 -- ---------------------------------------------------
 CREATE TABLE IF NOT EXISTS order_item (
-    id            BIGINT          NOT NULL COMMENT '主键',
+    id            BIGINT          NOT NULL AUTO_INCREMENT COMMENT '主键，自增ID',
     order_id      BIGINT          NOT NULL COMMENT '订单ID',
     product_id    BIGINT          NOT NULL COMMENT '商品ID',
     price         DECIMAL(10,2)   NOT NULL COMMENT '购买时价格',
+    product_title VARCHAR(128)    NOT NULL COMMENT '商品标题快照',
+    product_image VARCHAR(255)    DEFAULT NULL COMMENT '商品首图快照',
+    product_state TINYINT         NOT NULL COMMENT '商品成色快照',
     created_at    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     PRIMARY KEY (id),
-    KEY idx_order_id (order_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='订单明细表';
+    KEY idx_order_id (order_id),
+    KEY idx_product_id (product_id),
+    CONSTRAINT fk_order_item_order
+        FOREIGN KEY (order_id) REFERENCES order_info (id),
+    CONSTRAINT fk_order_item_product
+        FOREIGN KEY (product_id) REFERENCES product (id)
+) COMMENT='订单明细表';
 
 -- ---------------------------------------------------
 -- 购物车表
 -- ---------------------------------------------------
 CREATE TABLE IF NOT EXISTS cart_item (
-    id            BIGINT          NOT NULL COMMENT '主键',
+    id            BIGINT          NOT NULL AUTO_INCREMENT COMMENT '主键，自增ID',
     user_id       BIGINT          NOT NULL COMMENT '用户ID',
     product_id    BIGINT          NOT NULL COMMENT '商品ID',
     created_at    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '添加时间',
     PRIMARY KEY (id),
     KEY idx_user_id (user_id),
-    UNIQUE KEY uk_user_product (user_id, product_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='购物车表';
+    KEY idx_product_id (product_id),
+    UNIQUE KEY uk_user_product (user_id, product_id),
+    CONSTRAINT fk_cart_user
+        FOREIGN KEY (user_id) REFERENCES user (id),
+    CONSTRAINT fk_cart_product
+        FOREIGN KEY (product_id) REFERENCES product (id)
+) COMMENT='购物车表';
 
 -- ---------------------------------------------------
 -- 收藏表
 -- ---------------------------------------------------
 CREATE TABLE IF NOT EXISTS favorite (
-    id            BIGINT          NOT NULL COMMENT '主键',
+    id            BIGINT          NOT NULL AUTO_INCREMENT COMMENT '主键，自增ID',
     user_id       BIGINT          NOT NULL COMMENT '用户ID',
     product_id    BIGINT          NOT NULL COMMENT '商品ID',
     created_at    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '收藏时间',
     PRIMARY KEY (id),
     KEY idx_user_id (user_id),
-    UNIQUE KEY uk_user_product (user_id, product_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='收藏表';
+    KEY idx_product_id (product_id),
+    UNIQUE KEY uk_user_product (user_id, product_id),
+    CONSTRAINT fk_favorite_user
+        FOREIGN KEY (user_id) REFERENCES user (id),
+    CONSTRAINT fk_favorite_product
+        FOREIGN KEY (product_id) REFERENCES product (id)
+) COMMENT='收藏表';
 
 -- ---------------------------------------------------
 -- 聊天消息表
 -- ---------------------------------------------------
 CREATE TABLE IF NOT EXISTS chat_message (
-    id            BIGINT          NOT NULL COMMENT '主键',
+    id            BIGINT          NOT NULL AUTO_INCREMENT COMMENT '主键，自增ID',
     sender_id     BIGINT          NOT NULL COMMENT '发送者ID',
     receiver_id   BIGINT          NOT NULL COMMENT '接收者ID',
     product_id    BIGINT          DEFAULT NULL COMMENT '关联商品ID',
@@ -147,14 +179,21 @@ CREATE TABLE IF NOT EXISTS chat_message (
     created_at    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '发送时间',
     PRIMARY KEY (id),
     KEY idx_sender_receiver (sender_id, receiver_id),
-    KEY idx_receiver_read (receiver_id, is_read)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='聊天消息表';
+    KEY idx_receiver_read (receiver_id, is_read),
+    KEY idx_product_id (product_id),
+    CONSTRAINT fk_chat_sender
+        FOREIGN KEY (sender_id) REFERENCES user (id),
+    CONSTRAINT fk_chat_receiver
+        FOREIGN KEY (receiver_id) REFERENCES user (id),
+    CONSTRAINT fk_chat_product
+        FOREIGN KEY (product_id) REFERENCES product (id)
+) COMMENT='聊天消息表';
 
 -- ---------------------------------------------------
 -- 评价表
 -- ---------------------------------------------------
 CREATE TABLE IF NOT EXISTS review (
-    id            BIGINT          NOT NULL COMMENT '主键',
+    id            BIGINT          NOT NULL AUTO_INCREMENT COMMENT '主键，自增ID',
     order_id      BIGINT          NOT NULL COMMENT '订单ID',
     reviewer_id   BIGINT          NOT NULL COMMENT '评价者ID',
     target_id     BIGINT          NOT NULL COMMENT '被评价者ID',
@@ -163,18 +202,35 @@ CREATE TABLE IF NOT EXISTS review (
     created_at    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '评价时间',
     PRIMARY KEY (id),
     KEY idx_target_id (target_id),
-    KEY idx_order_reviewer (order_id, reviewer_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='评价表';
+    KEY idx_order_reviewer (order_id, reviewer_id),
+    CONSTRAINT fk_review_order
+        FOREIGN KEY (order_id) REFERENCES order_info (id),
+    CONSTRAINT fk_review_reviewer
+        FOREIGN KEY (reviewer_id) REFERENCES user (id),
+    CONSTRAINT fk_review_target
+        FOREIGN KEY (target_id) REFERENCES user (id)
+) COMMENT='评价表';
 
 -- ---------------------------------------------------
 -- 系统公告表
 -- ---------------------------------------------------
 CREATE TABLE IF NOT EXISTS announcement (
-    id            BIGINT          NOT NULL COMMENT '主键',
+    id            BIGINT          NOT NULL AUTO_INCREMENT COMMENT '主键，自增ID',
     title         VARCHAR(128)    NOT NULL COMMENT '标题',
     content       TEXT            NOT NULL COMMENT '内容',
     created_at    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='系统公告表';
+) COMMENT='系统公告表';
+
+-- ---------------------------------------------------
+-- JWT 撤销表
+-- ---------------------------------------------------
+CREATE TABLE IF NOT EXISTS revoked_token (
+    jti            VARCHAR(64)     NOT NULL COMMENT 'JWT唯一标识',
+    expires_at     DATETIME(6)     NOT NULL COMMENT 'Token过期时间',
+    revoked_at     DATETIME(6)     NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT '撤销时间',
+    PRIMARY KEY (jti),
+    KEY idx_revoked_token_expires_at (expires_at)
+) COMMENT='JWT撤销表';
 

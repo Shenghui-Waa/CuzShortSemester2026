@@ -45,7 +45,9 @@ public class AuthFilter extends OncePerRequestFilter {
 
         SecurityContextHolder.clearContext();
 
-        Long userId = resolveUserId(token, response);
+        Long userId = isLogoutRequest(request)
+                ? resolveLogoutUserId(token, response)
+                : resolveUserId(token, response);
         if (userId == null) return;
 
         User user = userMapper.selectById(userId);
@@ -100,12 +102,6 @@ public class AuthFilter extends OncePerRequestFilter {
             HttpServletResponse response
     ) throws IOException {
         try {
-            if (!tokenProvider.validate(token)) {
-                writeError(response,
-                        Result.Code.UNAUTHORIZED,
-                        "Invalid or expired token");
-                return null;
-            }
             return tokenProvider.getUserId(token);
         } catch (BusinessException
                  | IllegalArgumentException
@@ -115,6 +111,27 @@ public class AuthFilter extends OncePerRequestFilter {
                     "Invalid or expired token");
             return null;
         }
+    }
+
+    private Long resolveLogoutUserId(
+            String token,
+            HttpServletResponse response
+    ) throws IOException {
+        try {
+            return tokenProvider.getUserIdForLogout(token);
+        } catch (BusinessException
+                 | IllegalArgumentException
+                 | JwtException exception) {
+            writeError(response,
+                    Result.Code.UNAUTHORIZED,
+                    "Invalid or expired token");
+            return null;
+        }
+    }
+
+    private boolean isLogoutRequest(HttpServletRequest request) {
+        return "POST".equalsIgnoreCase(request.getMethod())
+                && "/api/auth/logout".equals(request.getRequestURI());
     }
 
 }

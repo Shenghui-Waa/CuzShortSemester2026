@@ -1,6 +1,8 @@
 package com.cuzssp.campussecondhandtradingplatformbackend.controller;
 
+import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.request.FavoriteRequest;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.security.TokenProvider;
+import jakarta.validation.Valid;
 import com.cuzssp.campussecondhandtradingplatformbackend.service.FavoriteService;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.Result;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -40,10 +43,10 @@ public class FavoriteController {
     @PostMapping
     public Result<?> addFavorite(
             @RequestHeader("Authorization") String token,
-            @RequestParam Long productId
+            @Valid @RequestBody FavoriteRequest request
     ) {
         Long currentUserId = tokenProvider.getUserId(token);
-        return Result.success(favoriteService.addFavorite(currentUserId, productId));
+        return Result.success(favoriteService.addFavorite(currentUserId, request));
     }
 
     /**

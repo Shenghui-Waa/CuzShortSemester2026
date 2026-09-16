@@ -1,15 +1,11 @@
 package com.cuzssp.campussecondhandtradingplatformbackend.controller;
 
 import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.request.ProductQueryRequest;
-import com.cuzssp.campussecondhandtradingplatformbackend.common.entity.Product;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.request.ProductRequest;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.security.TokenProvider;
 import com.cuzssp.campussecondhandtradingplatformbackend.service.ProductService;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.Result;
 import lombok.RequiredArgsConstructor;
-import com.cuzssp.campussecondhandtradingplatformbackend.common.entity.User;
-import com.cuzssp.campussecondhandtradingplatformbackend.common.exception.BusinessException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -20,7 +16,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
-import java.util.List;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/product")
@@ -60,11 +56,10 @@ public class ProductController {
     @PostMapping
     public Result<?> createProduct(
             @RequestHeader("Authorization") String token,
-            @RequestBody Product product,
-            @RequestParam(required = false) List<String> images
+            @Valid @RequestBody ProductRequest request
     ) {
-        Long currentUserId = requireCurrentUserId();
-        return Result.success(productService.createProduct(currentUserId, product, images));
+        Long currentUserId = tokenProvider.getUserId(token);
+        return Result.success(productService.createProduct(currentUserId, request));
     }
 
     /**
@@ -74,11 +69,10 @@ public class ProductController {
     public Result<?> updateProduct(
             @RequestHeader("Authorization") String token,
             @PathVariable Long id,
-            @RequestBody Product product,
-            @RequestParam(required = false) List<String> images
+            @Valid @RequestBody ProductRequest request
     ) {
-        Long currentUserId = requireCurrentUserId();
-        return Result.success(productService.updateProduct(currentUserId, id, product, images));
+        Long currentUserId = tokenProvider.getUserId(token);
+        return Result.success(productService.updateProduct(currentUserId, id, request));
     }
 
     /**
@@ -90,7 +84,7 @@ public class ProductController {
             @PathVariable Long id,
             @RequestParam Integer status
     ) {
-        Long currentUserId = requireCurrentUserId();
+        Long currentUserId = tokenProvider.getUserId(token);
         return Result.success(productService.updateProduct(currentUserId, id, status));
     }
 
@@ -102,7 +96,7 @@ public class ProductController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long id
     ) {
-        Long currentUserId = requireCurrentUserId();
+        Long currentUserId = tokenProvider.getUserId(token);
         return Result.success(productService.removeProduct(currentUserId, id));
     }
 
@@ -115,17 +109,8 @@ public class ProductController {
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer pageSize
     ) {
-        Long currentUserId = requireCurrentUserId();
+        Long currentUserId = tokenProvider.getUserId(token);
         return Result.success(productService.getProductList(currentUserId, page, pageSize));
-    }
-
-    private Long requireCurrentUserId() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()
-                || !(authentication.getPrincipal() instanceof User user)) {
-            throw new BusinessException(Result.Code.UNAUTHORIZED, "Authentication required");
-        }
-        return user.getId();
     }
 
 }

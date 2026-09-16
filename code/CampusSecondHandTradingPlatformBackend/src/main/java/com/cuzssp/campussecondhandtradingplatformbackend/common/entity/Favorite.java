@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @TableName("favorite")
 public class Favorite {
 
-    @TableId(type = IdType.ASSIGN_ID)
+    @TableId(type = IdType.AUTO)
     private Long id;
 
     @TableField("user_id")

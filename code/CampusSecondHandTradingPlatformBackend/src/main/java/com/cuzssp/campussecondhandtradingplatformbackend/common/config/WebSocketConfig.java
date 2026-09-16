@@ -1,6 +1,7 @@
 package com.cuzssp.campussecondhandtradingplatformbackend.common.config;
 
 import com.cuzssp.campussecondhandtradingplatformbackend.common.handler.ChatWebSocketHandler;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.handler.ChatWebSocketHandshakeInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
@@ -13,10 +14,12 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 public class WebSocketConfig implements WebSocketConfigurer {
 
     private final ChatWebSocketHandler chatWebSocketHandler;
+    private final ChatWebSocketHandshakeInterceptor chatWebSocketHandshakeInterceptor;
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(chatWebSocketHandler, "/ws/chat")
+                .addInterceptors(chatWebSocketHandshakeInterceptor)
                 .setAllowedOriginPatterns("*");
     }
 }

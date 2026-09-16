@@ -1,6 +1,8 @@
 package com.cuzssp.campussecondhandtradingplatformbackend.service.impl;
 
+import com.cuzssp.campussecondhandtradingplatformbackend.common.constant.ProductConstant;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.Result;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.request.CartItemRequest;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.entity.CartItem;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.entity.Product;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.entity.User;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.exception.BusinessException;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -49,14 +52,21 @@ public class CartServiceImpl implements CartService {
 
     // 加入购物车
     @Override
-    public Void addToCart(Long userId, Long productId) {
-        if (productId == null || productMapper.selectById(productId) == null)
+    public Void addToCart(Long userId, CartItemRequest request) {
+        Product product = productMapper.selectById(request.getProductId());
+        if (product == null)
             throw new BusinessException(Result.Code.NOT_FOUND, "Product not found");
 
-        if (cartMapper.countByUserIdAndProductId(userId, productId) > 0)
+        if (!Objects.equals(product.getStatus(), ProductConstant.Status.ON_SALE))
+            throw new BusinessException("Product is not available");
+
+        if (Objects.equals(product.getUserId(), userId))
+            throw new BusinessException("Seller cannot add own product to cart");
+
+        if (cartMapper.countByUserIdAndProductId(userId, request.getProductId()) > 0)
             return null;
 
-        CartItem cartItem = ToEntityUtil.toCartItemEntity(userId, productId);
+        CartItem cartItem = ToEntityUtil.toCartItemEntity(userId, request);
         cartMapper.insert(cartItem);
         return null;
     }

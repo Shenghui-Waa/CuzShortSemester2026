@@ -2,21 +2,27 @@ package com.cuzssp.campussecondhandtradingplatformbackend.service.impl;
 
 import com.cuzssp.campussecondhandtradingplatformbackend.common.constant.OrderInfoConstant;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.constant.ProductConstant;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.constant.UserConstant;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.PageResult;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.Result;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.entity.OrderInfo;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.entity.OrderItem;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.entity.Product;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.entity.ProductImage;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.entity.User;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.util.ToEntityUtil;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.util.ToVOUtil;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.util.UtcTime;
 import com.cuzssp.campussecondhandtradingplatformbackend.mapper.OrderInfoMapper;
 import com.cuzssp.campussecondhandtradingplatformbackend.mapper.OrderItemMapper;
+import com.cuzssp.campussecondhandtradingplatformbackend.mapper.CartItemMapper;
 import com.cuzssp.campussecondhandtradingplatformbackend.mapper.ProductImageMapper;
 import com.cuzssp.campussecondhandtradingplatformbackend.mapper.ProductMapper;
 import com.cuzssp.campussecondhandtradingplatformbackend.mapper.UserMapper;
 import com.cuzssp.campussecondhandtradingplatformbackend.service.OrderService;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.vo.OrderVO;
-import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.request.CreateOrderRequest;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.request.OrderInfoRequest;
+import com.cuzssp.campussecondhandtradingplatformbackend.common.dto.request.OrderItemRequest;
 import com.cuzssp.campussecondhandtradingplatformbackend.common.exception.BusinessException;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -40,6 +46,7 @@ public class OrderServiceImpl implements OrderService {
     private final ProductMapper productMapper;
     private final ProductImageMapper productImageMapper;
     private final UserMapper userMapper;
+    private final CartItemMapper cartItemMapper;
 
     // 获取订单列表
     @Override
@@ -76,7 +83,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public OrderVO createOrder(
-            Long buyerId, CreateOrderRequest request
+            Long buyerId, OrderInfoRequest request
     ) {
         if (request == null || request.getProductId() == null)
             throw new BusinessException("Product ID is required");
@@ -94,15 +101,24 @@ public class OrderServiceImpl implements OrderService {
         // Conditional write is portable and reserves a single second-hand item atomically.
         int reserved = productMapper.reserveIfAvailable(
                 product.getId(), ProductConstant.Status.ON_SALE, product.getPrice(),
-                ProductConstant.Status.SOLD_OUT, LocalDateTime.now());
+                ProductConstant.Status.SOLD_OUT, UtcTime.now());
         if (reserved != 1)
             throw new BusinessException("Product is no longer available");
 
-        OrderInfo order = ToEntityUtil.toOrderInfoEntity(buyerId, product, request.getRemark());
-        order.setUpdatedAt(LocalDateTime.now());
+        OrderInfo order = ToEntityUtil.toOrderInfoEntity(buyerId, product, request);
+        order.setUpdatedAt(UtcTime.now());
         orderMapper.insert(order);
-        OrderItem orderItem = ToEntityUtil.toOrderItemEntity(order, product);
+        List<ProductImage> productImages = productImageMapper.selectByProductId(product.getId());
+        String productImage = productImages.isEmpty() ? null : productImages.get(0).getUrl();
+        OrderItemRequest orderItemRequest = new OrderItemRequest();
+        orderItemRequest.setProductId(product.getId());
+        orderItemRequest.setPrice(product.getPrice());
+        orderItemRequest.setProductTitle(product.getTitle());
+        orderItemRequest.setProductImage(productImage);
+        orderItemRequest.setProductState(product.getState());
+        OrderItem orderItem = ToEntityUtil.toOrderItemEntity(order, orderItemRequest);
         orderItemMapper.insert(orderItem);
+        cartItemMapper.deleteByProductId(product.getId());
         return toVO(orderMapper.selectById(order.getId()));
     }
 
@@ -125,7 +141,7 @@ public class OrderServiceImpl implements OrderService {
             throw new BusinessException("Invalid order status");
 
         transition(order, OrderInfoConstant.Status.WAIT_DELIVER,
-                LocalDateTime.now(), null, null);
+                UtcTime.now(), null, null);
         return null;
     }
 
@@ -146,7 +162,7 @@ public class OrderServiceImpl implements OrderService {
             throw new BusinessException("Invalid order status");
 
         transition(order, OrderInfoConstant.Status.WAIT_RECEIVE,
-                null, LocalDateTime.now(), null);
+                null, UtcTime.now(), null);
         return null;
     }
 
@@ -167,7 +183,7 @@ public class OrderServiceImpl implements OrderService {
             throw new BusinessException("Invalid order status");
 
         transition(order, OrderInfoConstant.Status.COMPLETED,
-                null, null, LocalDateTime.now());
+                null, null, UtcTime.now());
         return null;
     }
 
@@ -184,20 +200,34 @@ public class OrderServiceImpl implements OrderService {
         if (!Objects.equals(order.getBuyerId(), userId))
             throw new BusinessException(Result.Code.FORBIDDEN, "Permission denied");
 
-        if (order.getStatus() == OrderInfoConstant.Status.COMPLETED
-                || order.getStatus() == OrderInfoConstant.Status.CANCELLED)
+        int currentStatus = order.getStatus();
+        if (currentStatus != OrderInfoConstant.Status.WAIT_PAY
+                && currentStatus != OrderInfoConstant.Status.WAIT_DELIVER
+                && currentStatus != OrderInfoConstant.Status.WAIT_RECEIVE)
             throw new BusinessException("Order cannot be cancelled in current status");
 
+        boolean paid = currentStatus != OrderInfoConstant.Status.WAIT_PAY;
+        int refundStatus = paid
+                ? OrderInfoConstant.RefundStatus.REFUNDED
+                : OrderInfoConstant.RefundStatus.NONE;
+        LocalDateTime refundedAt = paid ? UtcTime.now() : null;
+        int cancelled = orderMapper.cancelIfStatusMatches(
+                orderId, currentStatus, refundStatus, refundedAt, UtcTime.now());
+        if (cancelled != 1)
+            throw new BusinessException("Order status has changed");
 
-        transition(order, OrderInfoConstant.Status.CANCELLED, null, null, null);
         List<OrderItem> orderItems = orderItemMapper.selectByOrderId(orderId);
         for (OrderItem orderItem : orderItems) {
             Product product = productMapper.selectById(orderItem.getProductId());
-            if (product != null) {
-                productMapper.updateStatusIfMatches(
-                        product.getId(), ProductConstant.Status.SOLD_OUT,
-                        ProductConstant.Status.ON_SALE, LocalDateTime.now());
-            }
+            if (product == null)
+                throw new BusinessException("Product not found");
+
+            int targetStatus = resolveCancellationProductStatus(currentStatus, product);
+            int restored = productMapper.updateStatusIfMatches(
+                    product.getId(), ProductConstant.Status.SOLD_OUT,
+                    targetStatus, UtcTime.now());
+            if (restored != 1)
+                throw new BusinessException("Product status has changed");
         }
         return null;
     }
@@ -248,19 +278,27 @@ public class OrderServiceImpl implements OrderService {
         List<OrderItem> orderItems = orderItemMapper.selectByOrderId(orderInfo.getId());
         orderVO.setItems(orderItems
                 .stream()
-                .map(orderItem -> ToVOUtil.toOrderItemVO(
-                        orderItem, productMapper.selectById(orderItem.getProductId()),
-                        productImageMapper.selectByProductId(orderItem.getProductId())
-                ))
+                .map(ToVOUtil::toOrderItemVO)
                 .collect(Collectors.toList())
         );
         return orderVO;
     }
 
+    private int resolveCancellationProductStatus(int orderStatus, Product product) {
+        if (orderStatus == OrderInfoConstant.Status.WAIT_RECEIVE)
+            return ProductConstant.Status.DISABLE;
+
+        User seller = userMapper.selectById(product.getUserId());
+        if (seller == null || !Objects.equals(seller.getStatus(), UserConstant.Status.ACTIVE))
+            return ProductConstant.Status.DISABLE;
+
+        return ProductConstant.Status.ON_SALE;
+    }
+
     private void transition(OrderInfo order, int nextStatus, LocalDateTime paidAt,
                             LocalDateTime shippedAt, LocalDateTime completedAt) {
         int updated = orderMapper.transitionIfStatusMatches(
-                order.getId(), order.getStatus(), nextStatus, LocalDateTime.now(),
+                order.getId(), order.getStatus(), nextStatus, UtcTime.now(),
                 paidAt, shippedAt, completedAt);
         if (updated != 1) {
             throw new BusinessException("Order status has changed");

@@ -21,7 +21,7 @@
             <div class="contact-info">
               <div class="contact-name">
                 <span class="contact-name-text">{{ c.contactName }}</span>
-                <span class="contact-time">{{ formatFullTime(c.lastTime) }}</span>
+                <span class="contact-time">{{ formatDateTime(c.lastTime) }}</span>
               </div>
               <div class="contact-last-row">
                 <span class="contact-last">{{ c.lastMessage || "" }}</span>
@@ -43,7 +43,7 @@
         </div>
         <div class="messages" ref="msgRef">
           <template v-for="(m, idx) in messages" :key="m.id">
-            <div v-if="showTimeSep(idx)" class="time-sep">{{ formatFullTime(m.createdAt) }}</div>
+            <div v-if="showTimeSep(idx)" class="time-sep">{{ formatDateTime(m.createdAt) }}</div>
             <div class="msg-row" :class="{ mine: m.senderId === userId }">
               <div class="msg-bubble">{{ m.content }}</div>
             </div>
@@ -91,6 +91,7 @@ import AppFooter from "@/components/layout/AppFooter.vue";
 import { chatApi } from "@/api/index";
 import { userApi } from "@/api/user";
 import { useUserStore } from "@/stores/user";
+import { formatDateTime, parseApiDate } from "@/utils";
 import { GradientAvatar } from "@tsyanst/avatars-vue";
 
 const user = useUserStore();
@@ -235,19 +236,15 @@ function scrollBottom() {
   });
 }
 
-function formatFullTime(t: string) {
-  if (!t) return "";
-  const d = new Date(t);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
 function showTimeSep(idx: number) {
   if (idx === 0) return true;
   const prev = messages.value[idx - 1];
   const curr = messages.value[idx];
   if (!prev?.createdAt || !curr?.createdAt) return true;
-  const diff = new Date(curr.createdAt).getTime() - new Date(prev.createdAt).getTime();
+  const previousTime = parseApiDate(prev.createdAt)?.getTime();
+  const currentTime = parseApiDate(curr.createdAt)?.getTime();
+  if (previousTime == null || currentTime == null) return true;
+  const diff = currentTime - previousTime;
   return diff > 10 * 60 * 1000;
 }
 </script>

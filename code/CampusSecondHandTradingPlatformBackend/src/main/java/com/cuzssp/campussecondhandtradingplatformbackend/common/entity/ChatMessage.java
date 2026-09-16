@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @TableName("chat_message")
 public class ChatMessage {
 
-    @TableId(type = IdType.ASSIGN_ID)
+    @TableId(type = IdType.AUTO)
     private Long id;
 
     @TableField("sender_id")

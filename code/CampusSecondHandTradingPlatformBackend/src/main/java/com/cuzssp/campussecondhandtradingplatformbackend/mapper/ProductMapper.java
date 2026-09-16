@@ -16,13 +16,23 @@ public interface ProductMapper extends BaseMapper<Product> {
             @Param("keyword") String keyword, @Param("categoryId") Long categoryId,
             @Param("campus") String campus, @Param("status") Integer status);
 
-    @Select("SELECT * FROM product WHERE user_id = #{userId} ORDER BY created_at DESC, id DESC")
+    @Select("""
+            SELECT * FROM product
+            WHERE user_id = #{userId} AND is_deleted = 0
+            ORDER BY created_at DESC, id DESC
+            """)
     List<Product> selectByUserIdWithLimit(@Param("userId") Long userId);
 
-    @Select("SELECT COUNT(*) FROM product WHERE category_id = #{categoryId}")
+    @Select("""
+            SELECT COUNT(*) FROM product
+            WHERE category_id = #{categoryId} AND is_deleted = 0
+            """)
     Long countByCategoryId(@Param("categoryId") Long categoryId);
 
-    @Update("UPDATE product SET view_count = COALESCE(view_count, 0) + 1 WHERE id = #{id}")
+    @Update("""
+            UPDATE product SET view_count = COALESCE(view_count, 0) + 1
+            WHERE id = #{id} AND is_deleted = 0
+            """)
     int addViewCount(@Param("id") Long id);
 
     @Update("""
@@ -30,22 +40,27 @@ public interface ProductMapper extends BaseMapper<Product> {
                 description = #{product.description}, price = #{product.price},
                 original_price = #{product.originalPrice}, state = #{product.state},
                 campus = #{product.campus}, status = #{product.status}, updated_at = #{product.updatedAt}
-            WHERE id = #{product.id} AND user_id = #{product.userId} AND status = #{expectedStatus}
+            WHERE id = #{product.id} AND user_id = #{product.userId}
+                AND status = #{expectedStatus} AND is_deleted = 0
             """)
     int updateDetailsIfStatusMatches(@Param("product") Product product,
                                     @Param("expectedStatus") Integer expectedStatus);
 
     @Update("""
-            UPDATE product SET updated_at = #{updatedAt}
-            WHERE id = #{id} AND user_id = #{userId} AND status = #{expectedStatus}
+            UPDATE product
+            SET status = #{targetStatus}, is_deleted = 1,
+                deleted_at = #{deletedAt}, updated_at = #{deletedAt}
+            WHERE id = #{id} AND user_id = #{userId}
+                AND status = #{expectedStatus} AND is_deleted = 0
             """)
-    int lockForRemoval(@Param("id") Long id, @Param("userId") Long userId,
-                       @Param("expectedStatus") Integer expectedStatus,
-                       @Param("updatedAt") LocalDateTime updatedAt);
+    int softDeleteIfStatusMatches(@Param("id") Long id, @Param("userId") Long userId,
+                                  @Param("expectedStatus") Integer expectedStatus,
+                                  @Param("targetStatus") Integer targetStatus,
+                                  @Param("deletedAt") LocalDateTime deletedAt);
 
     @Update("""
             UPDATE product SET status = #{targetStatus}, updated_at = #{updatedAt}
-            WHERE id = #{id} AND status = #{expectedStatus}
+            WHERE id = #{id} AND status = #{expectedStatus} AND is_deleted = 0
             """)
     int updateStatusIfMatches(@Param("id") Long id, @Param("expectedStatus") Integer expectedStatus,
                               @Param("targetStatus") Integer targetStatus,
@@ -53,7 +68,8 @@ public interface ProductMapper extends BaseMapper<Product> {
 
     @Update("""
             UPDATE product SET status = #{targetStatus}, updated_at = #{updatedAt}
-            WHERE id = #{id} AND status = #{expectedStatus} AND price = #{expectedPrice}
+            WHERE id = #{id} AND status = #{expectedStatus}
+                AND price = #{expectedPrice} AND is_deleted = 0
             """)
     int reserveIfAvailable(@Param("id") Long id, @Param("expectedStatus") Integer expectedStatus,
                            @Param("expectedPrice") BigDecimal expectedPrice,
@@ -62,7 +78,7 @@ public interface ProductMapper extends BaseMapper<Product> {
 
     @Update("""
             UPDATE product SET status = #{targetStatus}, updated_at = #{updatedAt}
-            WHERE user_id = #{userId} AND status != 2
+            WHERE user_id = #{userId} AND status != 2 AND is_deleted = 0
             """)
     int updateUserProductsStatus(@Param("userId") Long userId,
                                  @Param("targetStatus") Integer targetStatus,

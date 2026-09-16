@@ -3,7 +3,7 @@
     <div class="header-row"><h2>商品管理</h2></div>
     <el-input v-model="keyword" placeholder="搜索商品" style="width:240px;margin-bottom:16px" clearable @change="fetch" />
     <el-table :data="products" stripe>
-      <el-table-column prop="id" label="ID" width="80" /><el-table-column prop="title" label="标题" />
+      <el-table-column label="ID" width="80"><template #default="{ row }">{{ formatProductId(row.id) }}</template></el-table-column><el-table-column prop="title" label="标题" />
       <el-table-column prop="sellerName" label="卖家" width="100" />
       <el-table-column label="状态" width="90"><template #default="{ row }"><el-tag :type="getProductStatusType(row.status)">{{ getProductStatusLabel(row.status) }}</el-tag></template></el-table-column>
       <el-table-column label="操作" width="210">
@@ -28,7 +28,7 @@
           <el-descriptions-item label="原价">{{ formatPrice(detail.originalPrice) }}</el-descriptions-item>
           <el-descriptions-item label="卖家">{{ detail.sellerName }}</el-descriptions-item>
           <el-descriptions-item label="校区">{{ detail.campus }}</el-descriptions-item>
-          <el-descriptions-item label="成色">{{ getConditionLabel(detail.condition) }}</el-descriptions-item>
+          <el-descriptions-item label="成色">{{ getConditionLabel(detail.state) }}</el-descriptions-item>
           <el-descriptions-item label="状态">{{ getProductStatusLabel(detail.status) }}</el-descriptions-item>
           <el-descriptions-item label="浏览">{{ detail.viewCount || 0 }}</el-descriptions-item>
           <el-descriptions-item label="描述" :span="2">{{ detail.description || "无" }}</el-descriptions-item>
@@ -43,13 +43,16 @@ import { ref, onMounted } from "vue";
 import { ElMessage } from "element-plus";
 import Pagination from "@/components/Pagination.vue";
 import { adminApi } from "@/api/index";
-import { productApi } from "@/api/product";
 import { formatPrice } from "@/utils";
 import { getProductStatusLabel, getProductStatusType, getConditionLabel } from "@/utils";
 const products = ref<any[]>([]); const total = ref(0); const keyword = ref(""); const page = ref(1);
 onMounted(() => fetch());
 async function fetch() { const r: any = await adminApi.productList({ page: page.value, pageSize: 10, keyword: keyword.value }); products.value = r.data?.records||[]; total.value = r.data?.total||0; }
 function onPage(p: number) { page.value = p; fetch(); }
+function formatProductId(id: unknown): string {
+  const value = String(id ?? "");
+  return value.length <= 4 ? value : "..." + value.slice(-4);
+}
 async function audit(id: number, status: number) { await adminApi.updateProductStatus(id, status); ElMessage.success("操作成功"); fetch(); }
 
 const detailVisible = ref(false);
@@ -58,7 +61,7 @@ async function showDetail(id: number) {
   detail.value = null;
   detailVisible.value = true;
   try {
-    const r: any = await productApi.detail(id);
+    const r: any = await adminApi.productDetail(id);
     detail.value = r.data;
   } catch {}
 }
