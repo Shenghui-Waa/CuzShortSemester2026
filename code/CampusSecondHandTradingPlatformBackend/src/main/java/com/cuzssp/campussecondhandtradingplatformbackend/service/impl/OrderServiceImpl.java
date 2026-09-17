@@ -70,11 +70,11 @@ public class OrderServiceImpl implements OrderService {
     ) {
         OrderInfo orderInfo = orderMapper.selectById(orderId);
         if (orderInfo == null)
-            throw new BusinessException(Result.Code.NOT_FOUND, "Order not found");
+            throw new BusinessException(Result.Code.NOT_FOUND, "订单不存在");
 
         if (!Objects.equals(orderInfo.getBuyerId(), userId)
                 && !Objects.equals(orderInfo.getSellerId(), userId))
-            throw new BusinessException(Result.Code.FORBIDDEN, "Permission denied");
+            throw new BusinessException(Result.Code.FORBIDDEN, "没有权限");
 
         return toVO(orderInfo);
     }
@@ -86,24 +86,24 @@ public class OrderServiceImpl implements OrderService {
             Long buyerId, OrderInfoRequest request
     ) {
         if (request == null || request.getProductId() == null)
-            throw new BusinessException("Product ID is required");
+            throw new BusinessException("需要商品 ID");
 
         Product product = productMapper.selectById(request.getProductId());
         if (product == null)
-            throw new BusinessException(Result.Code.NOT_FOUND, "Product not found");
+            throw new BusinessException(Result.Code.NOT_FOUND, "商品不存在");
 
         if (product.getStatus() != ProductConstant.Status.ON_SALE)
-            throw new BusinessException("Product not available");
+            throw new BusinessException("商品不可用");
 
         if (Objects.equals(buyerId, product.getUserId()))
-            throw new BusinessException("Buyer cannot be seller");
+            throw new BusinessException("买方不能是卖方");
 
         // Conditional write is portable and reserves a single second-hand item atomically.
         int reserved = productMapper.reserveIfAvailable(
                 product.getId(), ProductConstant.Status.ON_SALE, product.getPrice(),
                 ProductConstant.Status.SOLD_OUT, UtcTime.now());
         if (reserved != 1)
-            throw new BusinessException("Product is no longer available");
+            throw new BusinessException("商品不可用");
 
         OrderInfo order = ToEntityUtil.toOrderInfoEntity(buyerId, product, request);
         order.setUpdatedAt(UtcTime.now());
@@ -122,8 +122,6 @@ public class OrderServiceImpl implements OrderService {
         return toVO(orderMapper.selectById(order.getId()));
     }
 
-
-
     // 支付订单，暂不做支付逻辑
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -132,13 +130,13 @@ public class OrderServiceImpl implements OrderService {
     ) {
         OrderInfo order = orderMapper.selectById(orderId);
         if (order == null)
-            throw new BusinessException(Result.Code.NOT_FOUND, "Order not found");
+            throw new BusinessException(Result.Code.NOT_FOUND, "订单不存在");
 
         if (!Objects.equals(order.getBuyerId(), userId))
-            throw new BusinessException(Result.Code.FORBIDDEN, "Permission denied");
+            throw new BusinessException(Result.Code.FORBIDDEN, "没有权限");
 
         if (order.getStatus() != OrderInfoConstant.Status.WAIT_PAY)
-            throw new BusinessException("Invalid order status");
+            throw new BusinessException("无效的订单状态");
 
         transition(order, OrderInfoConstant.Status.WAIT_DELIVER,
                 UtcTime.now(), null, null);
@@ -153,13 +151,13 @@ public class OrderServiceImpl implements OrderService {
     ) {
         OrderInfo order = orderMapper.selectById(orderId);
         if (order == null)
-            throw new BusinessException(Result.Code.NOT_FOUND, "Order not found");
+            throw new BusinessException(Result.Code.NOT_FOUND, "订单不存在");
 
         if (!Objects.equals(order.getSellerId(), sellerId))
-            throw new BusinessException(Result.Code.FORBIDDEN, "Permission denied");
+            throw new BusinessException(Result.Code.FORBIDDEN, "没有权限");
 
         if (order.getStatus() != OrderInfoConstant.Status.WAIT_DELIVER)
-            throw new BusinessException("Invalid order status");
+            throw new BusinessException("无效的订单状态");
 
         transition(order, OrderInfoConstant.Status.WAIT_RECEIVE,
                 null, UtcTime.now(), null);
@@ -174,13 +172,13 @@ public class OrderServiceImpl implements OrderService {
     ) {
         OrderInfo order = orderMapper.selectById(orderId);
         if (order == null)
-            throw new BusinessException(Result.Code.NOT_FOUND, "Order not found");
+            throw new BusinessException(Result.Code.NOT_FOUND, "订单不存在");
 
         if (!Objects.equals(order.getBuyerId(), buyerId))
-            throw new BusinessException(Result.Code.FORBIDDEN, "Permission denied");
+            throw new BusinessException(Result.Code.FORBIDDEN, "没有权限");
 
         if (order.getStatus() != OrderInfoConstant.Status.WAIT_RECEIVE)
-            throw new BusinessException("Invalid order status");
+            throw new BusinessException("无效的订单状态");
 
         transition(order, OrderInfoConstant.Status.COMPLETED,
                 null, null, UtcTime.now());
@@ -195,16 +193,16 @@ public class OrderServiceImpl implements OrderService {
     ) {
         OrderInfo order = orderMapper.selectById(orderId);
         if (order == null)
-            throw new BusinessException(Result.Code.NOT_FOUND, "Order not found");
+            throw new BusinessException(Result.Code.NOT_FOUND, "订单不存在");
 
         if (!Objects.equals(order.getBuyerId(), userId))
-            throw new BusinessException(Result.Code.FORBIDDEN, "Permission denied");
+            throw new BusinessException(Result.Code.FORBIDDEN, "没有权限");
 
         int currentStatus = order.getStatus();
         if (currentStatus != OrderInfoConstant.Status.WAIT_PAY
                 && currentStatus != OrderInfoConstant.Status.WAIT_DELIVER
                 && currentStatus != OrderInfoConstant.Status.WAIT_RECEIVE)
-            throw new BusinessException("Order cannot be cancelled in current status");
+            throw new BusinessException("不能在当前状态取消订单");
 
         boolean paid = currentStatus != OrderInfoConstant.Status.WAIT_PAY;
         int refundStatus = paid
@@ -214,20 +212,20 @@ public class OrderServiceImpl implements OrderService {
         int cancelled = orderMapper.cancelIfStatusMatches(
                 orderId, currentStatus, refundStatus, refundedAt, UtcTime.now());
         if (cancelled != 1)
-            throw new BusinessException("Order status has changed");
+            throw new BusinessException("订单状态改变");
 
         List<OrderItem> orderItems = orderItemMapper.selectByOrderId(orderId);
         for (OrderItem orderItem : orderItems) {
             Product product = productMapper.selectById(orderItem.getProductId());
             if (product == null)
-                throw new BusinessException("Product not found");
+                throw new BusinessException("商品不存在");
 
             int targetStatus = resolveCancellationProductStatus(currentStatus, product);
             int restored = productMapper.updateStatusIfMatches(
                     product.getId(), ProductConstant.Status.SOLD_OUT,
                     targetStatus, UtcTime.now());
             if (restored != 1)
-                throw new BusinessException("Product status has changed");
+                throw new BusinessException("商品状态改变");
         }
         return null;
     }

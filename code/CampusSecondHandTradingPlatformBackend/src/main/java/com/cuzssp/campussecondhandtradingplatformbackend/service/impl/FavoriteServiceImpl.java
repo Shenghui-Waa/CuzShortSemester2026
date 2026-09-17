@@ -36,12 +36,12 @@ public class FavoriteServiceImpl implements FavoriteService {
 
     // 获取收藏
     @Override
-    public PageResult<ProductVO> getFavorites(
+    public PageResult<ProductVO> getFavorite(
             Long userId, Integer page, Integer pageSize
     ) {
         if (page == null || page < 1
                 || pageSize == null || pageSize < 1 || pageSize > 100)
-            throw new BusinessException("Invalid pagination");
+            throw new BusinessException("无效的分页");
 
         List<Favorite> favoriteList;
         try {
@@ -82,10 +82,10 @@ public class FavoriteServiceImpl implements FavoriteService {
     ) {
         Product product = productMapper.selectById(request.getProductId());
         if (product == null)
-            throw new BusinessException(Result.Code.NOT_FOUND, "Product not found");
+            throw new BusinessException(Result.Code.NOT_FOUND, "商品不存在");
 
         if (!Objects.equals(product.getStatus(), ProductConstant.Status.ON_SALE))
-            throw new BusinessException("Product is not available");
+            throw new BusinessException("商品不可用");
 
         if (favoriteMapper.countByUserIdAndProductId(userId, request.getProductId()) > 0)
             return null;
@@ -106,7 +106,7 @@ public class FavoriteServiceImpl implements FavoriteService {
 
     // 是否收藏
     @Override
-    public Boolean isFavorited(
+    public Boolean isFavorite(
             Long userId, Long productId
     ) {
         return favoriteMapper.countByUserIdAndProductId(userId, productId) > 0;

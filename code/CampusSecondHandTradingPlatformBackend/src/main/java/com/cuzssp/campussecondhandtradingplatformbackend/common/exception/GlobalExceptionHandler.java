@@ -35,7 +35,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<Result<?>> handleMaxUploadSizeExceeded(MaxUploadSizeExceededException e) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(Result.error(Result.Code.BAD_REQUEST, "Upload file size exceeds limit"));
+                .body(Result.error(Result.Code.BAD_REQUEST, "文件过大"));
     }
 
     // 通用异常
@@ -43,7 +43,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Result<?>> handleException(Exception e) {
         log.error("System exception", e);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Result.error("Internal server error"));
+                .body(Result.error("内部服务错误"));
     }
 
     // 缺少请求参数
@@ -102,7 +102,7 @@ public class GlobalExceptionHandler {
         }
 
         return builder.body(Result.error(
-                HttpStatus.METHOD_NOT_ALLOWED.value(),
+                Result.Code.METHOD_NOT_ALLOWED,
                 "HTTP method is not supported"
         ));
     }

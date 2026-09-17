@@ -91,7 +91,7 @@ public class TokenProvider {
     private Claims parseValid(String token) {
         Claims claims = parseForRevocation(token);
         if (revokedTokenMapper.countByJti(claims.getId()) > 0) {
-            throw new BusinessException("Invalid token");
+            throw new BusinessException("用户凭证无效");
         }
         return claims;
     }
@@ -100,7 +100,7 @@ public class TokenProvider {
         Claims claims = parse(token);
         String jti = claims.getId();
         if (jti == null || jti.isBlank()) {
-            throw new BusinessException("Invalid token");
+            throw new BusinessException("用户凭证无效");
         }
         return claims;
     }

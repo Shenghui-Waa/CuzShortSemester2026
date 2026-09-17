@@ -1,1 +1,0 @@
-import{t as e}from"./request-b7rB3jEh.js";var t={list:t=>e.get(`/product`,{params:t}),detail:t=>e.get(`/product/${t}`),create:t=>e.post(`/product`,t),update:(t,n)=>e.put(`/product/${t}`,n),updateStatus:(t,n)=>e.put(`/product/${t}/status`,null,{params:{status:n}}),myList:(t,n)=>e.get(`/product/my`,{params:{page:t,pageSize:n}})};export{t};

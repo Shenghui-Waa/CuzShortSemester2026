@@ -67,21 +67,21 @@ public class FileUtil {
 
     public void validateFile(MultipartFile file) {
         if (file == null || file.isEmpty())
-            throw new BusinessException("File is empty");
+            throw new BusinessException("文件是空的");
 
         if (file.getSize() > MAX_FILE_SIZE) {
             throw new BusinessException(Result.Code.REQUEST_ENTITY_TOO_LARGE,
-                    "File size exceeds 2MB limit");
+                    "文件超过2MB限制");
         }
         String originalFilename = file.getOriginalFilename();
         if (originalFilename == null || !originalFilename.contains(".")) {
-            throw new BusinessException("Invalid file type");
+            throw new BusinessException("文件格式无效");
         }
         String extension = originalFilename
                 .substring(originalFilename.lastIndexOf(".") + 1)
                 .toLowerCase(Locale.ROOT);
         if (!ALLOWED_EXTENSIONS.contains(extension)) {
-            throw new BusinessException(Result.Code.FORBIDDEN, "File type not allowed: " + extension);
+            throw new BusinessException(Result.Code.FORBIDDEN, "文件格式不接受: " + extension);
         }
     }
 

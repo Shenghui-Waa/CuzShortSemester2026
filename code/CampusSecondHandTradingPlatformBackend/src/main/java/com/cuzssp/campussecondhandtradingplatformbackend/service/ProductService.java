@@ -9,7 +9,6 @@ public interface ProductService {
     PageResult<ProductVO> getProductList(ProductQueryRequest query, Long currentUserId);
     PageResult<ProductVO> getProductList(Long userId, Integer page, Integer pageSize);
     ProductVO getProductDetail(Long id, Long currentUserId);
-    ProductVO getProductDetailForAdmin(Long id);
     ProductVO createProduct(Long userId, ProductRequest request);
     ProductVO updateProduct(Long userId, Long productId, ProductRequest request);
     Void updateProduct(Long userId, Long productId, Integer status);
@@ -22,4 +21,5 @@ public interface ProductService {
             Integer status
     );
     Void updateProduct(Long productId, Integer status);
+    ProductVO getProductDetailForAdmin(Long id);
 }

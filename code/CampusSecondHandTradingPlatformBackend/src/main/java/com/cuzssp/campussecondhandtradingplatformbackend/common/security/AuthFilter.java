@@ -53,12 +53,12 @@ public class AuthFilter extends OncePerRequestFilter {
         User user = userMapper.selectById(userId);
 
         if (user == null) {
-            writeError(response, Result.Code.UNAUTHORIZED, "User no longer exists");
+            writeError(response, Result.Code.UNAUTHORIZED, "用户不存在");
             return;
         }
 
         if (!Integer.valueOf(UserConstant.Status.ACTIVE).equals(user.getStatus())) {
-            writeError(response, Result.Code.FORBIDDEN, "Account has been disabled");
+            writeError(response, Result.Code.FORBIDDEN, "账户被封禁");
             return;
         }
 
@@ -108,7 +108,7 @@ public class AuthFilter extends OncePerRequestFilter {
                  | JwtException exception) {
             writeError(response,
                     Result.Code.UNAUTHORIZED,
-                    "Invalid or expired token");
+                    "用户凭证无效或过期");
             return null;
         }
     }
@@ -124,7 +124,7 @@ public class AuthFilter extends OncePerRequestFilter {
                  | JwtException exception) {
             writeError(response,
                     Result.Code.UNAUTHORIZED,
-                    "Invalid or expired token");
+                    "用户凭证无效或过期");
             return null;
         }
     }

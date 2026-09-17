@@ -45,7 +45,7 @@ public class UserServiceImpl implements UserService {
     ) {
         User user = userMapper.selectById(id);
         if (user == null)
-            throw new BusinessException(Result.Code.NOT_FOUND, "User not found");
+            throw new BusinessException(Result.Code.NOT_FOUND, "用户不存在");
 
         return ToVOUtil.toUserVO(user);
     }
@@ -57,7 +57,7 @@ public class UserServiceImpl implements UserService {
     ) {
         User user = userMapper.selectById(userId);
         if (user == null)
-            throw new BusinessException(Result.Code.NOT_FOUND, "User not found");
+            throw new BusinessException(Result.Code.NOT_FOUND, "用户不存在");
 
         userMapper.updateProfileFields(ToEntityUtil.updateUserEntity(user, request));
         return ToVOUtil.toUserVO(userMapper.selectById(userId));
@@ -70,13 +70,13 @@ public class UserServiceImpl implements UserService {
     ) {
         User user = userMapper.selectById(userId);
         if (user == null)
-            throw new BusinessException(Result.Code.NOT_FOUND, "User not found");
+            throw new BusinessException(Result.Code.NOT_FOUND, "用户不存在");
 
         if (!passwordProvider.matches(request.getOldPassword(), user.getPassword()))
-            throw new BusinessException("Old password is incorrect");
+            throw new BusinessException("旧密码错误");
 
         if (request.getNewPassword() == null || request.getNewPassword().isBlank())
-            throw new BusinessException("New password is required");
+            throw new BusinessException("需要新密码");
 
         user.setPassword(passwordProvider.encode(request.getNewPassword()));
         user.setUpdatedAt(UtcTime.now());
@@ -91,7 +91,7 @@ public class UserServiceImpl implements UserService {
     ) {
         User user = userMapper.selectById(userId);
         if (user == null)
-            throw new BusinessException(Result.Code.NOT_FOUND, "User not found");
+            throw new BusinessException(Result.Code.NOT_FOUND, "用户不存在");
 
         userMapper.updateAvatar(userId, imageURL, UtcTime.now());
         return null;
@@ -132,7 +132,7 @@ public class UserServiceImpl implements UserService {
             UserRequest request
     ) {
         if (userMapper.countByUsername(request.getUsername()) > 0)
-            throw new BusinessException(Result.Code.FORBIDDEN, "Admin name already exists");
+            throw new BusinessException(Result.Code.FORBIDDEN, "该管理员用户名已存在");
 
         User user = ToEntityUtil.toUserEntity(
                 request, passwordProvider, UserConstant.Role.ADMIN);
@@ -148,11 +148,11 @@ public class UserServiceImpl implements UserService {
     ) {
         User user = userMapper.selectById(userId);
         if (user == null)
-            throw new BusinessException(Result.Code.FORBIDDEN, "User not found");
+            throw new BusinessException(Result.Code.FORBIDDEN, "用户不存在");
 
         if (!Objects.equals(targetStatus, UserConstant.Status.ACTIVE)
                 && !Objects.equals(targetStatus, UserConstant.Status.INACTIVE))
-            throw new BusinessException("Invalid user status");
+            throw new BusinessException("无效的用户状态");
 
         user.setStatus(targetStatus);
         user.setUpdatedAt(UtcTime.now());
@@ -172,7 +172,7 @@ public class UserServiceImpl implements UserService {
     public Void deleteUserById(Long id) {
         User user = userMapper.selectById(id);
         if (user == null)
-            throw new BusinessException(Result.Code.NOT_FOUND, "User not found");
+            throw new BusinessException(Result.Code.NOT_FOUND, "用户不存在");
 
         updateUserProductsStatus(user.getId(), ProductConstant.Status.DISABLE);
         userMapper.deleteById(user.getId());
@@ -184,10 +184,10 @@ public class UserServiceImpl implements UserService {
     public Void resetPassword(Long id, ResetPasswordRequest request) {
         User user = userMapper.selectById(id);
         if (user == null)
-            throw new BusinessException(Result.Code.NOT_FOUND, "User not found");
+            throw new BusinessException(Result.Code.NOT_FOUND, "用户不存在");
 
         if (request.getNewPassword() == null || request.getNewPassword().isBlank())
-            throw new BusinessException("New password is required");
+            throw new BusinessException("需要新密码");
 
         user.setPassword(passwordProvider.encode(request.getNewPassword()));
         user.setUpdatedAt(UtcTime.now());

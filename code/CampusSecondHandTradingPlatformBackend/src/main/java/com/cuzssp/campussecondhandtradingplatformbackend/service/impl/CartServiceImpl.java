@@ -55,13 +55,13 @@ public class CartServiceImpl implements CartService {
     public Void addToCart(Long userId, CartItemRequest request) {
         Product product = productMapper.selectById(request.getProductId());
         if (product == null)
-            throw new BusinessException(Result.Code.NOT_FOUND, "Product not found");
+            throw new BusinessException(Result.Code.NOT_FOUND, "商品不存在");
 
         if (!Objects.equals(product.getStatus(), ProductConstant.Status.ON_SALE))
-            throw new BusinessException("Product is not available");
+            throw new BusinessException("商品不可用");
 
         if (Objects.equals(product.getUserId(), userId))
-            throw new BusinessException("Seller cannot add own product to cart");
+            throw new BusinessException("卖家不能将自己的产品加入购物车");
 
         if (cartMapper.countByUserIdAndProductId(userId, request.getProductId()) > 0)
             return null;

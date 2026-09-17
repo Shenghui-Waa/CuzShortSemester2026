@@ -10,8 +10,8 @@
             <el-option v-for="c in categories" :key="c.id" :label="c.name" :value="c.id" />
           </el-select>
         </el-form-item>
-        <el-form-item label="售价" prop="price"><el-input-number v-model="f.price" :min="0" :precision="2" style="width:200px" /></el-form-item>
-        <el-form-item label="原价"><el-input-number v-model="f.originalPrice" :min="0" :precision="2" style="width:200px" /></el-form-item>
+        <el-form-item label="售价" prop="price"><el-input-number v-model="f.price" :min="0" :step="0.01" :precision="2" style="width:200px" /></el-form-item>
+        <el-form-item label="原价"><el-input-number v-model="f.originalPrice" :min="0" :step="0.01" :precision="2" style="width:200px" /></el-form-item>
         <el-form-item label="成色" prop="state">
           <el-radio-group v-model="f.state">
             <el-radio :value="1">全新</el-radio>

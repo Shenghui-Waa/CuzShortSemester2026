@@ -6,9 +6,9 @@ import com.cuzssp.campussecondhandtradingplatformbackend.common.vo.ProductVO;
 
 public interface FavoriteService {
 
-    PageResult<ProductVO> getFavorites(Long userId, Integer page, Integer pageSize);
+    PageResult<ProductVO> getFavorite(Long userId, Integer page, Integer pageSize);
     Void addFavorite(Long userId, FavoriteRequest request);
     Void removeFavorite(Long userId, Long productId);
-    Boolean isFavorited(Long userId, Long productId);
+    Boolean isFavorite(Long userId, Long productId);
 
 }

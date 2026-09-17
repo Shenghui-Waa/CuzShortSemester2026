@@ -16,7 +16,12 @@
             :class="{ active: selectedId === c.contactId }"
             @click="selectContact(c)"
           >
-            <GradientAvatar v-if="!c.contactAvatar" :seed="c.contactUsername || c.contactId" :size="40" :colors="avatarColors" pattern="dither" />
+            <DefaultAvatar
+              v-if="!c.contactAvatar"
+              :name="c.contactName"
+              :fallback-name="c.contactUsername || c.contactId"
+              :size="40"
+            />
             <el-avatar v-else :size="40" :src="c.contactAvatar" />
             <div class="contact-info">
               <div class="contact-name">
@@ -64,7 +69,12 @@
       <el-dialog v-model="userDialogVisible" width="380px" center>
         <div class="profile-content" v-if="profileUser">
           <div class="profile-avatar">
-            <GradientAvatar v-if="!profileUser.avatar" :seed="profileUser.username" :size="80" :colors="avatarColors" pattern="dither" />
+            <DefaultAvatar
+              v-if="!profileUser.avatar"
+              :name="profileUser.nickname"
+              :fallback-name="profileUser.username"
+              :size="80"
+            />
             <el-image v-else :src="profileUser.avatar" :preview-src-list="[profileUser.avatar]" fit="cover" style="width:80px;height:80px;border-radius:50%" />
           </div>
           <div class="profile-info">
@@ -92,10 +102,9 @@ import { chatApi } from "@/api/index";
 import { userApi } from "@/api/user";
 import { useUserStore } from "@/stores/user";
 import { formatDateTime, parseApiDate } from "@/utils";
-import { GradientAvatar } from "@tsyanst/avatars-vue";
+import DefaultAvatar from "@/components/DefaultAvatar.vue";
 
 const user = useUserStore();
-const avatarColors = ["#fb1e47", "#fc5675", "#fd8fa3", "#fec7d1", "#cd2846", "#a03146", "#723b45", "#ffffff", "#444444"];
 const userId = ref<number>(0);
 const contacts = ref<any[]>([]);
 const selectedId = ref<number | null>(null);

@@ -66,28 +66,28 @@ public class ReviewServiceImpl implements ReviewService {
     ) {
         if (request == null || request.getOrderId() == null || request.getTargetId() == null
                 || request.getRating() == null || request.getRating() < 1 || request.getRating() > 5)
-            throw new BusinessException("Invalid review details");
+            throw new BusinessException("无效的评价内容");
 
         // Acquire a write lock without database-specific FOR UPDATE syntax.
         orderMapper.lockForReview(request.getOrderId());
         OrderInfo order = orderMapper.selectById(request.getOrderId());
         if (order == null)
-            throw new BusinessException(Result.Code.NOT_FOUND, "Order not found");
+            throw new BusinessException(Result.Code.NOT_FOUND, "订单不存在");
 
         if (!Objects.equals(order.getBuyerId(), reviewerId)
                 && !Objects.equals(order.getSellerId(), reviewerId))
-            throw new BusinessException(Result.Code.FORBIDDEN, "Not a participant of this order");
+            throw new BusinessException(Result.Code.FORBIDDEN, "不是此订单的参与者");
 
         Long expectedTarget = Objects.equals(order.getBuyerId(), reviewerId)
                 ? order.getSellerId() : order.getBuyerId();
         if (!Objects.equals(expectedTarget, request.getTargetId()))
-            throw new BusinessException("Review target must be the other order participant");
+            throw new BusinessException("评价对象必须是订单的另一位参与者");
 
         if (!Objects.equals(order.getStatus(), OrderInfoConstant.Status.COMPLETED))
-            throw new BusinessException("Only completed orders can be reviewed");
+            throw new BusinessException("只有完成的订单可以评价");
 
         if (reviewMapper.countByOrderIdAndReviewerId(request.getOrderId(), reviewerId) > 0)
-            throw new BusinessException(Result.Code.FORBIDDEN, "Already reviewed");
+            throw new BusinessException(Result.Code.FORBIDDEN, "已评价");
 
         Review review = ToEntityUtil.toReviewEntity(reviewerId, request);
         reviewMapper.insert(review);
@@ -100,7 +100,7 @@ public class ReviewServiceImpl implements ReviewService {
     private void validatePagination(Integer page, Integer pageSize) {
         if (page == null || page < 1
                 || pageSize == null || pageSize < 1 || pageSize > 100)
-            throw new BusinessException("Invalid pagination");
+            throw new BusinessException("无效的分页");
 
     }
 

@@ -106,18 +106,18 @@ public class ProductServiceImpl implements ProductService {
     ) {
         Product product = productMapper.selectById(id);
         if (product == null)
-            throw new BusinessException(Result.Code.NOT_FOUND, "Product not found");
+            throw new BusinessException(Result.Code.NOT_FOUND, "商品不存在");
 
         boolean owner = currentUserId != null
                 && Objects.equals(product.getUserId(), currentUserId);
         if (!owner && !Objects.equals(product.getStatus(), ProductConstant.Status.ON_SALE))
-            throw new BusinessException(Result.Code.NOT_FOUND, "Product not found");
+            throw new BusinessException(Result.Code.NOT_FOUND, "商品不存在");
 
         if (!owner) {
             productMapper.addViewCount(id);
             product = productMapper.selectById(id);
             if (product == null)
-                throw new BusinessException(Result.Code.NOT_FOUND, "Product not found");
+                throw new BusinessException(Result.Code.NOT_FOUND, "商品不存在");
         }
 
         Set<Long> favoritedProductsIds = Collections.emptySet();
@@ -131,7 +131,7 @@ public class ProductServiceImpl implements ProductService {
     public ProductVO getProductDetailForAdmin(Long id) {
         Product product = productMapper.selectById(id);
         if (product == null)
-            throw new BusinessException(Result.Code.NOT_FOUND, "Product not found");
+            throw new BusinessException(Result.Code.NOT_FOUND, "商品不存在");
 
         return toVO(product, Collections.emptySet());
     }
@@ -164,14 +164,14 @@ public class ProductServiceImpl implements ProductService {
     ) {
         Product existing = productMapper.selectById(productId);
         if (existing == null)
-            throw new BusinessException(Result.Code.NOT_FOUND, "Product not found");
+            throw new BusinessException(Result.Code.NOT_FOUND, "商品不存在");
 
         if (!Objects.equals(existing.getUserId(), userId))
-            throw new BusinessException(Result.Code.FORBIDDEN, "Permission denied");
+            throw new BusinessException(Result.Code.FORBIDDEN, "没有权限");
 
         validateProduct(request);
         if (Objects.equals(existing.getStatus(), ProductConstant.Status.SOLD_OUT))
-            throw new BusinessException("Sold product cannot be edited");
+            throw new BusinessException("已售出的商品无法编辑");
 
         Product product = ToEntityUtil.toProductEntity(request);
         product.setCreatedAt(existing.getCreatedAt());
@@ -184,7 +184,7 @@ public class ProductServiceImpl implements ProductService {
         product.setUpdatedAt(UtcTime.now());
         int updated = productMapper.updateDetailsIfStatusMatches(product, existing.getStatus());
         if (updated != 1)
-            throw new BusinessException("Product status has changed");
+            throw new BusinessException("商品状态改变");
 
         replaceProductImages(productId, request.getImages());
         return toVO(productMapper.selectById(productId), Collections.emptySet());
@@ -197,14 +197,14 @@ public class ProductServiceImpl implements ProductService {
     ) {
         Product product = productMapper.selectById(productId);
         if (product == null)
-            throw new BusinessException(Result.Code.NOT_FOUND, "Product not found");
+            throw new BusinessException(Result.Code.NOT_FOUND, "商品不存在");
 
         if (!Objects.equals(product.getUserId(), userId))
-            throw new BusinessException(Result.Code.FORBIDDEN, "Permission denied");
+            throw new BusinessException(Result.Code.FORBIDDEN, "没有权限");
 
         String transition = product.getStatus() + "->" + status;
         if (!ALLOWED_TRANSITIONS.contains(transition))
-            throw new BusinessException("Invalid status transition");
+            throw new BusinessException("无效的状态转换");
 
         updateStatus(product, status);
         return null;
@@ -218,19 +218,19 @@ public class ProductServiceImpl implements ProductService {
     ) {
         Product product = productMapper.selectById(productId);
         if (product == null)
-            throw new BusinessException(Result.Code.NOT_FOUND, "Product not found");
+            throw new BusinessException(Result.Code.NOT_FOUND, "商品不存在");
 
         if (!Objects.equals(product.getUserId(), userId))
-            throw new BusinessException(Result.Code.FORBIDDEN, "Permission denied");
+            throw new BusinessException(Result.Code.FORBIDDEN, "没有权限");
 
         if (Objects.equals(product.getStatus(), ProductConstant.Status.SOLD_OUT))
-            throw new BusinessException("Sold product cannot be removed");
+            throw new BusinessException("已售出的产品无法移除");
 
         int locked = productMapper.softDeleteIfStatusMatches(
                 productId, userId, product.getStatus(),
                 ProductConstant.Status.DISABLE, UtcTime.now());
         if (locked != 1)
-            throw new BusinessException("Product status has changed");
+            throw new BusinessException("商品状态改变");
 
         favoriteMapper.deleteByProductId(productId);
         cartItemMapper.deleteByProductId(productId);
@@ -288,10 +288,10 @@ public class ProductServiceImpl implements ProductService {
         if (status == null
                 || status < ProductConstant.Status.NEED_CHECK
                 || status > ProductConstant.Status.DISABLE)
-            throw new BusinessException("Invalid product status");
+            throw new BusinessException("无效的商品状态");
 
         if (product == null)
-            throw new BusinessException(Result.Code.NOT_FOUND, "Product not found");
+            throw new BusinessException(Result.Code.NOT_FOUND, "商品不存在");
 
         boolean allowedTransition =
                 (Objects.equals(product.getStatus(), ProductConstant.Status.NEED_CHECK)
@@ -301,7 +301,7 @@ public class ProductServiceImpl implements ProductService {
                         || (Objects.equals(product.getStatus(), ProductConstant.Status.ON_SALE)
                         && Objects.equals(status, ProductConstant.Status.DISABLE));
         if (!allowedTransition)
-            throw new BusinessException("Invalid admin product status transition");
+            throw new BusinessException("无效的产品状态转换");
 
         updateStatus(product, status);
         return null;
@@ -407,10 +407,10 @@ public class ProductServiceImpl implements ProductService {
 
     private void validateProduct(ProductRequest request) {
         if (request == null || request.getCategoryId() == null)
-            throw new BusinessException("Invalid product details");
+            throw new BusinessException("无效的商品详情");
 
         if (categoryMapper.selectById(request.getCategoryId()) == null)
-            throw new BusinessException(Result.Code.NOT_FOUND, "Category not found");
+            throw new BusinessException(Result.Code.NOT_FOUND, "分类不存在");
     }
 
     private void replaceProductImages(Long productId, List<ProductImageRequest> images) {
@@ -428,7 +428,7 @@ public class ProductServiceImpl implements ProductService {
     private void validatePagination(Integer page, Integer pageSize) {
         if (page == null || page < 1
                 || pageSize == null || pageSize < 1 || pageSize > 100)
-            throw new BusinessException("Invalid pagination");
+            throw new BusinessException("无效的分页");
 
     }
 
@@ -436,7 +436,7 @@ public class ProductServiceImpl implements ProductService {
         int updated = productMapper.updateStatusIfMatches(
                 product.getId(), product.getStatus(), status, UtcTime.now());
         if (updated != 1)
-            throw new BusinessException("Product status has changed");
+            throw new BusinessException("商品状态已更改");
 
     }
 
