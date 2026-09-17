@@ -43,7 +43,7 @@ public class CategoryServiceImpl implements CategoryService {
             CategoryRequest request
     ) {
         if (categoryMapper.selectByName(request.getName()) > 0)
-            throw new BusinessException(Result.Code.FORBIDDEN, "Category already exists");
+            throw new BusinessException(Result.Code.FORBIDDEN, "分类已存在");
 
         Category category = ToEntityUtil.toCategoryEntity(request);
         categoryMapper.insert(category);
@@ -56,7 +56,7 @@ public class CategoryServiceImpl implements CategoryService {
         Category existing = categoryMapper.selectById(id);
 
         if (existing == null)
-            throw new BusinessException(Result.Code.NOT_FOUND, "Category not found");
+            throw new BusinessException(Result.Code.NOT_FOUND, "分类不存在");
 
         Category category = ToEntityUtil.toCategoryEntity(request);
         category.setId(id);
@@ -69,7 +69,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public Void removeCategory(Long id) {
         if (productMapper.countByCategoryId(id) > 0)
-            throw new BusinessException(Result.Code.FORBIDDEN, "Category has products");
+            throw new BusinessException(Result.Code.FORBIDDEN, "分类下有商品");
 
         categoryMapper.deleteById(id);
         return null;

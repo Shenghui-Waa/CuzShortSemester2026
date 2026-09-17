@@ -30,7 +30,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public UserVO register(UserRequest request) {
         if (userMapper.countByUsername(request.getUsername()) > 0)
-            throw new BusinessException("Username already exists");
+            throw new BusinessException("用户名已存在");
 
         User user = ToEntityUtil.toUserEntity(
                 request, passwordProvider, UserConstant.Role.USER);
@@ -45,13 +45,13 @@ public class AuthServiceImpl implements AuthService {
         User user = userMapper.selectByUsername(request.getUsername());
 
         if (user == null)
-            throw new BusinessException("Invalid username or password");
+            throw new BusinessException("无效的用户名或密码");
 
         if (user.getStatus() == UserConstant.Status.INACTIVE)
-            throw new BusinessException("Account has been disabled");
+            throw new BusinessException("账户被封禁");
 
         if (!passwordProvider.matches(request.getPassword(), user.getPassword()))
-            throw new BusinessException("Invalid username or password");
+            throw new BusinessException("无效的用户名或密码");
 
         String token = tokenProvider.generateToken(user);
         log.info("User logged in: {}", user.getUsername());
@@ -72,7 +72,7 @@ public class AuthServiceImpl implements AuthService {
         User user = userMapper.selectById(userId);
 
         if (user == null)
-            throw new BusinessException(Result.Code.NOT_FOUND, "User not found");
+            throw new BusinessException(Result.Code.NOT_FOUND, "用户不存在");
 
         return ToVOUtil.toUserVO(user);
     }

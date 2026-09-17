@@ -96,7 +96,7 @@ public class ChatServiceImpl implements ChatService {
     ) {
         if (page == null || page < 1
                 || pageSize == null || pageSize < 1 || pageSize > 100)
-            throw new BusinessException("Invalid pagination");
+            throw new BusinessException("无效的分页");
 
         List<ChatMessage> chatMessageList;
         try {
@@ -122,7 +122,7 @@ public class ChatServiceImpl implements ChatService {
             Long senderId, ChatMessageRequest request
     ) {
         if (userMapper.selectById(request.getReceiverId()) == null)
-            throw new BusinessException(Result.Code.NOT_FOUND, "Receiver not found");
+            throw new BusinessException(Result.Code.NOT_FOUND, "接收者不存在");
 
         ChatMessage message = ToEntityUtil.toChatMessageEntity(senderId, request);
         message.setContent(aesEncryptionUtil.encrypt(request.getContent()));

@@ -34,7 +34,7 @@ public class FavoriteController {
             @RequestParam(defaultValue = "12") Integer pageSize
     ) {
         Long currentUserId = tokenProvider.getUserId(token);
-        return Result.success(favoriteService.getFavorites(currentUserId, page, pageSize));
+        return Result.success(favoriteService.getFavorite(currentUserId, page, pageSize));
     }
 
     /**
@@ -70,7 +70,7 @@ public class FavoriteController {
             @PathVariable Long productId
     ) {
         Long currentUserId = tokenProvider.getUserId(token);
-        return Result.success(favoriteService.isFavorited(currentUserId, productId));
+        return Result.success(favoriteService.isFavorite(currentUserId, productId));
     }
 
 }

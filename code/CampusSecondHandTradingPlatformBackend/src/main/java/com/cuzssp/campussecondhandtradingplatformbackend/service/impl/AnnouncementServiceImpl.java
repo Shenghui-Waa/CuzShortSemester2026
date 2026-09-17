@@ -59,7 +59,7 @@ public class AnnouncementServiceImpl implements AnnouncementService {
     ) {
         Announcement announcement = announcementMapper.selectById(id);
         if (announcement == null)
-            throw new BusinessException(Result.Code.NOT_FOUND, "Announcement not found");
+            throw new BusinessException(Result.Code.NOT_FOUND, "公告不存在");
 
         AnnouncementVO announcementVO = ToVOUtil.toAnnouncementVO(announcement);
         return announcementVO;
@@ -84,7 +84,7 @@ public class AnnouncementServiceImpl implements AnnouncementService {
     ) {
         Announcement announcement = announcementMapper.selectById(id);
         if (announcement == null)
-            throw new BusinessException(Result.Code.NOT_FOUND, "Announcement not found");
+            throw new BusinessException(Result.Code.NOT_FOUND, "公告不存在");
 
         Announcement updated = ToEntityUtil.toAnnouncementEntity(announcementRequest);
         updated.setId(id);
@@ -100,7 +100,7 @@ public class AnnouncementServiceImpl implements AnnouncementService {
     ) {
         Announcement announcement = announcementMapper.selectById(id);
         if (announcement == null)
-            throw new BusinessException(Result.Code.NOT_FOUND, "Announcement not found");
+            throw new BusinessException(Result.Code.NOT_FOUND, "公告不存在");
 
         announcementMapper.deleteById(id);
         return null;

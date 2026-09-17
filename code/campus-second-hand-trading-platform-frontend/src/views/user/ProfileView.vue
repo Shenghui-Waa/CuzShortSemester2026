@@ -3,7 +3,12 @@
       <h2>个人中心</h2>
       <div class="back-row"><el-button class="back-btn" @click="$router.back()" text>&lt; 返回</el-button></div>
       <div class="av">
-        <GradientAvatar v-if="!user.userInfo?.avatar" :seed="user.userInfo?.username" :size="80" :colors="avatarColors" pattern="dither" />
+        <DefaultAvatar
+          v-if="!user.userInfo?.avatar"
+          :name="user.userInfo?.nickname"
+          :fallback-name="user.userInfo?.username"
+          :size="80"
+        />
         <el-avatar v-else :src="user.userInfo?.avatar" :size="80" />
         <div class="av-btns">
           <el-upload :action="`/api/files/upload`" :headers="{Authorization:`Bearer ${user.token}`}" :show-file-list="false"
@@ -71,13 +76,12 @@
 import { ref, reactive, computed, watch, onMounted } from "vue";
 import { ElMessage } from "element-plus";
 import { Back } from "@element-plus/icons-vue";
-import { GradientAvatar } from "@tsyanst/avatars-vue";
 import AppHeader from "@/components/layout/AppHeader.vue";
 import AppFooter from "@/components/layout/AppFooter.vue";
+import DefaultAvatar from "@/components/DefaultAvatar.vue";
 import { userApi } from "@/api/user";
 import { useUserStore } from "@/stores/user";
 const user = useUserStore();
-const avatarColors = ["#fb1e47", "#fc5675", "#fd8fa3", "#fec7d1", "#cd2846", "#a03146", "#723b45", "#ffffff", "#444444"];
 const f = reactive({ nickname: "", phone: "", email: "", school: "", campus: "" });
 const pw = reactive({ oldPassword: "", newPassword: "", confirmPassword: "" });
 const pwDialogVisible = ref(false);
